@@ -12,3 +12,5 @@ document.querySelector("form").addEventListener("submit", function(event) {
         alert("Username and password are required!"); // Provide user feedback
     }
 });
+
+
