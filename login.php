@@ -94,10 +94,13 @@ $conn->close();
             <input type="password" id="password" name="password" class="form-label" required/>
             <br/><br/>
             <button type="submit" class="form-label">Submit</button>
-            <br/>
-            <button onclick="hello_world()" class="form-label">Credits</button>
+            <br/>    
         </div>
     </form>
+    <div class="submit">
+        <br/>
+        <button onclick="hello_world()" style="display: block; margin: 0 auto; font-size: 24px;" title="See who are behind the scenes of this project!">Credits</button>
+    </div>
 </body>
 <script src="login.js"></script>
 </html>
