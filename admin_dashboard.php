@@ -20,6 +20,7 @@ $username = $_SESSION['username']; // Retrieve the username from the session
 </head>
 <body>
     <h1>Welcome to the Admin Dashboard, <?php echo htmlspecialchars($username); ?>!</h1>
+    <h2>Please click a button to proceed: </h2>
     <form action="logout.php" method="post">
         <input type="submit" id="logout" value="Logout" name="logout">
     </form>
