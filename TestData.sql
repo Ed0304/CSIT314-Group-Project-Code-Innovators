@@ -1,4 +1,4 @@
-CREATE DATABASE csit314
+CREATE DATABASE csit314;
 
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,7 +27,7 @@ INSERT INTO role(role_id, role_name) VALUES(2,"agent");
 INSERT INTO role(role_id, role_name) VALUES(3,"buyer");
 INSERT INTO role(role_id, role_name) VALUES(4,"seller");
 
-INSERT INTO user(username, password, role_id) VALUES("John Doe", "abc123", 1);
-INSERT INTO user(username, password, role_id) VALUES("Alice456", "h3ll0!", 2);
-INSERT INTO user(username, password, role_id) VALUES("Kazama3", "m1shim@", 3);
-INSERT INTO user(username, password, role_id) VALUES("Akazaza", "upper3", 4);
+INSERT INTO users(username, password, role_id) VALUES("John Doe", "abc123", 1);
+INSERT INTO users(username, password, role_id) VALUES("Alice456", "h3ll0!", 2);
+INSERT INTO users(username, password, role_id) VALUES("Kazama3", "m1shim@", 3);
+INSERT INTO users(username, password, role_id) VALUES("Akazaza", "upper3", 4);
