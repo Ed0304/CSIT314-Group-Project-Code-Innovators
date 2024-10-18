@@ -1,24 +1,33 @@
 CREATE DATABASE csit314
 
-CREATE TABLE Admin (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
-);
-
-INSERT INTO Admin(username,password) VALUES("John Doe","abc123");
-
---Do not execute these two statements first! We are still thinking how the databased design look like!
-CREATE TABLE User(
+CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role_id INT FOREIGN KEY
+    username VARCHAR(256) NOT NULL UNIQUE,
+    password VARCHAR(256) NOT NULL,
+    role_id INT,
+    FOREIGN KEY (role_id) REFERENCES role(role_id)
 );
 
-CREATE TABLE Role(role_id INT AUTO_INCREMENT PRIMARY KEY,
-                   role_name VARCHAR(256));
+CREATE TABLE role (
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(256)
+);
 
+CREATE TABLE profile (
+    profile_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    first_name VARCHAR(256) NOT NULL,
+    email VARCHAR(256) NOT NULL UNIQUE,
+    phone_num VARCHAR(256) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
 
+INSERT INTO role(role_id, role_name) VALUES(1,"admin");
+INSERT INTO role(role_id, role_name) VALUES(2,"agent");
+INSERT INTO role(role_id, role_name) VALUES(3,"buyer");
+INSERT INTO role(role_id, role_name) VALUES(4,"seller");
 
-
+INSERT INTO user(username, password, role_id) VALUES("John Doe", "abc123", 1);
+INSERT INTO user(username, password, role_id) VALUES("Alice456", "h3ll0!", 2);
+INSERT INTO user(username, password, role_id) VALUES("Kazama3", "m1shim@", 3);
+INSERT INTO user(username, password, role_id) VALUES("Akazaza", "upper3", 4);
