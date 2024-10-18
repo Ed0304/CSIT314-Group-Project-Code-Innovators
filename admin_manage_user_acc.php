@@ -1,3 +1,9 @@
+<?php
+if (isset($_POST['createAccount'])) {
+    header("Location: accountCreation.php");
+    exit();
+}
+?>
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -37,6 +43,11 @@
                 <option value="buyer" class="select-label">Buyer</option>
                 <option value="seller" class="select-label">Seller</option>
         </select>
+        <br/>
+        <br/>
+        <form method="post" action="">
+        <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user account</button>
+        </form>
         <br/>
         <br/>
     <table id="main-table">

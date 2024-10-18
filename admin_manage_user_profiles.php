@@ -1,3 +1,9 @@
+<?php
+if (isset($_POST['createProfile'])) {
+    header("Location: profileCreation.php");
+    exit();
+}
+?>
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -31,14 +37,20 @@
     <h1 style="text-align:center">Manage user profiles here...</h1>
     <!-- Add your management functionality here -->
     <label for="role" class="select-label">Filer based on:</label>
-            <select id="role" name="role" class="select-label">
-                <option value="" class ="select-label">All roles </option>
-                <option value="agent" class="select-label">Used Car Agent</option>
-                <option value="buyer" class="select-label">Buyer</option>
-                <option value="seller" class="select-label">Seller</option>
-        </select>
-        <br/>
-        <br/>
+    <select id="role" name="role" class="select-label">
+        <option value="" class="select-label">All roles</option>
+        <option value="agent" class="select-label">Used Car Agent</option>
+        <option value="buyer" class="select-label">Buyer</option>
+        <option value="seller" class="select-label">Seller</option>
+    </select>
+    <br/>
+    <br/>
+    <!-- Form for creating profile -->
+    <form method="post" action="">
+        <button type="submit" name="createProfile" class="select-label" id="createProfile">Create new user profile</button>
+    </form>
+    <br/>
+    <br/>
     <table id="main-table">
         <tr>
             <th>Username</th>
