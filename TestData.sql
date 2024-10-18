@@ -17,6 +17,7 @@ CREATE TABLE profile (
     profile_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     first_name VARCHAR(256) NOT NULL,
+    last_name VARCHAR(256) NOT NULL,
     email VARCHAR(256) NOT NULL UNIQUE,
     phone_num VARCHAR(256) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -31,3 +32,5 @@ INSERT INTO users(username, password, role_id) VALUES("John Doe", "abc123", 1);
 INSERT INTO users(username, password, role_id) VALUES("Alice456", "h3ll0!", 2);
 INSERT INTO users(username, password, role_id) VALUES("Kazama3", "m1shim@", 3);
 INSERT INTO users(username, password, role_id) VALUES("Akazaza", "upper3", 4);
+
+INSERT INTO profile(user_id, first_name, last_name, email, phone_num) VALUES (1,"John","Doe","john@exampl3.com","+6581234567")
