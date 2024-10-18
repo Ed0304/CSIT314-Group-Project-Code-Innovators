@@ -29,7 +29,7 @@ class Database {
 }
 
 // User class to handle user authentication
-// This the entity layer in the B-C-E framework
+// This is the entity layer in the B-C-E framework
 class User {
     private $conn;
 
@@ -38,13 +38,24 @@ class User {
     }
 
     public function authenticate($username, $password, $role) {
+        // Map role to role_id (assuming role_id is based on your role names)
+        $roleMapping = [
+            'admin' => 1,
+            'agent' => 2,
+            'buyer' => 3,
+            'seller' => 4
+        ];
+        
+        // Get the role_id based on the selected role
+        $role_id = $roleMapping[$role];
+
         // Prepare and bind
-        $stmt = $this->conn->prepare("SELECT password FROM admin WHERE username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $this->conn->prepare("SELECT password FROM users WHERE username = ? AND role_id = ?");
+        $stmt->bind_param("si", $username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
-        // Check if username exists
+        // Check if username and role exist
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($stored_password);
             $stmt->fetch();
@@ -56,7 +67,7 @@ class User {
                 return "Invalid username or password.";
             }
         } else {
-            return "Invalid username or password.";
+            return "Invalid username, password, or role.";
         }
         $stmt->close();
     }
