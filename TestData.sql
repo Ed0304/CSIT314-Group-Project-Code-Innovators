@@ -16,10 +16,8 @@ CREATE TABLE User(
     role_id INT FOREIGN KEY
 );
 
-CREATE TABLE Role(
-    role_id INT AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR()
-)
+CREATE TABLE Role(role_id INT AUTO_INCREMENT PRIMARY KEY,
+                   role_name VARCHAR(256));
 
 
 
