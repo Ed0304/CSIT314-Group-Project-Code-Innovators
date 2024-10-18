@@ -34,3 +34,4 @@ INSERT INTO users(username, password, role_id) VALUES("Kazama3", "m1shim@", 3);
 INSERT INTO users(username, password, role_id) VALUES("Akazaza", "upper3", 4);
 
 INSERT INTO profile(user_id, first_name, last_name, email, phone_num) VALUES (1,"John","Doe","john@exampl3.com","+6581234567")
+INSERT INTO profile(user_id, first_name, last_name, email, phone_num) VALUES (2,"Alice", "Tan","alice@exampl3.com","+6591234567")
