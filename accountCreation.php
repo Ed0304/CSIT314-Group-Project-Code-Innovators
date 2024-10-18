@@ -80,7 +80,7 @@ $conn->close();
         <h2 style="text-align:center"> Please fill in the following details</h2>
         <h3 style="text-align:center"> All fields are mandatory </h3>
     </div>
-    <form class="form-body" method="POST" action=""> <!-- Add method and action attributes -->
+    <form class="form-body" method="POST" action="admin_dashboard.php"> <!-- Add method and action attributes -->
         <table class="invisible-table">
             <tr>
                 <td><label style="font-size: 24px">Username:</label></td>

@@ -80,7 +80,7 @@ $conn->close();
         <h2 style="text-align:center">Please fill in the following details</h2>
         <h3 style="text-align:center">All fields are mandatory</h3>
     </div>
-    <form class="form-body" method="POST" action="">
+    <form class="form-body" method="POST"  action="admin_dashboard.php">
         <h4>Note: Username should match with one of the data in the accounts list!</h4>
         <table class="invisible-table">
             <tr>
