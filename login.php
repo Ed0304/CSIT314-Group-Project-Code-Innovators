@@ -1,7 +1,7 @@
 <?php
 session_start(); // Start the session
 
-// Database class to handle the connection 
+// Entity Layer: Database class to handle the connection
 class Database {
     private $servername = "localhost";
     private $username = "root";
@@ -10,6 +10,10 @@ class Database {
     private $conn;
 
     public function __construct() {
+        $this->connect();
+    }
+
+    private function connect() {
         // Create connection
         $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
 
@@ -28,30 +32,33 @@ class Database {
     }
 }
 
-// User class to handle user authentication
-// This is the entity layer in the B-C-E framework
+// Entity Layer: User class to handle user authentication
 class User {
     private $conn;
+    private $username;
+    private $role;
+    private $password;
 
-    public function __construct($db) {
+    public function __construct($db, $username, $password, $role) {
         $this->conn = $db;
+        $this->username = $username;
+        $this->password = $password;
+        $this->role = $role;
     }
 
-    public function authenticate($username, $password, $role) {
-        // Map role to role_id (assuming role_id is based on your role names)
+    public function authenticate() {
+        // Map role to role_id
         $roleMapping = [
             'admin' => 1,
             'agent' => 2,
             'buyer' => 3,
             'seller' => 4
         ];
-        
-        // Get the role_id based on the selected role
-        $role_id = $roleMapping[$role];
+        $role_id = $roleMapping[$this->role];
 
         // Prepare and bind
         $stmt = $this->conn->prepare("SELECT password FROM users WHERE username = ? AND role_id = ?");
-        $stmt->bind_param("si", $username, $role_id);
+        $stmt->bind_param("si", $this->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
@@ -61,8 +68,8 @@ class User {
             $stmt->fetch();
 
             // Verify password (use password_hash in a real app)
-            if ($password === $stored_password) {
-                return $this->redirectBasedOnRole($username, $role);
+            if ($this->password === $stored_password) {
+                return $this->redirectBasedOnRole();
             } else {
                 return "Invalid username or password.";
             }
@@ -72,12 +79,12 @@ class User {
         $stmt->close();
     }
 
-    private function redirectBasedOnRole($username, $role) {
+    private function redirectBasedOnRole() {
         // Store the username in session
-        $_SESSION['username'] = $username;
+        $_SESSION['username'] = $this->username;
 
         // Redirect based on role
-        switch($role) {
+        switch($this->role) {
             case 'admin':
                 header("Location: admin_dashboard.php");
                 exit();
@@ -96,33 +103,49 @@ class User {
     }
 }
 
-// Main logic for form handling
-// Control layer in the B-C-E framework
+// Control Layer: AuthController class to handle form submission and user authentication
+class AuthController {
+    private $database;
+    private $user;
+
+    public function __construct() {
+        // Instantiate the Database object
+        $this->database = new Database();
+    }
+
+    public function handleLogin($username, $password, $role) {
+        // Create User object for authentication
+        $this->user = new User($this->database->getConnection(), $username, $password, $role);
+        return $this->user->authenticate();
+    }
+
+    public function closeDatabaseConnection() {
+        // Close the database connection
+        $this->database->closeConnection();
+    }
+}
+
+// Control Layer logic for handling form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Instantiate Database object and get connection
-    $database = new Database();
-    $conn = $database->getConnection();
+    $controller = new AuthController();
 
     // Retrieve and sanitize form input
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     $role = htmlspecialchars($_POST['role']); 
 
-    // Instantiate User object and authenticate
-    $user = new User($conn);
-    $message = $user->authenticate($username, $password, $role);
+    // Authenticate the user
+    $message = $controller->handleLogin($username, $password, $role);
 
     if ($message) {
         echo $message;
     }
 
     // Close the database connection
-    $database->closeConnection();
+    $controller->closeDatabaseConnection();
 }
 ?>
 
-<!-- HTML Form for user login -->
-<!-- This is the boundary layer in the B-C-E framework -->
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -134,6 +157,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <br/><h1>CSIT314-GROUP PROJECT</h1>
         <h2>Made by: Code Innovators!</h2>
     </div>
+
+    <!-- Boundary: HTML Form for user login -->
     <form action="" method="POST">
         <div class="form-body">
             <br/><br/>
@@ -155,10 +180,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <br/>    
         </div>
     </form>
+
+    <!-- Boundary: Credits button -->
     <div class="submit">
         <br/>
         <button onclick="hello_world()" style="display: block; margin: 0 auto; font-size: 24px;" title="See who are behind the scenes of this project!">Credits</button>
     </div>
+
+    <script src="login.js"></script>
 </body>
-<script src="login.js"></script>
 </html>
