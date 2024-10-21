@@ -19,8 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $input_username = $_POST['username'];
     $first_name = $_POST['first_name'];
     $last_name = $_POST['last_name'];
-    $email = $_POST['email'];
-    $phone_number = $_POST['phone_number'];
+    $gender = $_POST['gender'];
+    $about = $_POST['about']; // New 'about' field
 
     // Prepare and execute the SQL statement to check if the username exists
     $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
@@ -37,12 +37,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user_id = $row['user_id'];
 
         // Prepare and bind the SQL statement for inserting the profile with user_id
-        $stmt = $conn->prepare("INSERT INTO profile (user_id, first_name, last_name, email, phone_num) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("issss", $user_id, $first_name, $last_name, $email, $phone_number); // "issss" means user_id is an integer, others are strings
+        $stmt = $conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("issss", $user_id, $first_name, $last_name, $gender, $about); // "issss" means user_id is an integer, others are strings
 
         // Execute the statement
         if ($stmt->execute()) {
-            echo "New record created successfully";
+            echo "New profile created successfully";
         } else {
             echo "Error: " . $stmt->error;
         }
@@ -80,7 +80,7 @@ $conn->close();
         <h2 style="text-align:center">Please fill in the following details</h2>
         <h3 style="text-align:center">All fields are mandatory</h3>
     </div>
-    <form class="form-body" method="POST"  action="">
+    <form class="form-body" method="POST" action="">
         <h4>Note: Username should match with one of the data in the accounts list!</h4>
         <table class="invisible-table">
             <tr>
@@ -96,12 +96,17 @@ $conn->close();
                 <td><input type="text" name="last_name" style="font-size: 24px" required/></td>
             </tr>
             <tr>
-                <td><label style="font-size: 24px">Email:</label></td>
-                <td><input type="email" name="email" style="font-size: 24px" required/></td>
+                <td><label style="font-size: 24px">Gender:</label></td>
+                <td>
+                    <select name="gender" style="font-size: 24px" required>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </td>
             </tr>
             <tr>
-                <td><label style="font-size: 24px">Phone Number:</label></td>
-                <td><input type="text" name="phone_number" style="font-size: 24px" required/></td>
+                <td><label style="font-size: 24px">About:</label></td>
+                <td><textarea name="about" style="font-size: 24px" rows="4" cols="50"></textarea></td> <!-- About text area -->
             </tr>
         </table>
         <br/>

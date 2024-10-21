@@ -18,6 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get the form data
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $email = $_POST['email'];
+    $phone_num = $_POST['phone_num'];
     $role_name = $_POST['role'];
 
     // Prepare and execute a statement to get the role ID
@@ -34,8 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Prepare and bind the SQL statement to insert the new account
-    $stmt = $conn->prepare("INSERT INTO users (username, password, role_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("ssi", $username, $password, $role_id); // "ssi" means string, string, integer
+    $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num); 
 
     // Execute the statement
     if ($stmt->execute()) {
@@ -84,11 +86,11 @@ $conn->close();
         <table class="invisible-table">
             <tr>
                 <td><label style="font-size: 24px">Username:</label></td>
-                <td><input type="text" name="username" style="font-size: 24px" required/></td> <!-- Added name attribute -->
+                <td><input type="text" name="username" style="font-size: 24px" required/></td> 
             </tr>
             <tr>
                 <td><label style="font-size: 24px">Password:</label></td>
-                <td><input type="password" name="password" style="font-size: 24px" required/></td> <!-- Added name attribute -->
+                <td><input type="password" name="password" style="font-size: 24px" required/></td> 
             </tr>
             <tr>
                 <td><label for="role" class="select-label">Role:</label></td>
@@ -99,6 +101,14 @@ $conn->close();
                         <option value="seller" class="select-label">Seller</option>
                     </select>
                 </td>
+            </tr>
+            <tr>
+                <td><label style="font-size: 24px">Email:</label></td>
+                <td><input type="text" name="email" style="font-size: 24px" required/></td> 
+            </tr>
+            <tr>
+                <td><label style="font-size: 24px">Phone Number:</label></td>
+                <td><input type="text" name="phone_num" style="font-size: 24px" required/></td> 
             </tr>
         </table>
         <br/>

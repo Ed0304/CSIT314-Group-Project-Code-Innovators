@@ -13,7 +13,7 @@ class User {
     }
 
     public function getUsers() {
-        $stmt = $this->pdo->query("SELECT u.username, u.password, r.role_name 
+        $stmt = $this->pdo->query("SELECT u.username, u.password, r.role_name, u.email, u.phone_num 
             FROM users u
             JOIN role r ON u.role_id = r.role_id");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -24,6 +24,25 @@ class User {
 $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : null;
 if (isset($action['createAccount'])) {
     header("Location: accountCreation.php");
+    exit();
+}
+
+if (isset($action['viewAccount'])) {
+    // Get the username from the POST data
+    $username = $action['username'];
+    header("Location: admin_view_account.php?username=" . urlencode($username));
+    exit();
+}
+
+if (isset($action['updateAccount'])) {
+    // Placeholder for updating logic
+    echo "Redirecting to update account page..."; // Replace with actual logic
+    exit();
+}
+
+if (isset($action['suspendAccount'])) {
+    // Placeholder for suspending logic
+    echo "Redirecting to suspend account page..."; // Replace with actual logic
     exit();
 }
 
@@ -61,7 +80,7 @@ $users = $userModel->getUsers();
         #search {
             font-size: 20px;
         }
-        .button-font{
+        .button-font {
             font-size: 18px;
         }
     </style>
@@ -88,7 +107,6 @@ $users = $userModel->getUsers();
     <table id="main-table">
         <tr>
             <th>Username</th>
-            <th>Password</th>
             <th>Role</th>
             <th>Actions</th>
         </tr>
@@ -96,12 +114,25 @@ $users = $userModel->getUsers();
             <?php foreach ($users as $user): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($user['username']); ?></td>
-                    <td><?php echo htmlspecialchars($user['password']); ?></td>
                     <td><?php echo htmlspecialchars($user['role_name']); ?></td>
                     <td>
-                        <button class="button-font">View</button>
-                        <button class="button-font">Update</button>
-                        <button class="button-font">Suspend</button>
+                        <!-- Form for viewing account -->
+                        <form method="post" action="">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
+                            <button type="submit" class="button-font" id="viewAccount" name="viewAccount">View</button>
+                        </form>
+
+                        <!-- Form for updating account -->
+                        <form method="post" action="">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
+                            <button type="submit" class="button-font" id="updateAccount" name="updateAccount">Update</button>
+                        </form>
+
+                        <!-- Form for suspending account -->
+                        <form method="post" action="">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
+                            <button type="submit" class="button-font" id="suspendAccount" name="suspendAccount">Suspend</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>

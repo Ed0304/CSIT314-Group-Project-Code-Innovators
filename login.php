@@ -49,8 +49,8 @@ class User {
     public function authenticate() {
         // Map role to role_id
         $roleMapping = [
-            'admin' => 1,
-            'agent' => 2,
+            'user admin' => 1,
+            'used car agent' => 2,
             'buyer' => 3,
             'seller' => 4
         ];
@@ -85,10 +85,10 @@ class User {
 
         // Redirect based on role
         switch($this->role) {
-            case 'admin':
+            case 'user admin':
                 header("Location: admin_dashboard.php");
                 exit();
-            case 'agent':
+            case 'used car agent':
                 header("Location: agent_dashboard.php");
                 exit();
             case 'buyer':
@@ -164,8 +164,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <br/><br/>
             <label for="role" class="form-label">Login As:</label>
             <select id="role" name="role" class="form-label" required>
-                <option value="admin" class="form-label">User Admin</option>
-                <option value="agent" class="form-label">Used Car Agent</option>
+                <option value="user admin" class="form-label">User Admin</option>
+                <option value="used car agent" class="form-label">Used Car Agent</option>
                 <option value="buyer" class="form-label">Buyer</option>
                 <option value="seller" class="form-label">Seller</option>
             </select>
