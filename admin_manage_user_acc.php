@@ -91,7 +91,7 @@ $users = $userModel->getUsers();
     <label for="role" class="select-label">Filter based on:</label>
     <select id="role" name="role" class="select-label">
         <option value="" class="select-label">All roles</option>
-        <option value="agent" class="select-label">Used Car Agent</option>
+        <option value="used car agent" class="select-label">Used Car Agent</option>
         <option value="buyer" class="select-label">Buyer</option>
         <option value="seller" class="select-label">Seller</option>
     </select>

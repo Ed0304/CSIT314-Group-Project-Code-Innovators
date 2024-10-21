@@ -96,7 +96,7 @@ $conn->close();
                 <td><label for="role" class="select-label">Role:</label></td>
                 <td>
                     <select id="role" name="role" class="select-label" required>
-                        <option value="agent" class="select-label">Used Car Agent</option>
+                        <option value="used car agent" class="select-label">Used Car Agent</option>
                         <option value="buyer" class="select-label">Buyer</option>
                         <option value="seller" class="select-label">Seller</option>
                     </select>

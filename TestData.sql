@@ -22,6 +22,7 @@ CREATE TABLE profile (
     last_name VARCHAR(256) NOT NULL,
     about VARCHAR(256) NOT NULL,
     gender VARCHAR(16) NOT NULL,
+    profile_image BLOB,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
@@ -33,5 +34,5 @@ INSERT INTO role(role_id, role_name) VALUES(4,"seller");
 INSERT INTO users(username, password, role_id, email, phone_num) VALUES("John Doe", "abc123", 1,"john@exampl3.com","+6581234567");
 INSERT INTO users(username, password, role_id, email, phone_num) VALUES("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567");
 
-INSERT INTO profile(user_id, first_name, last_name, about) VALUES (1,"John","Doe", "I am the only user admin here", "M");
-INSERT INTO profile(user_id, first_name, last_name, about) VALUES (2,"Alice", "Tan", "Specializes in selling used Japanese Cars (Toyota, Honda, Nissan)" ,"F");
+INSERT INTO profile(user_id, first_name, last_name, about, gender) VALUES (1,"John","Doe", "I am the only user admin here", "M");
+INSERT INTO profile(user_id, first_name, last_name, about, gender) VALUES (2,"Alice", "Tan", "Specializes in selling used Japanese Cars (Toyota, Honda, Nissan)" ,"F");
