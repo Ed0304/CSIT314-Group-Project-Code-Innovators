@@ -69,7 +69,7 @@ class User {
 
             // Verify password (use password_hash in a real app)
             if ($this->password === $stored_password) {
-                return $this->redirectBasedOnRole();
+                return $this->redirectBasedOnRole(); //redirects the user to their specified role.
             } else {
                 return "Invalid username or password.";
             }
@@ -135,7 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = htmlspecialchars($_POST['role']); 
 
     // Authenticate the user
-    $message = $controller->handleLogin($username, $password, $role);
+    $message = $controller->handleLogin($username, $password, $role); //This is for boundary part
 
     if ($message) {
         echo $message;
