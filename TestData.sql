@@ -26,6 +26,16 @@ CREATE TABLE profile (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
+
+CREATE TABLE listing(
+    listing_id INT AUTO_INCREMENT PRIMARY KEY,
+    manufacturer_name VARCHAR(256) NOT NULL,
+    model_name VARCHAR(256) NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+
+)
+
 INSERT INTO role(role_id, role_name) VALUES(1,"user admin");
 INSERT INTO role(role_id, role_name) VALUES(2,"used car agent");
 INSERT INTO role(role_id, role_name) VALUES(3,"buyer");

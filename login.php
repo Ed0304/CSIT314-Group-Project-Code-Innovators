@@ -54,6 +54,11 @@ class User {
             'buyer' => 3,
             'seller' => 4
         ];
+        // Check if role is valid
+        if (!array_key_exists($this->role, $roleMapping)) {
+            return "Invalid role selected.";
+        }
+
         $role_id = $roleMapping[$this->role];
 
         // Prepare and bind
@@ -67,9 +72,9 @@ class User {
             $stmt->bind_result($stored_password);
             $stmt->fetch();
 
-            // Verify password (use password_hash in a real app)
+            // Verify password (you should use password_hash() and password_verify() in a real application)
             if ($this->password === $stored_password) {
-                return $this->redirectBasedOnRole(); //redirects the user to their specified role.
+                return $this->redirectBasedOnRole();
             } else {
                 return "Invalid username or password.";
             }
@@ -130,15 +135,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $controller = new AuthController();
 
     // Retrieve and sanitize form input
-    $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    $role = htmlspecialchars($_POST['role']); 
+    $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '';
+    $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : '';
+    $role = isset($_POST['role']) ? htmlspecialchars($_POST['role']) : ''; 
 
-    // Authenticate the user
-    $message = $controller->handleLogin($username, $password, $role); //This is for boundary part
+    if (!empty($username) && !empty($password) && !empty($role)) {
+        // Authenticate the user
+        $message = $controller->handleLogin($username, $password, $role);
 
-    if ($message) {
-        echo $message;
+        if ($message) {
+            echo $message;
+        }
     }
 
     // Close the database connection
