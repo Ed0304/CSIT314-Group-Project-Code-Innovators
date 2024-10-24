@@ -1,11 +1,12 @@
 <?php
 session_start(); // Start the session
 
-// Entity layer
+// Entity Layer
 class User {
     private $username;
 
     public function __construct($username) {
+        // Sanitize username input
         $this->username = htmlspecialchars($username);
     }
 
@@ -14,12 +15,17 @@ class User {
     }
 }
 
-// Boundary layer
+// Boundary Layer
 class DashboardView {
     private $username;
 
-    public function __construct(User $user) {
-        $this->username = $user->getUsername();
+    public function __construct() {
+        // Initial state; no user set until controller sets it
+        $this->username = '';
+    }
+
+    public function setUsername($username) {
+        $this->username = htmlspecialchars($username); // Sanitize when setting username
     }
 
     public function render() {
@@ -61,49 +67,55 @@ class DashboardView {
     }
 }
 
-// Control layer
+// Control Layer
 class DashboardController {
     private $view;
 
-    public function __construct(User $user) {
-        $this->view = new DashboardView($user);
+    public function __construct() {
+        $this->view = new DashboardView();
     }
 
     public function handleRequest() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (isset($_POST['userAcc'])) {
-                header("Location: admin_manage_user_acc.php");
-                exit();
-            }
-
-            if (isset($_POST['userProfile'])) {
-                header("Location: admin_manage_user_profiles.php");
-                exit();
-            }
-
-            if (isset($_POST['logout'])) {
-                header("Location: logout.php");
-                exit();
-            }
+        // Check if the user is logged in
+        if (!isset($_SESSION['username'])) {
+            header("Location: login.php");
+            exit();
         }
 
-        // Render the dashboard view if no button is clicked
+        $username = $_SESSION['username']; // Retrieve the username from the session
+        $user = new User($username); // Create a User entity
+        $this->view->setUsername($user->getUsername()); // Set the username in the view
+
+        // Handle form submissions
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->handleFormSubmission();
+        }
+
+        // Render the dashboard view if no action is taken
         $this->view->render();
+    }
+
+    private function handleFormSubmission() {
+        if (isset($_POST['userAcc'])) {
+            $this->redirectTo('admin_manage_user_acc.php');
+        }
+
+        if (isset($_POST['userProfile'])) {
+            $this->redirectTo('admin_manage_user_profiles.php');
+        }
+
+        if (isset($_POST['logout'])) {
+            $this->redirectTo('logout.php');
+        }
+    }
+
+    private function redirectTo($location) {
+        header("Location: $location");
+        exit();
     }
 }
 
-// Main logic
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
-
-$username = $_SESSION['username']; // Retrieve the username from the session
-
-// Create a User entity
-$user = new User($username);
-
-// Instantiate the controller and handle the request
-$controller = new DashboardController($user);
+// Main logic encapsulated in the controller
+$controller = new DashboardController();
 $controller->handleRequest();
 ?>

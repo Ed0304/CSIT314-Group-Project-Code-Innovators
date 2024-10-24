@@ -54,6 +54,7 @@ class User {
             'buyer' => 3,
             'seller' => 4
         ];
+
         // Check if role is valid
         if (!array_key_exists($this->role, $roleMapping)) {
             return "Invalid role selected.";
@@ -81,7 +82,6 @@ class User {
         } else {
             return "Invalid username, password, or role.";
         }
-        $stmt->close();
     }
 
     private function redirectBasedOnRole() {
@@ -130,6 +130,58 @@ class AuthController {
     }
 }
 
+// Boundary Layer: LoginForm class to generate the login form HTML
+class LoginForm {
+    public static function display() {
+        ?>
+        <!DOCTYPE HTML>
+        <html lang="en">
+        <head>
+            <link rel="stylesheet" href="login.css"/>
+            <title>CSIT314-PROJECT</title>
+        </head>
+        <body>
+            <div class="website-title">
+                <br/><h1>CSIT314-GROUP PROJECT</h1>
+                <h2>Made by: Code Innovators!</h2>
+            </div>
+
+            <!-- Boundary: HTML Form for user login -->
+            <form action="" method="POST">
+                <div class="form-body">
+                    <br/><br/>
+                    <label for="role" class="form-label">Login As:</label>
+                    <select id="role" name="role" class="form-label" required>
+                        <option value="user admin" class="form-label">User Admin</option>
+                        <option value="used car agent" class="form-label">Used Car Agent</option>
+                        <option value="buyer" class="form-label">Buyer</option>
+                        <option value="seller" class="form-label">Seller</option>
+                    </select>
+                    <br/><br/>
+                    <label for="username" class="form-label">Username </label>
+                    <input type="text" id="username" name="username" class="form-label" required/>
+                    <br/><br/>
+                    <label for="password" class="form-label">Password </label>
+                    <input type="password" id="password" name="password" class="form-label" required/>
+                    <br/><br/>
+                    <button type="submit" class="form-label">Submit</button>
+                    <br/>    
+                </div>
+            </form>
+
+            <!-- Boundary: Credits button -->
+            <div class="submit">
+                <br/>
+                <button onclick="hello_world()" style="display: block; margin: 0 auto; font-size: 24px;" title="See who are behind the scenes of this project!">Credits</button>
+            </div>
+
+            <script src="login.js"></script>
+        </body>
+        </html>
+        <?php
+    }
+}
+
 // Control Layer logic for handling form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $controller = new AuthController();
@@ -150,50 +202,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Close the database connection
     $controller->closeDatabaseConnection();
+} else {
+    // Display the login form if not a POST request
+    LoginForm::display();
 }
 ?>
-
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="login.css"/>
-    <title>CSIT314-PROJECT</title>
-</head>
-<body>
-    <div class="website-title">
-        <br/><h1>CSIT314-GROUP PROJECT</h1>
-        <h2>Made by: Code Innovators!</h2>
-    </div>
-
-    <!-- Boundary: HTML Form for user login -->
-    <form action="" method="POST">
-        <div class="form-body">
-            <br/><br/>
-            <label for="role" class="form-label">Login As:</label>
-            <select id="role" name="role" class="form-label" required>
-                <option value="user admin" class="form-label">User Admin</option>
-                <option value="used car agent" class="form-label">Used Car Agent</option>
-                <option value="buyer" class="form-label">Buyer</option>
-                <option value="seller" class="form-label">Seller</option>
-            </select>
-            <br/><br/>
-            <label for="username" class="form-label">Username </label>
-            <input type="text" id="username" name="username" class="form-label" required/>
-            <br/><br/>
-            <label for="password" class="form-label">Password </label>
-            <input type="password" id="password" name="password" class="form-label" required/>
-            <br/><br/>
-            <button type="submit" class="form-label">Submit</button>
-            <br/>    
-        </div>
-    </form>
-
-    <!-- Boundary: Credits button -->
-    <div class="submit">
-        <br/>
-        <button onclick="hello_world()" style="display: block; margin: 0 auto; font-size: 24px;" title="See who are behind the scenes of this project!">Credits</button>
-    </div>
-
-    <script src="login.js"></script>
-</body>
-</html>

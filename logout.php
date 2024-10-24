@@ -34,7 +34,7 @@ class LogoutView {
         <body>
             <h1 style="text-align:center">Goodbye, <?php echo $this->username; ?>. You have been logged out.</h1>
             <!-- Back to Login button -->
-            <form method="post" action="login.php" style="text-align:center">
+            <form method="post" action="" style="text-align:center">
                 <br/>
                 <input type="submit" value="Return to Login" style="font-size: 24px">
             </form>
