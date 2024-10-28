@@ -1,21 +1,16 @@
 <?php
+require 'connectDatabase.php';
+
 // ENTITY LAYER: Handles data-related tasks (database interactions)
 class UserAccount {
-    private $conn;
-
-    // Constructor to initialize the database connection
-    public function __construct($servername, $username, $password, $dbname) {
-        $this->conn = new mysqli($servername, $username, $password, $dbname);
-
-        // Check for a connection error
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
-        }
+    // Constructor with no parameters
+    public function __construct() {
+        // Empty constructor
     }
 
     // Fetch the role ID based on role name
-    public function getRoleId($role_name) {
-        $stmt = $this->conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
+    public function getRoleId($conn, $role_name) {
+        $stmt = $conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
         $stmt->bind_param("s", $role_name);
         $stmt->execute();
         $stmt->bind_result($role_id);
@@ -25,17 +20,12 @@ class UserAccount {
     }
 
     // Insert a new user into the users table
-    public function createUser($username, $password, $role_id, $email, $phone_num) {
-        $stmt = $this->conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num) VALUES (?, ?, ?, ?, ?)");
+    public function createUser($conn, $username, $password, $role_id, $email, $phone_num) {
+        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
         $result = $stmt->execute();
         $stmt->close();
         return $result;
-    }
-
-    // Close the connection
-    public function close() {
-        $this->conn->close();
     }
 }
 
@@ -49,7 +39,7 @@ class AccountController {
     }
 
     // Handle form submission for account creation
-    public function handleAccountCreation($formData) {
+    public function handleAccountCreation($formData, $conn) {
         $username = $formData['username'];
         $password = $formData['password'];
         $email = $formData['email'];
@@ -57,7 +47,7 @@ class AccountController {
         $role_name = $formData['role'];
 
         // Get the role ID based on the role name
-        $role_id = $this->userAccountModel->getRoleId($role_name);
+        $role_id = $this->userAccountModel->getRoleId($conn, $role_name);
 
         // Check if the role ID exists
         if (!$role_id) {
@@ -65,7 +55,7 @@ class AccountController {
         }
 
         // Insert the new account into the users table
-        $result = $this->userAccountModel->createUser($username, $password, $role_id, $email, $phone_num);
+        $result = $this->userAccountModel->createUser($conn, $username, $password, $role_id, $email, $phone_num);
 
         return $result ? "New account created successfully." : "Error: Failed to create account.";
     }
@@ -155,28 +145,23 @@ class AccountCreationView {
 
 // MAIN LOGIC: Connects the BCE components
 
-// Database configuration
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbname = "csit314";
-
-// Entity layer: Initialize UserAccount model with the database connection
-$userAccountModel = new UserAccount($servername, $dbUsername, $dbPassword, $dbname);
-
-// Control layer: Initialize AccountController with the entity model
-$controller = new AccountController($userAccountModel);
-
-// Handle form submission
-$message = "";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleAccountCreation($_POST);
-}
-
 // Boundary layer: Initialize AccountCreationView with any message and render the form
 $view = new AccountCreationView($message);
 $view->render();
 
+// Control layer: Initialize AccountController with the entity model
+$controller = new AccountController($userAccountModel);
+
+// Entity layer: Initialize UserAccount model
+$userAccountModel = new UserAccount();
+// Handle form submission
+$message = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $message = $controller->handleAccountCreation($_POST, $conn);
+}
+
+
+
 // Close the database connection
-$userAccountModel->close();
+$database->closeConnection();
 ?>

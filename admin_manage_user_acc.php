@@ -1,26 +1,12 @@
 <?php
-// Entity Layer: Database connection and user data retrieval
+require 'connectDatabase.php';
+
+// ENTITY LAYER: Represents user data without direct database interactions
 class User {
-    private $pdo;
-
-    public function __construct($host, $db, $user, $pass) {
-        try {
-            $this->pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            echo "Connection failed: " . $e->getMessage();
-        }
-    }
-
-    public function getUsers() {
-        $stmt = $this->pdo->query("SELECT u.username, r.role_name 
-            FROM users u
-            JOIN role r ON u.role_id = r.role_id");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    // This class remains empty, representing the user entity.
 }
 
-// Boundary Layer: HTML View for managing user accounts
+// BOUNDARY LAYER: HTML View for managing user accounts
 class UserAccountView {
     private $users;
 
@@ -120,19 +106,36 @@ class UserAccountView {
     }
 }
 
-// Control Layer: Handle form submissions and orchestrate data flow
+// CONTROL LAYER: Handle form submissions and orchestrate data flow
 class UserAccountController {
-    private $userModel;
+    private $mysqli;
     private $view;
 
-    public function __construct() {
-        $this->userModel = new User('localhost', 'csit314', 'root', '');
-        $users = $this->userModel->getUsers();
-        $this->view = new UserAccountView($users);
+    public function __construct($mysqli) {
+        $this->mysqli = $mysqli; // Store the database connection
+        $this->view = null;
+    }
+
+    // Fetch users from the database
+    private function getUsers() {
+        $query = "SELECT u.username, r.role_name 
+                  FROM users u
+                  JOIN role r ON u.role_id = r.role_id";
+        $result = $this->mysqli->query($query);
+        
+        $users = []; // Initialize an array to store users
+        while ($row = $result->fetch_assoc()) { // Fetch rows one by one
+            $users[] = $row; // Add each row to the users array
+        }
+        return $users; // Return the array of users
     }
 
     public function handleRequest() {
         $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : null;
+
+        // Fetch users and initialize the view
+        $users = $this->getUsers();
+        $this->view = new UserAccountView($users); // Initialize the view with the users
 
         if (isset($action['createAccount'])) {
             header("Location: accountCreation.php");
@@ -162,7 +165,14 @@ class UserAccountController {
     }
 }
 
-// Instantiate the controller and handle the request
-$controller = new UserAccountController();
-$controller->handleRequest();
+// MAIN LOGIC: Initialize components and handle the request
+$database = new Database();
+$mysqli = $database->getConnection(); // Get the database connection
+
+$userController = new UserAccountController($mysqli); // Instantiate the controller
+
+$userController->handleRequest(); // Handle the request
+
+// Close the database connection
+$database->closeConnection();
 ?>

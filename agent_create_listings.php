@@ -1,23 +1,13 @@
 <?php
 session_start(); // Start the session
 
+require_once 'connectDatabase.php'; // Include your Database class
+
 // ENTITY LAYER: Handles data-related tasks (database interactions)
 class CarListing {
-    private $conn;
-
-    // Constructor to initialize the database connection
-    public function __construct($servername, $username, $password, $dbname) {
-        $this->conn = new mysqli($servername, $username, $password, $dbname);
-
-        // Check for a connection error
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
-        }
-    }
-
     // Fetch the user ID based on username
-    public function getUserId($username) {
-        $stmt = $this->conn->prepare("SELECT user_id FROM users WHERE username = ?");
+    public function getUserId($conn, $username) {
+        $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->bind_result($user_id);
@@ -27,12 +17,12 @@ class CarListing {
     }
 
     // Insert a new car listing into the listings table
-    public function createCarListing($manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color) {
-        $stmt = $this->conn->prepare("INSERT INTO listing (manufacturer_name, model_name, model_year, user_id, listing_image, listing_price, listing_description, listing_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    public function createCarListing($conn, $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color) {
+        $stmt = $conn->prepare("INSERT INTO listing (manufacturer_name, model_name, model_year, user_id, listing_image, listing_price, listing_description, listing_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
         // Check if the statement was prepared successfully
         if (!$stmt) {
-            die("Prepare failed: " . $this->conn->error);
+            die("Prepare failed: " . $conn->error);
         }
 
         // Bind parameters ('s' for strings, 'i' for integers, 'd' for double, and 'b' for blob)
@@ -46,11 +36,6 @@ class CarListing {
         $stmt->close();
         return true; // Return true for successful execution
     }
-
-    // Close the connection
-    public function close() {
-        $this->conn->close();
-    }
 }
 
 // CONTROL LAYER: Handles the logic and mediates between boundary and entity layers
@@ -62,7 +47,7 @@ class CarListingController {
         $this->carListingModel = $carListingModel;
     }
 
-    public function handleCarListingCreation($formData, $username) {
+    public function handleCarListingCreation($formData, $username, $conn) {
         $manufacturer_name = $formData['manufacturer_name'];
         $model_name = $formData['model_name'];
         $model_year = $formData['model_year'];
@@ -78,7 +63,7 @@ class CarListingController {
         }
 
         // Get the user ID based on the username
-        $user_id = $this->carListingModel->getUserId($username);
+        $user_id = $this->carListingModel->getUserId($conn, $username);
 
         // Check if the user ID exists
         if (!$user_id) {
@@ -86,7 +71,7 @@ class CarListingController {
         }
 
         // Insert the new car listing into the listings table
-        $result = $this->carListingModel->createCarListing($manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color);
+        $result = $this->carListingModel->createCarListing($conn, $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color);
 
         return $result ? "New car listing created successfully." : "Error: Failed to create car listing.";
     }
@@ -178,14 +163,8 @@ class CarListingView {
 
 // MAIN LOGIC: Connects the BCE components
 
-// Database configuration
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbname = "csit314";
-
-// Entity layer: Initialize CarListing model with the database connection
-$carListingModel = new CarListing($servername, $dbUsername, $dbPassword, $dbname);
+// Entity layer: Initialize CarListing model
+$carListingModel = new CarListing();
 
 // Control layer: Initialize CarListingController with the entity model
 $controller = new CarListingController($carListingModel);
@@ -202,7 +181,7 @@ $username = $_SESSION['username'];
 // Handle form submission
 $message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleCarListingCreation($_POST, $username);
+    $message = $controller->handleCarListingCreation($_POST, $username, $conn);
 }
 
 // Boundary layer: Initialize CarListingView with any message and render the form
@@ -210,5 +189,5 @@ $view = new CarListingView($message);
 $view->render();
 
 // Close the database connection
-$carListingModel->close();
+$database->closeConnection();
 ?>

@@ -72,6 +72,7 @@ class DashboardController {
     private $view;
 
     public function __construct() {
+        //Display the UI (boundary layer)
         $this->view = new DashboardView();
     }
 

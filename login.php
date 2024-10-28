@@ -1,53 +1,22 @@
 <?php
-session_start(); // Start the session
-
-// Entity Layer: Database class to handle the connection
-class Database {
-    private $servername = "localhost";
-    private $username = "root";
-    private $password = "";
-    private $dbname = "csit314";
-    private $conn;
-
-    public function __construct() {
-        $this->connect();
-    }
-
-    private function connect() {
-        // Create connection
-        $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
-
-        // Check connection
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
-        }
-    }
-
-    public function getConnection() {
-        return $this->conn;
-    }
-
-    public function closeConnection() {
-        $this->conn->close();
-    }
-}
+session_start(); // Start the session to maintain user data across requests
+include 'connectDatabase.php';
 
 // Entity Layer: User class to handle user authentication
 class User {
-    private $conn;
     private $username;
     private $role;
     private $password;
 
-    public function __construct($db, $username, $password, $role) {
-        $this->conn = $db;
+    // Constructor with only essential user attributes
+    public function __construct($username, $password, $role) {
         $this->username = $username;
         $this->password = $password;
         $this->role = $role;
     }
 
-    public function authenticate() {
-        // Map role to role_id
+    // Authenticate user by verifying the username, role, and password
+    public function authenticate($db) {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -55,55 +24,22 @@ class User {
             'seller' => 4
         ];
 
-        // Check if role is valid
         if (!array_key_exists($this->role, $roleMapping)) {
-            return "Invalid role selected.";
+            return false;
         }
 
         $role_id = $roleMapping[$this->role];
-
-        // Prepare and bind
-        $stmt = $this->conn->prepare("SELECT password FROM users WHERE username = ? AND role_id = ?");
+        $stmt = $db->prepare("SELECT password FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $this->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
-        // Check if username and role exist
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($stored_password);
             $stmt->fetch();
-
-            // Verify password (you should use password_hash() and password_verify() in a real application)
-            if ($this->password === $stored_password) {
-                return $this->redirectBasedOnRole();
-            } else {
-                return "Invalid username or password.";
-            }
+            return $this->password === $stored_password;
         } else {
-            return "Invalid username, password, or role.";
-        }
-    }
-
-    private function redirectBasedOnRole() {
-        // Store the username in session
-        $_SESSION['username'] = $this->username;
-
-        // Redirect based on role
-        switch($this->role) {
-            case 'user admin':
-                header("Location: admin_dashboard.php");
-                exit();
-            case 'used car agent':
-                header("Location: agent_dashboard.php");
-                exit();
-            case 'buyer':
-                header("Location: buyer_dashboard.php");
-                exit();
-            case 'seller':
-                header("Location: seller_dashboard.php");
-                exit();
-            default:
-                return "Invalid role selected.";
+            return false;
         }
     }
 }
@@ -111,28 +47,45 @@ class User {
 // Control Layer: AuthController class to handle form submission and user authentication
 class AuthController {
     private $database;
-    private $user;
 
     public function __construct() {
-        // Instantiate the Database object
         $this->database = new Database();
     }
 
-    public function handleLogin($username, $password, $role) {
-        // Create User object for authentication
-        $this->user = new User($this->database->getConnection(), $username, $password, $role);
-        return $this->user->authenticate();
+    public function authenticateUser($username, $password, $role) {
+        $user = new User($username, $password, $role);
+        $dbConnection = $this->database->getConnection();
+
+        if ($user->authenticate($dbConnection)) {
+            $_SESSION['username'] = $username;
+            return $this->getRedirectLocation($role);
+        }
+        return "Invalid username, password, or role.";
+    }
+
+    private function getRedirectLocation($role) {
+        switch($role) {
+            case 'user admin':
+                return "admin_dashboard.php";
+            case 'used car agent':
+                return "agent_dashboard.php";
+            case 'buyer':
+                return "buyer_dashboard.php";
+            case 'seller':
+                return "seller_dashboard.php";
+            default:
+                return "Invalid role selected.";
+        }
     }
 
     public function closeDatabaseConnection() {
-        // Close the database connection
         $this->database->closeConnection();
     }
 }
 
 // Boundary Layer: LoginForm class to generate the login form HTML
 class LoginForm {
-    public static function display() {
+    public static function display($message = "") {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -142,20 +95,17 @@ class LoginForm {
         </head>
         <body>
             <div class="website-title">
-                <br/><h1>CSIT314-GROUP PROJECT</h1>
+                <h1>CSIT314-GROUP PROJECT</h1>
                 <h2>Made by: Code Innovators!</h2>
             </div>
-
-            <!-- Boundary: HTML Form for user login -->
             <form action="" method="POST">
                 <div class="form-body">
-                    <br/><br/>
                     <label for="role" class="form-label">Login As:</label>
                     <select id="role" name="role" class="form-label" required>
-                        <option value="user admin" class="form-label">User Admin</option>
-                        <option value="used car agent" class="form-label">Used Car Agent</option>
-                        <option value="buyer" class="form-label">Buyer</option>
-                        <option value="seller" class="form-label">Seller</option>
+                        <option value="user admin">User Admin</option>
+                        <option value="used car agent">Used Car Agent</option>
+                        <option value="buyer">Buyer</option>
+                        <option value="seller">Seller</option>
                     </select>
                     <br/><br/>
                     <label for="username" class="form-label">Username </label>
@@ -164,46 +114,40 @@ class LoginForm {
                     <label for="password" class="form-label">Password </label>
                     <input type="password" id="password" name="password" class="form-label" required/>
                     <br/><br/>
-                    <button type="submit" class="form-label">Submit</button>
+                    <button type="submit"  class="form-label" >Submit</button>
                     <br/>    
                 </div>
             </form>
 
-            <!-- Boundary: Credits button -->
-            <div class="submit">
-                <br/>
-                <button onclick="hello_world()" style="display: block; margin: 0 auto; font-size: 24px;" title="See who are behind the scenes of this project!">Credits</button>
-            </div>
-
-            <script src="login.js"></script>
+            <?php if ($message): ?>
+                <p><?php echo $message; ?></p>
+            <?php endif; ?>
         </body>
         </html>
         <?php
     }
 }
 
-// Control Layer logic for handling form submission
+// Handle form submission and interaction with the controller
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $controller = new AuthController();
+    $username = htmlspecialchars($_POST['username']);
+    $password = htmlspecialchars($_POST['password']);
+    $role = htmlspecialchars($_POST['role']);
 
-    // Retrieve and sanitize form input
-    $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '';
-    $password = isset($_POST['password']) ? htmlspecialchars($_POST['password']) : '';
-    $role = isset($_POST['role']) ? htmlspecialchars($_POST['role']) : ''; 
+    if ($username && $password && $role) {
+        $location = $controller->authenticateUser($username, $password, $role);
 
-    if (!empty($username) && !empty($password) && !empty($role)) {
-        // Authenticate the user
-        $message = $controller->handleLogin($username, $password, $role);
-
-        if ($message) {
-            echo $message;
+        if ($location && strpos($location, '.php') !== false) {
+            header("Location: $location");
+            exit();
+        } else {
+            LoginForm::display($location);
         }
+    } else {
+        LoginForm::display("Please fill in all fields.");
     }
-
-    // Close the database connection
     $controller->closeDatabaseConnection();
 } else {
-    // Display the login form if not a POST request
     LoginForm::display();
 }
-?>
