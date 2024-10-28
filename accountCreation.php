@@ -145,19 +145,22 @@ class AccountCreationView {
 
 // MAIN LOGIC: Connects the BCE components
 
-// Initialize variables
-$message = "";
-$userAccountModel = new UserAccount(); // Entity layer: Initialize UserAccount model
-$controller = new AccountController($userAccountModel); // Control layer: Initialize AccountController with the entity model
+// Boundary layer: Initialize AccountCreationView with any message and render the form
+$view = new AccountCreationView($message);
+$view->render();
 
+// Control layer: Initialize AccountController with the entity model
+$controller = new AccountController($userAccountModel);
+
+// Entity layer: Initialize UserAccount model
+$userAccountModel = new UserAccount();
 // Handle form submission
+$message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $message = $controller->handleAccountCreation($_POST, $conn);
 }
 
-// Boundary layer: Initialize AccountCreationView with any message and render the form
-$view = new AccountCreationView($message);
-$view->render();
+
 
 // Close the database connection
 $database->closeConnection();

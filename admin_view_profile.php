@@ -1,5 +1,6 @@
 <?php
-session_start();
+require "connectDatabase.php";
+session_start(); // Start the session at the beginning
 
 // ENTITY LAYER: Handles data-related tasks, but does not handle connection
 class UserProfile {
@@ -30,7 +31,7 @@ class ProfileController {
     }
 
     public function getProfile($username) {
-        return $this->userProfileModel->getProfileByUsername($this->pdo, $username);
+        return $this->userProfileModel->getProfileByUsername($this->dbConnection, $username);
     }
 }
 
@@ -44,11 +45,13 @@ class ProfileView {
 
     public function render() {
         ?>
-        <html>
-            <head>
-                <title>Profile Information</title>
-            </head>
-        <style>
+        <!DOCTYPE HTML>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Account Information</title>
+            <style>
                 #infoTable th, td {
                     font-size: 24px;
                     text-align: center;
@@ -66,7 +69,8 @@ class ProfileView {
                     height: 150px;
                     object-fit: cover;
                 }
-        </style>
+            </style>
+        </head>
         <body>
             <h1 style="text-align: center">Profile Information</h1>
             <table id="infoTable">
@@ -123,12 +127,12 @@ class ProfileView {
                         </td>
                         <td>
                             <form action="agent_update_profile.php" class="form-body">
-                                <button type="submit" value="Return" style="font-size: 24px">Update Profile profile</button>
+                                <button type="submit" value="Return" style="font-size: 24px">Update account profile</button>
                             </form>
                         </td>
                         <td>
                             <form action="agent_suspend_profile.php" class="form-body">
-                                <button type="submit" value="Return" style="font-size: 24px">Suspend Profile profile</button>
+                                <button type="submit" value="Return" style="font-size: 24px">Suspend account profile</button>
                             </form>
                         </td>
                     </tr>
@@ -150,29 +154,17 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-try {
-    // Establish database connection
-    $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+$username = $_SESSION['username'];
 
-// Use GET parameter to fetch the username
-$username = isset($_GET['username']) ? $_GET['username'] : '';
+$database = new Database('localhost', 'csit314', 'root', ''); // Update with actual credentials
+$mysqli = $database->getConnection();
 
-if ($username) {
-    // Controller instance creation
-    $profileController = new ProfileController($pdo);
-    $profileData = $profileController->getProfile($username);
+$userProfileModel = new UserProfile();
+$controller = new ProfileController($userProfileModel, $mysqli);
+$profileData = $controller->getProfile($username);
 
-    // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
-    $profileView->render();
-} else {
-    echo "No username provided.";
-}
+$view = new ProfileView($profileData);
+$view->render();
+
+$database->closeConnection();
 ?>
-
-
-
