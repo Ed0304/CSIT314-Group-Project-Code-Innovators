@@ -1,7 +1,5 @@
 <?php
-<<<<<<< HEAD
-require "connectDatabase.php";
-session_start(); // Start the session at the beginning
+session_start();
 
 // ENTITY LAYER: Handles data-related tasks, but does not handle connection
 class UserProfile {
@@ -32,39 +30,7 @@ class ProfileController {
     }
 
     public function getProfile($username) {
-        return $this->userProfileModel->getProfileByUsername($this->dbConnection, $username);
-=======
-session_start();
-
-class UserProfile {
-    public function getProfileByUsername($pdo, $username) {
-        $stmt = $pdo->prepare("SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image
-                    FROM profile p
-                    JOIN users u ON p.user_id = u.user_id
-                    JOIN role r ON r.role_id = u.role_id
-                    WHERE u.username = :username");
-        $stmt->bindParam(':username', $username); // Using named parameter correctly
-        $stmt->execute();
-
-        // Fetch the profile data
-        return $stmt->fetch(PDO::FETCH_ASSOC); // Return the fetched data
-    }
-}
-
-
-// CONTROL LAYER: Passes the connection to the entity layer when necessary
-class ProfileController {
-    private $userProfileModel;
-    private $pdo;
-
-    public function __construct($pdo) {
-        $this->userProfileModel = new UserProfile();
-        $this->pdo = $pdo;
-    }
-
-    public function getProfile($username) {
         return $this->userProfileModel->getProfileByUsername($this->pdo, $username);
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
     }
 }
 
@@ -78,21 +44,11 @@ class ProfileView {
 
     public function render() {
         ?>
-<<<<<<< HEAD
-        <!DOCTYPE HTML>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Account Information</title>
-            <style>
-=======
         <html>
             <head>
                 <title>Profile Information</title>
             </head>
         <style>
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
                 #infoTable th, td {
                     font-size: 24px;
                     text-align: center;
@@ -110,12 +66,7 @@ class ProfileView {
                     height: 150px;
                     object-fit: cover;
                 }
-<<<<<<< HEAD
-            </style>
-        </head>
-=======
         </style>
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
         <body>
             <h1 style="text-align: center">Profile Information</h1>
             <table id="infoTable">
@@ -172,20 +123,12 @@ class ProfileView {
                         </td>
                         <td>
                             <form action="agent_update_profile.php" class="form-body">
-<<<<<<< HEAD
-                                <button type="submit" value="Return" style="font-size: 24px">Update account profile</button>
-=======
                                 <button type="submit" value="Return" style="font-size: 24px">Update Profile profile</button>
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
                             </form>
                         </td>
                         <td>
                             <form action="agent_suspend_profile.php" class="form-body">
-<<<<<<< HEAD
-                                <button type="submit" value="Return" style="font-size: 24px">Suspend account profile</button>
-=======
                                 <button type="submit" value="Return" style="font-size: 24px">Suspend Profile profile</button>
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
                             </form>
                         </td>
                     </tr>
@@ -207,22 +150,6 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-<<<<<<< HEAD
-$username = $_SESSION['username'];
-
-$database = new Database('localhost', 'csit314', 'root', ''); // Update with actual credentials
-$mysqli = $database->getConnection();
-
-$userProfileModel = new UserProfile();
-$controller = new ProfileController($userProfileModel, $mysqli);
-$profileData = $controller->getProfile($username);
-
-$view = new ProfileView($profileData);
-$view->render();
-
-$database->closeConnection();
-?>
-=======
 try {
     // Establish database connection
     $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
@@ -249,4 +176,3 @@ if ($username) {
 
 
 
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
