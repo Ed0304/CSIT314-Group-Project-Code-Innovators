@@ -8,27 +8,30 @@ class Database {
 
     // Constructor initializes the connection to the database
     public function __construct() {
-        $this->connect();
+        $this->conn = $this->connect();
     }
 
-    // Connect to the database using MySQLi
+    // Private function to establish the connection
     private function connect() {
-        $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
+        $conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
 
         // Check connection and handle errors
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
         }
+        return $conn;
     }
 
-    // Return the database connection instance for use in other classes
+    // Return the active connection instance
     public function getConnection() {
         return $this->conn;
     }
 
     // Close the connection when done
     public function closeConnection() {
-        $this->conn->close();
+        if ($this->conn) {
+            $this->conn->close();
+        }
     }
 }
 
