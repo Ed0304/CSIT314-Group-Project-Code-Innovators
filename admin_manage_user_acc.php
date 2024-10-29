@@ -158,8 +158,8 @@ class UserAccountController {
         }
 
         if (isset($action['suspendAccount'])) {
-            // Placeholder for suspending logic
-            echo "Redirecting to suspend account page..."; // Replace with actual logic
+            $username = $action['username'];
+            header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
             exit();
         }
 
