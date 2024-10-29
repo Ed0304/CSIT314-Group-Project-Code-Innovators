@@ -3,10 +3,11 @@ session_start();
 
 class UserProfile {
     public function getProfileByUsername($pdo, $username) {
-        $stmt = $pdo->prepare("SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image
+        $stmt = $pdo->prepare("SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, s.status_name
                     FROM profile p
                     JOIN users u ON p.user_id = u.user_id
                     JOIN role r ON r.role_id = u.role_id
+                    JOIN status s ON s.status_id = p.status_id
                     WHERE u.username = :username");
         $stmt->bindParam(':username', $username); // Using named parameter correctly
         $stmt->execute();
@@ -94,6 +95,10 @@ class ProfileView {
                     <tr>
                         <td><strong>Phone Number</strong></td>
                         <td colspan="2"><?php echo htmlspecialchars($this->profileData['phone_num']); ?></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status</strong></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['status_name']); ?></td>
                     </tr>
                     <tr>
                         <td><strong>Gender</strong></td>

@@ -72,6 +72,7 @@ class UserAccountView {
                 <tr>
                     <th>Username</th>
                     <th>Role</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
                 <?php if (!empty($this->users)): ?>
@@ -79,6 +80,7 @@ class UserAccountView {
                         <tr>
                             <td><?php echo htmlspecialchars($user['username']); ?></td>
                             <td><?php echo htmlspecialchars($user['role_name']); ?></td>
+                            <td><?php echo htmlspecialchars($user['status_name']); ?></td>
                             <td>
                                 <form method="post" action="">
                                     <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
@@ -118,9 +120,10 @@ class UserAccountController {
 
     // Fetch users from the database
     private function getUsers() {
-        $query = "SELECT u.username, r.role_name 
+        $query = "SELECT u.username, r.role_name, s.status_name
                   FROM users u
-                  JOIN role r ON u.role_id = r.role_id";
+                  JOIN role r ON u.role_id = r.role_id
+                  JOIN status s ON u.status_id = s.status_id";
         $result = $this->mysqli->query($query);
         
         $users = []; // Initialize an array to store users

@@ -4,9 +4,10 @@ session_start();
 // ENTITY: Represents user data and database retrieval
 class UserAccount {
     public function getProfileByUsername($pdo, $username) {
-        $stmt = $pdo->prepare("SELECT u.username, u.password, r.role_name, u.email, u.phone_num
+        $stmt = $pdo->prepare("SELECT u.username, u.password, r.role_name, u.email, u.phone_num, s.status_name
             FROM users u
             JOIN role r ON u.role_id = r.role_id
+            JOIN status s ON s.status_id = u.status_id
             WHERE u.username = :username");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
@@ -77,6 +78,10 @@ class ProfileView {
                 <tr>
                     <td><strong>Phone Number</strong></td>
                     <td colspan="2"><?php echo htmlspecialchars($this->profileData['phone_num'] ?? ''); ?></td>
+                </tr>
+                <tr>
+                    <td><strong>Status</strong></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['status_name']); ?></td>
                 </tr>
                 <tr>
                     <!--Empty table row, just to give spacing with acc info and buttons-->

@@ -1,59 +1,31 @@
 <?php
-// ENTITY LAYER: Handles data-related tasks (database interactions)
+require "connectDatabase.php";
+// ENTITY LAYER: Represents the UserProfile data structure
 class UserProfile {
-    private $conn;
+    public $user_id;
+    public $first_name;
+    public $last_name;
+    public $gender;
+    public $about;
+    public $profile_image;
 
-    // Constructor to initialize the database connection
-    public function __construct($servername, $username, $password, $dbname) {
-        $this->conn = new mysqli($servername, $username, $password, $dbname);
-
-        // Check for a connection error
-        if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
-        }
-    }
-
-    // Check if the username exists in the users table
-    public function checkUsernameExists($username) {
-        $stmt = $this->conn->prepare("SELECT user_id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
-        return $user;
-    }
-
-    // Insert a new profile into the profile table, with or without image
-    public function createProfile($user_id, $first_name, $last_name, $gender, $about, $profile_image = null) {
-        if ($profile_image) {
-            $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image) VALUES (?, ?, ?, ?, ?, ?)");
-            $null = NULL;
-            $stmt->bind_param("issssb", $user_id, $first_name, $last_name, $gender, $about, $null);
-            $stmt->send_long_data(5, $profile_image);
-        } else {
-            $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image) VALUES (?, ?, ?, ?, ?, NULL)");
-            $stmt->bind_param("issss", $user_id, $first_name, $last_name, $gender, $about);
-        }
-
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
-    }
-
-    // Close the database connection
-    public function close() {
-        $this->conn->close();
+    public function __construct($user_id, $first_name, $last_name, $gender, $about, $profile_image = null) {
+        $this->user_id = $user_id;
+        $this->first_name = $first_name;
+        $this->last_name = $last_name;
+        $this->gender = $gender;
+        $this->about = $about;
+        $this->profile_image = $profile_image;
     }
 }
 
-// CONTROL LAYER: Handles the logic and mediates between boundary and entity layers
+// CONTROL LAYER: Handles business logic and database interactions for user profiles
 class ProfileController {
-    private $userProfileModel;
+    private $conn;
 
-    // Constructor to initialize the UserProfile entity model
-    public function __construct($userProfileModel) {
-        $this->userProfileModel = $userProfileModel;
+    // Constructor to initialize the connection
+    public function __construct($conn) {
+        $this->conn = $conn;
     }
 
     // Handle form submission for profile creation
@@ -64,33 +36,58 @@ class ProfileController {
         $gender = $formData['gender'];
         $about = $formData['about'];
 
-        // Check if the username exists
-        $user = $this->userProfileModel->checkUsernameExists($username);
-        if (!$user) {
+        // Check if the username exists in the database
+        $user_id = $this->checkUsernameExists($username);
+        if (!$user_id) {
             return "Error: Username must match an existing account.";
         }
 
-        $user_id = $user['user_id'];
-
-        // Check if the file data contains a profile image
+        // Handle the profile image if provided
+        $profile_image = null;
         if (isset($fileData['profile_image']) && $fileData['profile_image']['error'] == 0) {
-            $image = $fileData['profile_image']['tmp_name'];
-            $image_data = file_get_contents($image); // Read binary image data
-            $result = $this->userProfileModel->createProfile($user_id, $first_name, $last_name, $gender, $about, $image_data);
-        } else {
-            // Insert without profile image
-            $result = $this->userProfileModel->createProfile($user_id, $first_name, $last_name, $gender, $about);
+            $profile_image = file_get_contents($fileData['profile_image']['tmp_name']);
         }
 
-        return $result ? "New profile created successfully." : "Error: Failed to create profile.";
+        // Create a new UserProfile entity
+        $userProfile = new UserProfile($user_id, $first_name, $last_name, $gender, $about, $profile_image);
+
+        // Insert the profile into the database
+        return $this->createProfile($userProfile) ? "New profile created successfully." : "Error: Failed to create profile.";
+    }
+
+    // CONTROL LAYER: Checks if a username exists in the database
+    private function checkUsernameExists($username) {
+        $stmt = $this->conn->prepare("SELECT user_id FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $stmt->close();
+        return $user ? $user['user_id'] : null;
+    }
+
+    // CONTROL LAYER: Inserts the UserProfile entity data into the database
+    private function createProfile($userProfile) {
+        $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image,status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
+        
+        if ($userProfile->profile_image) {
+            $null = NULL;
+            $stmt->bind_param("issssb", $userProfile->user_id, $userProfile->first_name, $userProfile->last_name, $userProfile->gender, $userProfile->about, $null);
+            $stmt->send_long_data(5, $userProfile->profile_image);
+        } else {
+            $stmt->bind_param("issss", $userProfile->user_id, $userProfile->first_name, $userProfile->last_name, $userProfile->gender, $userProfile->about);
+        }
+
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
     }
 }
 
-// BOUNDARY LAYER: Manages the user interface (display form and messages)
+// BOUNDARY LAYER: Handles user interface tasks for profile creation
 class ProfileCreationView {
     private $message;
 
-    // Constructor to initialize any message to display
     public function __construct($message = "") {
         $this->message = $message;
     }
@@ -170,30 +167,22 @@ class ProfileCreationView {
     }
 }
 
-// MAIN LOGIC: Connects the BCE components
+// MAIN APPLICATION LOGIC: Connects BCE components and processes form submissions
+$database = new Database();
+$conn = $database->getConnection();
 
-// Database configuration
-$servername = "localhost";
-$dbUsername = "root";
-$dbPassword = "";
-$dbname = "csit314";
+// Initialize the control layer with the database connection
+$controller = new ProfileController($conn);
 
-// Entity layer: Initialize UserProfile model with the database connection
-$userProfileModel = new UserProfile($servername, $dbUsername, $dbPassword, $dbname);
-
-// Control layer: Initialize ProfileController with the entity model
-$controller = new ProfileController($userProfileModel);
-
-// Handle form submission
 $message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $message = $controller->handleProfileCreation($_POST, $_FILES);
 }
 
-// Boundary layer: Initialize ProfileCreationView with any message and render the form
+// Initialize and render the boundary layer with any message
 $view = new ProfileCreationView($message);
 $view->render();
 
 // Close the database connection
-$userProfileModel->close();
+$database->closeConnection();
 ?>

@@ -73,6 +73,7 @@ class UserProfileView {
                     <th>Username</th>
                     <th>Full name</th>
                     <th>Role</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
                 <?php if (!empty($this->profiles)): ?>
@@ -81,6 +82,7 @@ class UserProfileView {
                             <td><?php echo htmlspecialchars($profile['username']); ?></td>
                             <td><?php echo htmlspecialchars($profile['first_name']); ?> <?php echo htmlspecialchars($profile['last_name']); ?></td>
                             <td><?php echo htmlspecialchars($profile['role_name']); ?></td>
+                            <td><?php echo htmlspecialchars($profile['status_name']); ?></td>
                             <td>
                                 <!-- Form for viewing profile -->
                                 <form method="post" action="">
@@ -131,10 +133,11 @@ class UserProfileController {
 
     // Fetch users from the database
     private function getUsers() {
-        $query = "SELECT u.username, p.first_name, p.last_name, r.role_name 
+        $query = "SELECT u.username, p.first_name, p.last_name, r.role_name, s.status_name
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
-                  JOIN role r ON r.role_id = u.role_id";
+                  JOIN role r ON r.role_id = u.role_id
+                  JOIN status s ON s.status_id = p.status_id";
         $result = $this->mysqli->query($query);
 
         if (!$result) {

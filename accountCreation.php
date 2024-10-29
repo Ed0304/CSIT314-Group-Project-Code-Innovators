@@ -21,7 +21,7 @@ class UserAccount {
 
     // Insert a new user into the users table
     public function createUser($conn, $username, $password, $role_id, $email, $phone_num) {
-        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num,status_id) VALUES (?, ?, ?, ?, ?,1)");
         $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
         $result = $stmt->execute();
         $stmt->close();
