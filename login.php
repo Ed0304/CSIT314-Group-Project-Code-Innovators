@@ -15,7 +15,7 @@ class User {
         $this->role = $role;
     }
 
-    // Authenticate user by verifying the username, role, and password
+    // Authenticate user by verifying the username, role, password, and suspension status
     public function authenticate($db) {
         $roleMapping = [
             'user admin' => 1,
@@ -29,14 +29,19 @@ class User {
         }
 
         $role_id = $roleMapping[$this->role];
-        $stmt = $db->prepare("SELECT password FROM users WHERE username = ? AND role_id = ?");
+        $stmt = $db->prepare("SELECT password, status_id FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $this->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($stored_password);
+            $stmt->bind_result($stored_password, $status_id);
             $stmt->fetch();
+
+            // Check if the user is suspended (status_id = 2)
+            if ($status_id == 2) {
+                return "Account suspended. Please contact support.";
+            }
             return $this->password === $stored_password;
         } else {
             return false;
@@ -56,9 +61,13 @@ class AuthController {
         $user = new User($username, $password, $role);
         $dbConnection = $this->database->getConnection();
 
-        if ($user->authenticate($dbConnection)) {
+        $authResult = $user->authenticate($dbConnection);
+        
+        if ($authResult === true) {
             $_SESSION['username'] = $username;
             return $this->getRedirectLocation($role);
+        } elseif ($authResult === "Account suspended. Please contact support.") {
+            return $authResult;
         }
         return "Invalid username, password, or role.";
     }
@@ -98,6 +107,13 @@ class LoginForm {
                 <h1>CSIT314-GROUP PROJECT</h1>
                 <h2>Made by: Code Innovators!</h2>
             </div>
+
+            <?php if ($message): ?>
+                <div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">
+                    <p><?php echo $message; ?></p>
+                </div>
+            <?php endif; ?>
+
             <form action="" method="POST">
                 <div class="form-body">
                     <label for="role" class="form-label">Login As:</label>
@@ -114,14 +130,10 @@ class LoginForm {
                     <label for="password" class="form-label">Password </label>
                     <input type="password" id="password" name="password" class="form-label" required/>
                     <br/><br/>
-                    <button type="submit"  class="form-label" >Submit</button>
-                    <br/>    
+                    <button type="submit" class="form-label">Submit</button>
+                    <br/>
                 </div>
             </form>
-
-            <?php if ($message): ?>
-                <p><?php echo $message; ?></p>
-            <?php endif; ?>
         </body>
         </html>
         <?php
@@ -151,3 +163,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     LoginForm::display();
 }
+?>
