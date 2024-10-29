@@ -88,7 +88,8 @@ class DashboardController {
             }
 
             if (isset($_POST['view'])) {
-                header("Location: agent_view_listings.php");
+                $username = urlencode($this->view->username); // Get the encoded username
+                header("Location: agent_view_listings.php?username=" . $username);
                 exit();
             }
 
