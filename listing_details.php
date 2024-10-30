@@ -24,8 +24,9 @@ class CarListing {
     public $listing_color;
     public $listing_price;
     public $listing_description;
+    public $mime_type; // New property for MIME type
 
-    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year, $listing_image, $listing_color, $listing_price, $listing_description) {
+    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year, $listing_image, $listing_color, $listing_price, $listing_description, $mime_type) {
         $this->listing_id = $listing_id;
         $this->manufacturer_name = $manufacturer_name;
         $this->model_name = $model_name;
@@ -34,8 +35,11 @@ class CarListing {
         $this->listing_color = $listing_color;
         $this->listing_price = $listing_price;
         $this->listing_description = $listing_description;
+        $this->mime_type = $mime_type; // Store the MIME type
     }
 }
+
+
 // CONTROL LAYER: Responsible for data retrieval
 class ListingController {
     private $db;
@@ -49,16 +53,26 @@ class ListingController {
         $stmt->bind_param("i", $listing_id);
         $stmt->execute();
         $result = $stmt->get_result();
-
+        
         if ($result->num_rows === 0) {
             return null; // No listing found
         }
-
+        
         $row = $result->fetch_assoc();
-
-        // Convert the BLOB image data to Base64
-        $imageData = base64_encode($row['listing_image']); // Assuming 'listing_image' is the BLOB column
-
+        
+        // Assuming 'listing_image' is a file path
+        $imagePath = $row['listing_image'];
+    
+        // Initialize variables for image data and type
+        $imageData = null;
+        $mimeType = null;
+    
+        // Check if the file exists
+        if (file_exists($imagePath)) {
+            $mimeType = mime_content_type($imagePath); // Get the MIME type of the image
+            $imageData = base64_encode(file_get_contents($imagePath)); // Read the file and encode to Base64
+        }
+    
         return new CarListing(
             $row['listing_id'],
             $row['manufacturer_name'],
@@ -67,11 +81,13 @@ class ListingController {
             $imageData, // Use the Base64 encoded image data
             $row['listing_color'],
             $row['listing_price'],
-            $row['listing_description']
+            $row['listing_description'],
+            $mimeType // Include the MIME type for later use
         );
     }
+    
+    
 }
-
 
 // BOUNDARY LAYER: Generates HTML for displaying the listing
 class ListingView {
@@ -106,14 +122,13 @@ class ListingView {
         </head>
         <body>
             <div class="details-container">
-                <h2>Car Listing Details</h2>
-                
+                <h2>Car Listing Details</h2>                
                 <table>
                     <tr>
                         <th>Image</th>
                         <td>
                             <?php if (!empty($this->listing->listing_image)): ?>
-                                <img src="data:image/jpeg;base64,<?php echo htmlspecialchars($this->listing->$listing_image); ?>" alt="Car Picture" />
+                                <img src="data:<?php echo htmlspecialchars($this->listing->mime_type); ?>;base64,<?php echo htmlspecialchars($this->listing->listing_image); ?>" alt="Car Picture" />
                             <?php else: ?>
                                 <p>No image available.</p>
                             <?php endif; ?>
@@ -137,7 +152,6 @@ class ListingView {
         </html>
         <?php
     }
-    
 }
 
 // MAIN LOGIC: Initializes classes and renders listing
@@ -152,4 +166,3 @@ if ($listing !== null) {
 } else {
     echo "Listing not found.";
 }
-?>
