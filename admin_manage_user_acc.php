@@ -62,7 +62,7 @@ class UserAccountView
 
         <body>
             <h1 style="text-align:center">Manage user accounts here...</h1>
-            <<!-- Form for filtering users based on role and username -->
+            <!-- Form for filtering users based on role and username -->
                 <form method="POST" action="admin_manage_user_acc.php">
                     <label for="role" class="select-label">Filter based on:</label>
                     <select id="role" name="role" class="select-label">

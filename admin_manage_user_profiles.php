@@ -62,7 +62,7 @@ class UserProfileView
 
         <body>
             <h1 style="text-align:center">Manage user profiles here...</h1>
-            <<!-- Form for filtering users based on role and username -->
+            <!-- Form for filtering users based on role and username -->
                 <form method="POST" action="admin_manage_user_profiles.php">
                     <label for="role" class="select-label">Filter based on:</label>
                     <select id="role" name="role" class="select-label">
@@ -109,11 +109,11 @@ class UserProfileView
                                     </form>
 
                                     <!-- Form for updating profile -->
+                                     <!-- Form for updating profile -->
                                     <form method="post" action="">
-                                        <input type="hidden" name="username"
-                                            value="<?php echo htmlspecialchars($profile['username']); ?>">
-                                        <button type="submit" class="button-font" id="updateProfile"
-                                            name="updateProfile">Update</button>
+                                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($profile['username']); ?>">
+                                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($profile['user_id']); ?>"> <!-- Added user_id -->
+                                        <button type="submit" class="button-font" id="updateProfile" name="updateProfile">Update</button>
                                     </form>
 
                                     <!-- Form for suspending profile -->
@@ -159,11 +159,9 @@ class UserProfileController
     // Fetch users from the database
     private function getUsers()
     {
-        $query = "SELECT u.username, p.first_name, p.last_name, r.role_name, s.status_name
+        $query = "SELECT p.user_id,u.username, p.first_name, p.last_name, r.role_name, s.status_name
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
-                  JOIN role r ON r.role_id = u.role_id
-                  JOIN status s ON s.status_id = p.status_id
                   JOIN role r ON r.role_id = u.role_id
                   JOIN status s ON s.status_id = p.status_id";
         $result = $this->mysqli->query($query);
@@ -234,8 +232,8 @@ class UserProfileController
         }
 
         if (isset($action['updateProfile'])) {
-            $username = $action['username'];
-            header("Location: admin_profile_update.php?username=" . urlencode($username)); 
+            $user_id = $action['user_id']; // Get the user_id from the submitted form
+            header("Location: admin_profile_update.php?user_id=" . urlencode($user_id)); // Redirect with user_id
             exit();
         }
 

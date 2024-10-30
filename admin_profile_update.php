@@ -12,23 +12,53 @@ class UserProfile {
     }
 
     public function updateProfile($conn, $data) {
+        // Prepare the SQL statement for profile update
         $stmt = $conn->prepare(
             "UPDATE profile SET first_name = ?, last_name = ?, gender = ?, about = ?, profile_image = ?, status_id = ? WHERE user_id = ?"
         );
-
-        $stmt->bind_param(
-            "sssbsi",
-            $data['first_name'],
-            $data['last_name'],
-            $data['gender'],
-            $data['about'],
-            $data['profile_image'],
-            $data['status_id'],
-            $data['user_id']
-        );
-        return $stmt->execute();
+    
+        // Handle the image upload
+        if ($data['profile_image'] !== null) {
+            // Bind parameters including the BLOB
+            $stmt->bind_param(
+                "ssssbii",
+                $data['first_name'],
+                $data['last_name'],
+                $data['gender'],
+                $data['about'],
+                $data['profile_image'], // BLOB data
+                $data['status_id'],
+                $data['user_id']
+            );
+        } else {
+            // Prepare statement excluding the BLOB if no new image
+            $stmt = $conn->prepare(
+                "UPDATE profile SET first_name = ?, last_name = ?, gender = ?, about = ?, status_id = ? WHERE user_id = ?"
+            );
+    
+            // Bind parameters excluding the BLOB
+            $stmt->bind_param(
+                "ssssi",
+                $data['first_name'],
+                $data['last_name'],
+                $data['gender'],
+                $data['about'],
+                $data['status_id'],
+                $data['user_id']
+            );
+        }
+    
+        // Execute the statement
+        if (!$stmt->execute()) {
+            // Log the error for debugging
+            error_log("Profile update failed: " . $stmt->error);
+            return false;
+        }
+        return true;
     }
+    
 }
+
 
 // CONTROL LAYER: Handles profile updates
 class UserProfileController {
@@ -65,23 +95,84 @@ class UserProfileView {
     public function render() {
         ?>
         <html>
+        <head>
+            <style>
+                .form-body {
+                    font-size: 24px;
+                    text-align: center;
+                }
+                h1 {
+                    font-size: 48px;
+                    text-align: center;
+                }
+                table {
+                    font-size: 24px;
+                    margin: 0 auto;
+                    border-collapse: collapse;
+                }
+                td {
+                    padding: 10px;
+                }
+            </style>
+        </head>
         <body>
         <h1>Update User Profile</h1>
         <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="user_id" value="<?= $this->profile['user_id']; ?>" />
-            First Name: <input type="text" name="first_name" value="<?= $this->profile['first_name']; ?>" required /><br/>
-            Last Name: <input type="text" name="last_name" value="<?= $this->profile['last_name']; ?>" required /><br/>
-            Gender:
-            <input type="radio" name="gender" value="M" <?= $this->profile['gender'] == 'M' ? 'checked' : ''; ?>> Male
-            <input type="radio" name="gender" value="F" <?= $this->profile['gender'] == 'F' ? 'checked' : ''; ?>> Female<br/>
-            About: <textarea name="about" required><?= $this->profile['about']; ?></textarea><br/>
-            Profile Image: <input type="file" name="profile_image" /><br/>
-            Status:
-            <select name="status_id">
-                <option value="1" <?= $this->profile['status_id'] == 1 ? 'selected' : ''; ?>>Active</option>
-                <option value="2" <?= $this->profile['status_id'] == 2 ? 'selected' : ''; ?>>Suspended</option>
-            </select><br/>
-            <button type="submit">Update Profile</button>
+            <input type="hidden" name="user_id" value="<?= htmlspecialchars($this->profile['user_id']); ?>" />
+            <table>
+                <tr>
+                    <td class="form-group">
+                        <label for="first_name" style="font-size:24px">First Name:</label>
+                        <input type="text" id="first_name" name="first_name" style="font-size:24px" value="<?= htmlspecialchars($this->profile['first_name']); ?>" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="form-group">
+                        <label for="last_name" style="font-size:24px" >Last Name:</label>
+                        <input type="text" id="last_name" name="last_name" style="font-size:24px" value="<?= htmlspecialchars($this->profile['last_name']); ?>" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="form-group">
+                        <label style="font-size:24px">Gender:</label>
+                        <label><input type="radio" name="gender" value="M" style="font-size:24px"<?= $this->profile['gender'] == 'M' ? 'checked' : ''; ?>> Male</label>
+                        <label><input type="radio" name="gender" value="F" style="font-size:24px"<?= $this->profile['gender'] == 'F' ? 'checked' : ''; ?>> Female</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="form-group">
+                        <label for="about"style="font-size:24px">About:</label>
+                        <textarea id="about" name="about" style="font-size:24px" required><?= htmlspecialchars($this->profile['about']); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="form-group">
+                        <label for="profile_image" style="font-size:24px">Profile Image:</label>
+                        <input type="file" id="profile_image" name="profile_image" style="font-size:24px"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="form-group">
+                        <label for="status_id" style="font-size:24px">Status:</label>
+                        <select id="status_id" name="status_id" style="font-size:24px">
+                            <option value="1" style="font-size:24px"<?= $this->profile['status_id'] == 1 ? 'selected' : ''; ?>>Active</option>
+                            <option value="2" style="font-size:24px" <?= $this->profile['status_id'] == 2 ? 'selected' : ''; ?>>Suspended</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="submit" style="font-size:24px">Update Profile</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="admin_manage_user_profiles.php">
+                            <button type="button" style="background-color: #ccc; font-size:24px;">Return to Dashboard</button>
+                        </a>
+                    </td>
+                </tr>
+            </table>
         </form>
         </body>
         </html>
