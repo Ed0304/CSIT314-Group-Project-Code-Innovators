@@ -164,6 +164,8 @@ class UserProfileController
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id
                   JOIN status s ON s.status_id = p.status_id";
+                  JOIN role r ON r.role_id = u.role_id
+                  JOIN status s ON s.status_id = p.status_id";
         $result = $this->mysqli->query($query);
 
         if (!$result) {

@@ -206,11 +206,14 @@ class UserAccountController
 
         if (isset($action['updateAccount'])) {
             $username = $action['username'];
+            $username = $action['username'];
             echo "Redirecting to update account page..."; // Replace with actual logic
             exit();
         }
 
         if (isset($action['suspendAccount'])) {
+            $username = $action['username'];
+            header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
             $username = $action['username'];
             header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
             exit();
