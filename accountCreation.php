@@ -21,7 +21,7 @@ class UserAccount {
 
     // Insert a new user into the users table
     public function createUser($conn, $username, $password, $role_id, $email, $phone_num) {
-        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num,status_id) VALUES (?, ?, ?, ?, ?,1)");
         $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
         $result = $stmt->execute();
         $stmt->close();
@@ -145,37 +145,19 @@ class AccountCreationView {
 
 // MAIN LOGIC: Connects the BCE components
 
-<<<<<<< HEAD
-// Boundary layer: Initialize AccountCreationView with any message and render the form
-$view = new AccountCreationView($message);
-$view->render();
-
-// Control layer: Initialize AccountController with the entity model
-$controller = new AccountController($userAccountModel);
-
-// Entity layer: Initialize UserAccount model
-$userAccountModel = new UserAccount();
-// Handle form submission
-$message = "";
-=======
 // Initialize variables
 $message = "";
 $userAccountModel = new UserAccount(); // Entity layer: Initialize UserAccount model
 $controller = new AccountController($userAccountModel); // Control layer: Initialize AccountController with the entity model
 
 // Handle form submission
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $message = $controller->handleAccountCreation($_POST, $conn);
 }
 
-<<<<<<< HEAD
-
-=======
 // Boundary layer: Initialize AccountCreationView with any message and render the form
 $view = new AccountCreationView($message);
 $view->render();
->>>>>>> 9b98d70d2919599e70c0ca1d7d288d5026c22c6e
 
 // Close the database connection
 $database->closeConnection();

@@ -1,50 +1,82 @@
 <?php
+require "connectDatabase.php";
 session_start();
 
-// ENTITY LAYER: Handles data-related tasks (database interactions)
+// Check if the user is logged in
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$username = $_SESSION['username']; // Use the username from session
+
+// ENTITY LAYER: Represents a user's profile as an object
 class UserProfile {
+    public $username;
+    public $first_name;
+    public $last_name;
+    public $about;
+    public $gender;
+    public $email;
+    public $user_id;
+    public $role_name;
+    public $phone_num;
+    public $profile_image;
+
+    public function __construct($data) {
+        $this->username = $data['username'];
+        $this->first_name = $data['first_name'];
+        $this->last_name = $data['last_name'];
+        $this->about = $data['about'];
+        $this->gender = $data['gender'];
+        $this->email = $data['email'];
+        $this->user_id = $data['user_id'];
+        $this->role_name = $data['role_name'];
+        $this->phone_num = $data['phone_num'];
+        $this->profile_image = $data['profile_image'];
+    }
+}
+
+// DATABASE LAYER: Handles database interactions
+class UserProfileRepository {
     private $pdo;
 
-    // Constructor for establishing a database connection
-    public function __construct($host, $db, $user, $pass) {
-        try {
-            $this->pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            echo "Connection failed: " . $e->getMessage();
-        }
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
     }
 
-    // Method to retrieve user profiles, filtered by username if provided
+    // Retrieves user profile data from the database
     public function getProfileByUsername($username) {
         $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image 
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id 
-                  WHERE u.username = :username"; // Filter by exact match on username
+                  WHERE u.username = :username";
         
         $stmt = $this->pdo->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $data ? new UserProfile($data) : null;
     }
 }
 
-// CONTROL LAYER: Handles business logic and mediates between the boundary and entity layers
+// CONTROL LAYER: Manages business logic and bridges entity and database layers
 class ProfileController {
-    private $userProfileModel;
+    private $repository;
 
-    public function __construct($userProfileModel) {
-        $this->userProfileModel = $userProfileModel;
+    public function __construct($repository) {
+        $this->repository = $repository;
     }
 
-    // Fetch the profile data by username
+    // Fetches the profile as a UserProfile object
     public function getProfile($username) {
-        return $this->userProfileModel->getProfileByUsername($username);
+        return $this->repository->getProfileByUsername($username);
     }
 }
 
-// BOUNDARY LAYER: Responsible for interacting with the user (display)
+// BOUNDARY LAYER: Responsible for rendering the user interface
 class ProfileView {
     private $profileData;
 
@@ -52,7 +84,7 @@ class ProfileView {
         $this->profileData = $profileData;
     }
 
-    // Render the profile page
+    // Renders the profile page
     public function render() {
         ?>
         <!DOCTYPE HTML>
@@ -88,8 +120,8 @@ class ProfileView {
                     <tr>
                         <td><strong>Profile Picture</strong></td>
                         <td colspan="2">
-                            <?php if (!empty($this->profileData['profile_image'])): ?>
-                                <img src="data:image/jpeg;base64,<?php echo base64_encode($this->profileData['profile_image']); ?>" class="profile-image" alt="Profile Picture">
+                            <?php if (!empty($this->profileData->profile_image)): ?>
+                                <img src="data:image/jpeg;base64,<?php echo base64_encode($this->profileData->profile_image); ?>" class="profile-image" alt="Profile Picture">
                             <?php else: ?>
                                 <img src="default-profile.jpg" class="profile-image" alt="Default Profile Picture">
                             <?php endif; ?>
@@ -97,47 +129,37 @@ class ProfileView {
                     </tr>
                     <tr>
                         <td><strong>Full Name</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['first_name'] . ' ' . $this->profileData['last_name']); ?></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->first_name . ' ' . $this->profileData->last_name); ?></td>
                     </tr>
                     <tr>
                         <td><strong>Role</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['role_name']); ?></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->role_name); ?></td>
                     </tr>   
                     <tr>
                         <td><strong>Email</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['email']); ?></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->email); ?></td>
                     </tr>
                     <tr>
                         <td><strong>Phone Number</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['phone_num']); ?></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->phone_num); ?></td>
                     </tr>
                     <tr>
                         <td><strong>Gender</strong></td>
-                        <td colspan="2">
-                        <?php
-                            if ($this->profileData['gender'] == 'M') {
-                                echo 'Male';
-                            } elseif ($this->profileData['gender'] == 'F') {
-                                 echo 'Female';
-                            } else {
-                                echo htmlspecialchars($this->profileData['gender']);
-                            }
-                        ?>
-                    </td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->gender == 'M' ? 'Male' : ($this->profileData->gender == 'F' ? 'Female' : $this->profileData->gender)); ?></td>
                     </tr>
                     <tr>
                         <td><strong>About</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData['about']); ?></td>
+                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->about); ?></td>
                     </tr>
                     <tr>
                         <td>
-                            <form action="agent_dashboard.php" class="form-body">
-                                <button type="submit" value="Return" style="font-size: 24px">Return to main dashboard</button>
+                            <form action="agent_dashboard.php">
+                                <button type="submit" class="button">Return to main dashboard</button>
                             </form>
                         </td>
                         <td>
-                            <form action="agent_update_profile.php" class="form-body">
-                                <button type="submit" value="Return" style="font-size: 24px">Update account profile</button>
+                            <form action="agent_update_profile.php">
+                                <button type="submit" class="button">Update account profile</button>
                             </form>
                         </td>
                     </tr>
@@ -153,27 +175,23 @@ class ProfileView {
     }
 }
 
-// MAIN LOGIC: Orchestrates the BCE components
+// MAIN LOGIC: Sets up components and renders the view
+try {
+    // Establish database connection
+    $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
+    // Initialize repository and controller
+    $repository = new UserProfileRepository($pdo);
+    $profileController = new ProfileController($repository);
+
+    // Retrieve user profile data
+    $profileData = $profileController->getProfile($username);
+
+    // Render the view with retrieved profile data
+    $profileView = new ProfileView($profileData);
+    $profileView->render();
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
 }
-
-$username = $_SESSION['username'];
-
-// Create entity layer (UserProfile) with database connection
-$host = 'localhost'; // Update with actual values
-$db = 'csit314';
-$dbUser = 'root';
-$dbPass = '';
-$userProfileModel = new UserProfile($host, $db, $dbUser, $dbPass);
-
-// Create control layer (ProfileController) and retrieve user profile
-$controller = new ProfileController($userProfileModel);
-$profileData = $controller->getProfile($username);
-
-// Create boundary layer (ProfileView) and render profile information
-$view = new ProfileView($profileData);
-$view->render();
 ?>

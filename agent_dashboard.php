@@ -16,7 +16,7 @@ class User {
 
 // Boundary layer
 class DashboardView {
-    private $username;
+    public $username;
 
     public function __construct(User $user) {
         $this->username = $user->getUsername();
@@ -34,7 +34,7 @@ class DashboardView {
                 .header { text-align: center; }
                 .headDiv { text-align: center; background-color: green; border-bottom: 2px solid black; }
                 .formBody { text-align: center; }
-                #logout, #create, #view, #update, #delete, #manageProfile{ font-size: 18px; }
+                #logout, #create, #view, #update, #delete, #manageProfile, #reviews{ font-size: 18px; }
                 .mainInterface { text-align: center; background-color: white; border: 1px solid black; padding: 10px; }
             </style>
         </head>
@@ -54,6 +54,8 @@ class DashboardView {
                     <button type="submit" id="update" name="update">Update existing listings</button>
                     <br/><br/>
                     <button type="submit" id="delete" name="delete">Delete existing listings</button>
+                    <br/><br/>
+                    <button type="submit" id="reviews" name="reviews">See my reviews and ratings</button>
                     <br/><br/>
                     <input type="submit" id="logout" value="Logout" name="logout">
                     <br/><br/>
@@ -86,7 +88,8 @@ class DashboardController {
             }
 
             if (isset($_POST['view'])) {
-                header("Location: agent_view_listings.php");
+                $username = urlencode($this->view->username); // Get the encoded username
+                header("Location: agent_view_listings.php?username=" . $username);
                 exit();
             }
 
@@ -102,6 +105,12 @@ class DashboardController {
 
             if (isset($_POST['logout'])) {
                 header("Location: logout.php");
+                exit();
+            }
+
+            if (isset($_POST['reviews'])) {
+                $username = urlencode($this->view->username); // Get the encoded username
+                header("Location: agent_view_ratings_and_reviews.php?username=" . $username);
                 exit();
             }
         }
