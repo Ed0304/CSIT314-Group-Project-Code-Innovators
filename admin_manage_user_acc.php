@@ -206,8 +206,7 @@ class UserAccountController
 
         if (isset($action['updateAccount'])) {
             $username = $action['username'];
-            $username = $action['username'];
-            echo "Redirecting to update account page..."; // Replace with actual logic
+            header("Location: admin_update_user_acc.php?username=" . urlencode($username)); 
             exit();
         }
 

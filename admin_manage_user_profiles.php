@@ -163,7 +163,7 @@ class UserProfileController
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id
-                  JOIN status s ON s.status_id = p.status_id";
+                  JOIN status s ON s.status_id = p.status_id
                   JOIN role r ON r.role_id = u.role_id
                   JOIN status s ON s.status_id = p.status_id";
         $result = $this->mysqli->query($query);
@@ -234,8 +234,8 @@ class UserProfileController
         }
 
         if (isset($action['updateProfile'])) {
-            // Placeholder for updating logic
-            echo "Redirecting to update Profile page..."; // Replace with actual logic
+            $username = $action['username'];
+            header("Location: admin_profile_update.php?username=" . urlencode($username)); 
             exit();
         }
 
