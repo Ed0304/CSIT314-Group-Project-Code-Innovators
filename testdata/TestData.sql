@@ -29,7 +29,7 @@ CREATE TABLE profile (
     last_name VARCHAR(256) NOT NULL,
     about VARCHAR(256) NOT NULL,
     gender VARCHAR(16) NOT NULL,
-    profile_image BLOB,
+    profile_image LONGBLOB,
     status_id INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (status_id) REFERENCES status(status_id)
@@ -41,7 +41,7 @@ CREATE TABLE listing(
     manufacturer_name VARCHAR(256) NOT NULL,
     model_name VARCHAR(256) NOT NULL,
     model_year INT NOT NULL,
-    listing_image BLOB,
+    listing_image LONGBLOB,
     listing_color VARCHAR(256) NOT NULL,
     listing_price DOUBLE,
     listing_description VARCHAR(256) NOT NULL,
@@ -74,14 +74,5 @@ INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUE
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567",1);
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("TakFujiwara", "initialD", 3, "Tak@TouWenziD.com", "+811234567890",1);
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("BuntaFujiwara", "initialD", 4, "Bun@TouWenziD.com", "+811234567899",1);
+INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("MuzanKibutsuji", "demonSlayer", 4, "kibutsuji@kny.com", "+816666666666",1);
 
-
-INSERT INTO profile(user_id, first_name, last_name, about, gender,status_id) VALUES (1,"John","Doe", "I am the only user admin here", "M",1);
-INSERT INTO profile(user_id, first_name, last_name, about, gender,status_id) VALUES (2,"Alice", "Tan", "Specializes in selling used Japanese Cars (Toyota, Honda, Nissan)" ,"F",1);
-INSERT INTO profile(user_id, first_name, last_name, about, gender,status_id) VALUES (3,"Takumi", "Fujiwara", "Looking for a replacement for my AE86" ,"M",1);
-
-INSERT INTO listing(manufacturer_name,model_name,model_year,user_id, listing_image, listing_price, listing_description, listing_color) VALUES("Toyota","Sprinter Trueno GT-APEX (AE86)",1983,2,'C:\\xampp\\htdocs\\CSIT314-Project\\AE86-TAKUMI.jpg', 280000, "The legendary car from Initial D! Steering is light and beginner friendly! Drive Like Takumi IRL!", "High Tech Two Tone");
-INSERT INTO listing(manufacturer_name,model_name,model_year,user_id, listing_image, listing_price, listing_description, listing_color) VALUES("Nissan","Fairlady Z (S30)",2000,2,'C:\\xampp\\htdocs\\CSIT314-Project\\DEVIL-Z.jpg', 300000, "Despite being an old car, this car has 600 Horsepower and can run up to 300km/h", "Midnight Blue");
-
-INSERT INTO review(review_details,review_stars,reviewer_id,agent_id,review_date) VALUES("Alice is very helpful in finding me affordable vehicle choices!",5,3,2,'2024-10-29');
-INSERT INTO review(review_details,review_stars,reviewer_id,agent_id,review_date) VALUES("DO NOT SELL YOUR CAR WITH ALICE! SHE UNDERVALUES YOUR CAR SO BAD!",1,4,2,'2024-10-29');
