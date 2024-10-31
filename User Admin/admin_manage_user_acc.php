@@ -213,8 +213,6 @@ class UserAccountController
         if (isset($action['suspendAccount'])) {
             $username = $action['username'];
             header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
-            $username = $action['username'];
-            header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
             exit();
         }
 

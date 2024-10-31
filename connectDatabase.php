@@ -12,7 +12,7 @@ class Database {
     }
 
     // Private function to establish the connection
-    private function connect() {
+    public function connect() {
         $conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
 
         // Check connection and handle errors

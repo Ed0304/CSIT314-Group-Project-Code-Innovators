@@ -20,25 +20,24 @@ class CarListing {
     public $manufacturer_name;
     public $model_name;
     public $model_year;
-    public $listing_image; // Base64-encoded image data
+    public $listing_image; // Image data (could be path or Base64)
     public $listing_color;
     public $listing_price;
     public $listing_description;
-    public $mime_type; // New property for MIME type
+    public $mime_type; // Property for MIME type
 
     public function __construct($listing_id, $manufacturer_name, $model_name, $model_year, $listing_image, $listing_color, $listing_price, $listing_description, $mime_type) {
         $this->listing_id = $listing_id;
         $this->manufacturer_name = $manufacturer_name;
         $this->model_name = $model_name;
         $this->model_year = $model_year;
-        $this->listing_image = $listing_image; // Store the image data
+        $this->listing_image = $listing_image; // Store image data (path or Base64)
         $this->listing_color = $listing_color;
         $this->listing_price = $listing_price;
         $this->listing_description = $listing_description;
         $this->mime_type = $mime_type; // Store the MIME type
     }
 }
-
 
 // CONTROL LAYER: Responsible for data retrieval
 class ListingController {
@@ -60,17 +59,21 @@ class ListingController {
         
         $row = $result->fetch_assoc();
         
-        // Assuming 'listing_image' is a file path
-        $imagePath = $row['listing_image'];
-    
         // Initialize variables for image data and type
         $imageData = null;
         $mimeType = null;
-    
-        // Check if the file exists
-        if (file_exists($imagePath)) {
-            $mimeType = mime_content_type($imagePath); // Get the MIME type of the image
-            $imageData = base64_encode(file_get_contents($imagePath)); // Read the file and encode to Base64
+
+        // Determine if listing_image is a BLOB or a file path
+        if (!empty($row['listing_image'])) {
+            if ($this->is_blob($row['listing_image'])) {
+                // BLOB image data handling
+                $mimeType = 'image/jpeg'; // Adjust based on your application's logic
+                $imageData = base64_encode($row['listing_image']); // Encode BLOB data to Base64
+            } else {
+                // File path handling
+                $imageData = htmlspecialchars($row['listing_image']); // Use file path directly
+                $mimeType = $this->getMimeType($imageData); // Get the MIME type from the file path
+            }
         }
     
         return new CarListing(
@@ -78,15 +81,42 @@ class ListingController {
             $row['manufacturer_name'],
             $row['model_name'],
             $row['model_year'],
-            $imageData, // Use the Base64 encoded image data
+            $imageData, // Use the appropriate image data
             $row['listing_color'],
             $row['listing_price'],
             $row['listing_description'],
             $mimeType // Include the MIME type for later use
         );
     }
-    
-    
+
+    private function is_blob($image) {
+        // Implement logic to check if $image is BLOB data
+        return is_string($image) && strlen($image) > 0; // Basic example; modify as needed for your case
+    }
+
+    private function getMimeType($filePath) {
+        // Check if the file exists and then get the MIME type
+        if (file_exists($filePath)) {
+            $mimeType = mime_content_type($filePath); // Try to get MIME type
+            if ($mimeType) {
+                return $mimeType; // Return found MIME type
+            }
+        }
+
+        // Fallback: Set default MIME type based on file extension
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
+                return 'image/jpeg';
+            case 'png':
+                return 'image/png';
+            case 'gif':
+                return 'image/gif';
+            default:
+                return 'application/octet-stream'; // Default for unknown types
+        }
+    }
 }
 
 // BOUNDARY LAYER: Generates HTML for displaying the listing
@@ -128,7 +158,7 @@ class ListingView {
                         <th>Image</th>
                         <td>
                             <?php if (!empty($this->listing->listing_image)): ?>
-                                <img src="data:<?php echo htmlspecialchars($this->listing->mime_type); ?>;base64,<?php echo htmlspecialchars($this->listing->listing_image); ?>" alt="Car Picture" />
+                                <img src="<?php echo (strpos($this->listing->listing_image, 'data:') === 0) ? $this->listing->listing_image : 'data:' . $this->listing->mime_type . ';base64,' . $this->listing->listing_image; ?>" alt="Car Picture" />
                             <?php else: ?>
                                 <p>No image available.</p>
                             <?php endif; ?>
@@ -166,3 +196,4 @@ if ($listing !== null) {
 } else {
     echo "Listing not found.";
 }
+?>

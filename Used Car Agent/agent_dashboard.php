@@ -1,5 +1,5 @@
 <?php
-session_start(); // Start the session
+session_start();
 
 // Entity layer
 class User {
@@ -34,7 +34,7 @@ class DashboardView {
                 .header { text-align: center; }
                 .headDiv { text-align: center; background-color: green; border-bottom: 2px solid black; }
                 .formBody { text-align: center; }
-                #logout, #create, #view, #update, #delete, #manageProfile, #reviews{ font-size: 18px; }
+                #logout, #create, #view, #update, #delete, #manageProfile, #reviews { font-size: 18px; }
                 .mainInterface { text-align: center; background-color: white; border: 1px solid black; padding: 10px; }
             </style>
         </head>
@@ -45,15 +45,9 @@ class DashboardView {
             </div>
             <div class="mainInterface">
                 <form method="post" class="formBody">
-                    <button type ="submit" id="manageProfile" name="manageProfile">View/Update profile </button>
-                    <br/><br/>
-                    <button type="submit" id="create" name="create">Create new listings</button>
+                    <button type="submit" id="manageProfile" name="manageProfile">View/Update profile</button>
                     <br/><br/>
                     <button type="submit" id="view" name="view">View my listings</button>
-                    <br/><br/>
-                    <button type="submit" id="update" name="update">Update existing listings</button>
-                    <br/><br/>
-                    <button type="submit" id="delete" name="delete">Delete existing listings</button>
                     <br/><br/>
                     <button type="submit" id="reviews" name="reviews">See my reviews and ratings</button>
                     <br/><br/>
@@ -82,24 +76,9 @@ class DashboardController {
                 exit();
             }
 
-            if (isset($_POST['create'])) {
-                header("Location: agent_create_listings.php");
-                exit();
-            }
-
             if (isset($_POST['view'])) {
-                $username = urlencode($this->view->username); // Get the encoded username
+                $username = urlencode($this->view->username);
                 header("Location: agent_view_listings.php?username=" . $username);
-                exit();
-            }
-
-            if (isset($_POST['update'])) {
-                header("Location: agent_update_listings.php");
-                exit();
-            }
-
-            if (isset($_POST['delete'])) {
-                header("Location: agent_delete_listings.php");
                 exit();
             }
 
@@ -109,17 +88,15 @@ class DashboardController {
             }
 
             if (isset($_POST['reviews'])) {
-                $username = urlencode($this->view->username); // Get the encoded username
+                $username = urlencode($this->view->username);
                 header("Location: agent_view_ratings_and_reviews.php?username=" . $username);
                 exit();
             }
         }
 
-        // Render the dashboard view if no button is clicked
         $this->view->render();
     }
 }
-
 
 // Main logic
 if (!isset($_SESSION['username'])) {
@@ -127,12 +104,8 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-$username = $_SESSION['username']; // Retrieve the username from the session
-
-// Create a User entity
+$username = $_SESSION['username'];
 $user = new User($username);
-
-// Instantiate the controller and handle the request
 $controller = new DashboardController($user);
 $controller->handleRequest();
 ?>

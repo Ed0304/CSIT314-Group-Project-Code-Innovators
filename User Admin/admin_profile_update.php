@@ -12,16 +12,14 @@ class UserProfile {
     }
 
     public function updateProfile($conn, $data) {
-        // Prepare the SQL statement for profile update
-        $stmt = $conn->prepare(
-            "UPDATE profile SET first_name = ?, last_name = ?, gender = ?, about = ?, profile_image = ?, status_id = ? WHERE user_id = ?"
-        );
-    
-        // Handle the image upload
+        // Prepare the SQL statement for profile update with or without BLOB
         if ($data['profile_image'] !== null) {
+            $stmt = $conn->prepare(
+                "UPDATE profile SET first_name = ?, last_name = ?, gender = ?, about = ?, profile_image = ?, status_id = ? WHERE user_id = ?"
+            );
             // Bind parameters including the BLOB
             $stmt->bind_param(
-                "ssssbii",
+                "sssssii",
                 $data['first_name'],
                 $data['last_name'],
                 $data['gender'],
@@ -31,14 +29,12 @@ class UserProfile {
                 $data['user_id']
             );
         } else {
-            // Prepare statement excluding the BLOB if no new image
             $stmt = $conn->prepare(
                 "UPDATE profile SET first_name = ?, last_name = ?, gender = ?, about = ?, status_id = ? WHERE user_id = ?"
             );
-    
             // Bind parameters excluding the BLOB
             $stmt->bind_param(
-                "ssssi",
+                "ssssii",
                 $data['first_name'],
                 $data['last_name'],
                 $data['gender'],
@@ -47,18 +43,15 @@ class UserProfile {
                 $data['user_id']
             );
         }
-    
-        // Execute the statement
+
+        // Execute the statement and check for errors
         if (!$stmt->execute()) {
-            // Log the error for debugging
-            error_log("Profile update failed: " . $stmt->error);
+            error_log("Profile update failed: " . $stmt->error); // Log any error
             return false;
         }
         return true;
     }
-    
 }
-
 
 // CONTROL LAYER: Handles profile updates
 class UserProfileController {
@@ -71,14 +64,20 @@ class UserProfileController {
     public function handleRequest($conn, $user_id) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = $_POST;
-            if ($_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+            // Check if a file was uploaded and if there are no errors
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
                 $data['profile_image'] = file_get_contents($_FILES['profile_image']['tmp_name']);
             } else {
-                $data['profile_image'] = null;
+                $data['profile_image'] = null; // No new image uploaded
             }
-            $this->model->updateProfile($conn, $data);
-            header("Location: admin_manage_user_profiles.php");
-            exit();
+            
+            // Update the profile and check if it was successful
+            if ($this->model->updateProfile($conn, $data)) {
+                header("Location: admin_manage_user_profiles.php");
+                exit();
+            } else {
+                echo "<p>Error updating profile. Please try again.</p>";
+            }
         }
         return $this->model->getProfileDetails($conn, $user_id);
     }
@@ -135,13 +134,13 @@ class UserProfileView {
                 <tr>
                     <td class="form-group">
                         <label style="font-size:24px">Gender:</label>
-                        <label><input type="radio" name="gender" value="M" style="font-size:24px"<?= $this->profile['gender'] == 'M' ? 'checked' : ''; ?>> Male</label>
-                        <label><input type="radio" name="gender" value="F" style="font-size:24px"<?= $this->profile['gender'] == 'F' ? 'checked' : ''; ?>> Female</label>
+                        <label><input type="radio" name="gender" value="M" style="font-size:24px"<?= $this->profile['gender'] == 'M' ? ' checked' : ''; ?>> Male</label>
+                        <label><input type="radio" name="gender" value="F" style="font-size:24px"<?= $this->profile['gender'] == 'F' ? ' checked' : ''; ?>> Female</label>
                     </td>
                 </tr>
                 <tr>
                     <td class="form-group">
-                        <label for="about"style="font-size:24px">About:</label>
+                        <label for="about" style="font-size:24px">About:</label>
                         <textarea id="about" name="about" style="font-size:24px" required><?= htmlspecialchars($this->profile['about']); ?></textarea>
                     </td>
                 </tr>
@@ -155,8 +154,8 @@ class UserProfileView {
                     <td class="form-group">
                         <label for="status_id" style="font-size:24px">Status:</label>
                         <select id="status_id" name="status_id" style="font-size:24px">
-                            <option value="1" style="font-size:24px"<?= $this->profile['status_id'] == 1 ? 'selected' : ''; ?>>Active</option>
-                            <option value="2" style="font-size:24px" <?= $this->profile['status_id'] == 2 ? 'selected' : ''; ?>>Suspended</option>
+                            <option value="1" style="font-size:24px"<?= $this->profile['status_id'] == 1 ? ' selected' : ''; ?>>Active</option>
+                            <option value="2" style="font-size:24px" <?= $this->profile['status_id'] == 2 ? ' selected' : ''; ?>>Suspended</option>
                         </select>
                     </td>
                 </tr>

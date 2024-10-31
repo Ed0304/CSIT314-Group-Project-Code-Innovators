@@ -3,13 +3,63 @@ session_start();
 
 require 'connectDatabase.php';
 
-class User {}
+// Entity Class: User
+class User {
+    private $userId;
+    private $username;
 
+    public function __construct($userId, $username) {
+        $this->userId = $userId;
+        $this->username = $username;
+    }
+
+    public function getUserId() {
+        return $this->userId;
+    }
+
+    public function getUsername() {
+        return $this->username;
+    }
+}
+
+// Control Class: RatingsReviewsController
 class RatingsReviewsController {
     private $mysqli;
+    private $view;
 
     public function __construct($mysqli) {
         $this->mysqli = $mysqli;
+        $this->view = new RatingsReviewsView(); // Instantiate the view
+    }
+
+    public function handleRequest() {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
+            $username = trim($_GET['username']);
+            if (empty($username)) {
+                return $this->view->render([], "Username cannot be empty.");
+            }
+
+            $user = $this->getUserByUsername($username);
+            if ($user) {
+                $reviews = $this->getAgentRatingsAndReviews($user->getUserId());
+                return $this->view->render($reviews);
+            } else {
+                return $this->view->render([], "Agent not found for the given username.");
+            }
+        } else {
+            return $this->view->render([], "No username provided.");
+        }
+    }
+
+    private function getUserByUsername($username) {
+        $stmt = $this->mysqli->prepare("SELECT user_id, username FROM users WHERE username = ?");
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return new User($row['user_id'], $row['username']);
+        }
+        return null;
     }
 
     private function getAgentRatingsAndReviews($agent_id) {
@@ -28,36 +78,11 @@ class RatingsReviewsController {
         }
         return $reviews;
     }
+}
 
-    public function handleRequest() {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
-            $username = trim($_GET['username']);
-            if (empty($username)) {
-                $this->render([], "Username cannot be empty.");
-                return;
-            }
-            
-            // Fetch user_id using the provided username
-            $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
-            $stmt->bind_param('s', $username);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $user = $result->fetch_assoc();
-    
-            if ($user) {
-                $agent_id = $user['user_id'];
-                $reviews = $this->getAgentRatingsAndReviews($agent_id);
-                $this->render($reviews);
-            } else {
-                $this->render([], "Agent not found for the given username.");
-            }
-        } else {
-            $this->render([], "No username provided.");
-        }
-    }
-    
-
-    private function render($reviews = [], $message = "") {
+// Boundary Class: RatingsReviewsView
+class RatingsReviewsView {
+    public function render($reviews = [], $message = "") {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -101,8 +126,6 @@ class RatingsReviewsController {
                 echo "<tr><th>Stars</th><th>Review</th><th>Date</th><th>Rated By:</th></tr>";
                 foreach ($reviews as $review) {
                     echo "<tr>";
-                    
-                    // Display stars as images
                     echo "<td>";
                     for ($i = 1; $i <= 5; $i++) {
                         if ($i <= $review['review_stars']) {
@@ -112,7 +135,6 @@ class RatingsReviewsController {
                         }
                     }
                     echo "</td>";
-    
                     echo "<td>" . htmlspecialchars($review['review_details']) . "</td>";
                     echo "<td>" . htmlspecialchars($review['review_date']) . "</td>";
                     echo "<td>" . htmlspecialchars($review['username']) . "</td>";
@@ -131,9 +153,9 @@ class RatingsReviewsController {
         </html>
         <?php
     }
-    
 }
 
+// Entry Point
 $database = new Database();
 $mysqli = $database->getConnection();
 

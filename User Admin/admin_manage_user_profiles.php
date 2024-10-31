@@ -108,20 +108,18 @@ class UserProfileView
                                         <button type="submit" class="button-font" id="viewProfile" name="viewProfile">View</button>
                                     </form>
 
+                                    
                                     <!-- Form for updating profile -->
-                                     <!-- Form for updating profile -->
                                     <form method="post" action="">
                                         <input type="hidden" name="username" value="<?php echo htmlspecialchars($profile['username']); ?>">
-                                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($profile['user_id']); ?>"> <!-- Added user_id -->
+                                        <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($profile['profile_id']); ?>"> 
                                         <button type="submit" class="button-font" id="updateProfile" name="updateProfile">Update</button>
                                     </form>
 
                                     <!-- Form for suspending profile -->
                                     <form method="post" action="">
-                                        <input type="hidden" name="username"
-                                            value="<?php echo htmlspecialchars($profile['username']); ?>">
-                                        <button type="submit" class="button-font" id="suspendProfile"
-                                            name="suspendProfile">Suspend</button>
+                                        <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($profile['profile_id']); ?>">
+                                        <button type="submit" class="button-font" id="suspendProfile" name="suspendProfile">Suspend</button>
                                     </form>
                                 </td>
                             </tr>
@@ -159,7 +157,7 @@ class UserProfileController
     // Fetch users from the database
     private function getUsers()
     {
-        $query = "SELECT p.user_id,u.username, p.first_name, p.last_name, r.role_name, s.status_name
+        $query = "SELECT p.profile_id,u.username, p.first_name, p.last_name, r.role_name, s.status_name
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id
@@ -182,7 +180,7 @@ class UserProfileController
     {
         $query = "SELECT u.username, p.first_name, p.last_name, r.role_name, s.status_name
               FROM profile p
-              JOIN users u ON u.user_id = p.user_id
+              JOIN users u ON u.profile_id = p.profile_id
               JOIN role r ON u.role_id = r.role_id
               JOIN status s ON u.status_id = s.status_id
               WHERE 1=1";
@@ -232,14 +230,14 @@ class UserProfileController
         }
 
         if (isset($action['updateProfile'])) {
-            $user_id = $action['user_id']; // Get the user_id from the submitted form
-            header("Location: admin_profile_update.php?user_id=" . urlencode($user_id)); // Redirect with user_id
+            $user_id = $action['user_id']; // Get the profile_id from the submitted form
+            header("Location: admin_profile_update.php?user_id=" . urlencode($user_id)); // Redirect with profile_id
             exit();
         }
 
         if (isset($action['suspendProfile'])) {
-            // Placeholder for suspending logic
-            echo "Redirecting to suspend Profile page..."; // Replace with actual logic
+            $profile_id = $action['profile_id']; // Get the profile_id from the submitted form
+            header("Location: admin_suspend_profile.php?profile_id=" . urlencode($profile_id)); // Redirect with profile_id
             exit();
         }
 

@@ -1,11 +1,9 @@
 <?php
-session_start(); // Start the session
+session_start();
+require_once 'connectDatabase.php';
 
-require_once 'connectDatabase.php'; // Include your Database class
-
-// ENTITY LAYER: Handles data-related tasks (database interactions)
+// ENTITY LAYER
 class CarListing {
-    // Fetch the user ID based on username
     public function getUserId($conn, $username) {
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
@@ -16,64 +14,51 @@ class CarListing {
         return $user_id;
     }
 
-    // Insert a new car listing into the listings table
     public function createCarListing($conn, $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color) {
         $stmt = $conn->prepare("INSERT INTO listing (manufacturer_name, model_name, model_year, user_id, listing_image, listing_price, listing_description, listing_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-
-        // Check if the statement was prepared successfully
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
         }
-
-        // Bind parameters ('s' for strings, 'i' for integers, 'd' for double, and 'b' for blob)
-        $stmt->bind_param("ssiiisss", $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color);
-
-        // Execute the query
+        $stmt->bind_param("ssiissss", $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color);
         if (!$stmt->execute()) {
             echo "Error: " . $stmt->error;
         }
-
         $stmt->close();
-        return true; // Return true for successful execution
+        return true;
     }
 }
 
-// CONTROL LAYER: Handles the logic and mediates between boundary and entity layers
+// CONTROL LAYER
 class CarListingController {
     private $carListingModel;
 
-    // Constructor to initialize the CarListing entity model
     public function __construct($carListingModel) {
         $this->carListingModel = $carListingModel;
     }
 
-    public function handleCarListingCreation($formData, $username, $conn) {
-        $manufacturer_name = $formData['manufacturer_name'];
-        $model_name = $formData['model_name'];
-        $model_year = $formData['model_year'];
-        $listing_price = $formData['listing_price'];
-        $listing_description = $formData['listing_description'];
-        $listing_color = $formData['listing_color'];
+    public function handleCarListingCreation($formData, $username, $conn, $listing_image) {
+        $manufacturer_name = $formData['manufacturer_name'] ?? null;
+        $model_name = $formData['model_name'] ?? null;
+        $model_year = $formData['model_year'] ?? null;
+        $listing_price = $formData['listing_price'] ?? null;
+        $listing_description = $formData['listing_description'] ?? null;
+        $listing_color = $formData['listing_color'] ?? null;
 
-        // Use $_FILES for file uploads
-        if (isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] == UPLOAD_ERR_OK) {
-            $listing_image = file_get_contents($_FILES['listing_image']['tmp_name']); // Read the uploaded image as binary
-        } else {
-            return "Error: Failed to upload image. Please try again.";
-        }
-
-        // Get the user ID based on the username
+        // Retrieve user ID based on username
         $user_id = $this->carListingModel->getUserId($conn, $username);
-
-        // Check if the user ID exists
         if (!$user_id) {
-            return "Error: User not found or is not a Used Car Agent.";
+            return ["success" => false, "message" => "User not found or not a Used Car Agent."];
         }
 
-        // Insert the new car listing into the listings table
-        $result = $this->carListingModel->createCarListing($conn, $manufacturer_name, $model_name, $model_year, $user_id, $listing_image, $listing_price, $listing_description, $listing_color);
+        // Attempt to create car listing
+        $result = $this->carListingModel->createCarListing(
+            $conn, $manufacturer_name, $model_name, $model_year, $user_id, 
+            $listing_image, $listing_price, $listing_description, $listing_color
+        );
 
-        return $result ? "New car listing created successfully." : "Error: Failed to create car listing.";
+        return $result 
+            ? ["success" => true, "message" => "New car listing created successfully."]
+            : ["success" => false, "message" => "Failed to create car listing."];
     }
 }
 
@@ -132,7 +117,7 @@ class CarListingView {
                     </tr>
                     <tr>
                         <td><label style="font-size: 24px">Listing Image:</label></td>
-                        <td><input type="file" name="listing_image" accept="image/*" required/></td>
+                        <td><input type="file" name="listing_image" accept="image/*" style="font-size: 24px" required/></td>
                     </tr>
                     <tr>
                         <td><label style="font-size: 24px">Listing Price:</label></td>
@@ -152,8 +137,8 @@ class CarListingView {
             </form>
             <br/>
             <hr/>
-            <form action="agent_dashboard.php" class="form-body">
-                <button type="submit" value="Return" style="font-size: 24px">Return to main dashboard</button>
+            <form action="agent_view_listings.php" class="form-body">
+                <button type="submit" value="Return" style="font-size: 24px">Return to listings list.</button>
             </form>
         </body>
         </html>
@@ -161,33 +146,29 @@ class CarListingView {
     }
 }
 
-// MAIN LOGIC: Connects the BCE components
-
-// Entity layer: Initialize CarListing model
+// MAIN LOGIC
 $carListingModel = new CarListing();
-
-// Control layer: Initialize CarListingController with the entity model
 $controller = new CarListingController($carListingModel);
 
-// Ensure the user is logged in
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
 }
 
-// Retrieve the username from the session
 $username = $_SESSION['username'];
+$message = "";  // Initialize message to be empty on first load
 
-// Handle form submission
-$message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleCarListingCreation($_POST, $username, $conn);
+    if (isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] == UPLOAD_ERR_OK) {
+        $listing_image = file_get_contents($_FILES['listing_image']['tmp_name']);
+        $response = $controller->handleCarListingCreation($_POST, $username, $conn, $listing_image);
+        $message = $response['message'];
+    } else {
+        $message = "";
+    }
 }
 
-// Boundary layer: Initialize CarListingView with any message and render the form
 $view = new CarListingView($message);
 $view->render();
-
-// Close the database connection
 $database->closeConnection();
 ?>
