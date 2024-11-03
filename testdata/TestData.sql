@@ -7,7 +7,8 @@ CREATE TABLE status (
 
 CREATE TABLE role (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR(256)
+    role_name VARCHAR(256),
+    role_description VARCHAR(256)
 );
 
 CREATE TABLE users (
@@ -65,10 +66,10 @@ CREATE TABLE review (
 INSERT INTO status(status_name) VALUES("Active");
 INSERT INTO status(status_name) VALUES("Suspended");
 
-INSERT INTO role(role_id, role_name) VALUES(1,"user admin");
-INSERT INTO role(role_id, role_name) VALUES(2,"used car agent");
-INSERT INTO role(role_id, role_name) VALUES(3,"buyer");
-INSERT INTO role(role_id, role_name) VALUES(4,"seller");
+INSERT INTO role(role_id, role_name,role_description) VALUES(1,"user admin, super admin");
+INSERT INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
+INSERT INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
+INSERT INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
 
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("John Doe", "abc123", 1,"john@exampl3.com","+6581234567",1);
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567",1);

@@ -159,7 +159,6 @@ class ProfileView {
                         </td>
                         <td>
                             <form action="agent_update_profile.php">
-                            <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($this->profileData->user_id); ?>">
                                 <button type="submit" class="button">Update account profile</button>
                             </form>
                         </td>

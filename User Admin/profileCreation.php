@@ -1,5 +1,6 @@
 <?php
 require "connectDatabase.php";
+
 // ENTITY LAYER: Represents the UserProfile data structure
 class UserProfile {
     public $user_id;
@@ -30,16 +31,22 @@ class ProfileController {
 
     // Handle form submission for profile creation
     public function handleProfileCreation($formData, $fileData) {
-        $username = $formData['username'];
-        $first_name = $formData['first_name'];
-        $last_name = $formData['last_name'];
-        $gender = $formData['gender'];
-        $about = $formData['about'];
+        // Check if keys exist before accessing them
+        $username = isset($formData['username']) ? $formData['username'] : null;
+        $first_name = isset($formData['first_name']) ? $formData['first_name'] : null;
+        $last_name = isset($formData['last_name']) ? $formData['last_name'] : null;
+        $gender = isset($formData['gender']) ? $formData['gender'] : null;
+        $about = isset($formData['about']) ? $formData['about'] : null;
+
+        // Ensure all required fields are present
+        if (is_null($username) || is_null($first_name) || is_null($last_name) || is_null($gender) || is_null($about)) {
+            return; // Do nothing if fields are missing
+        }
 
         // Check if the username exists in the database
         $user_id = $this->checkUsernameExists($username);
         if (!$user_id) {
-            return "Error: Username must match an existing account.";
+            return; // Do nothing if the username does not match
         }
 
         // Handle the profile image if provided
@@ -52,7 +59,7 @@ class ProfileController {
         $userProfile = new UserProfile($user_id, $first_name, $last_name, $gender, $about, $profile_image);
 
         // Insert the profile into the database
-        return $this->createProfile($userProfile) ? "New profile created successfully." : "Error: Failed to create profile.";
+        $this->createProfile($userProfile);
     }
 
     // CONTROL LAYER: Checks if a username exists in the database
@@ -68,19 +75,33 @@ class ProfileController {
 
     // CONTROL LAYER: Inserts the UserProfile entity data into the database
     private function createProfile($userProfile) {
-        $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image,status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
-        
+        $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
+
         if ($userProfile->profile_image) {
-            $null = NULL;
-            $stmt->bind_param("issssb", $userProfile->user_id, $userProfile->first_name, $userProfile->last_name, $userProfile->gender, $userProfile->about, $null);
-            $stmt->send_long_data(5, $userProfile->profile_image);
+            // Profile image is provided
+            $stmt->bind_param("issssb", 
+                $userProfile->user_id, 
+                $userProfile->first_name, 
+                $userProfile->last_name, 
+                $userProfile->gender, 
+                $userProfile->about, 
+                $userProfile->profile_image // bind the actual profile image
+            );
         } else {
-            $stmt->bind_param("issss", $userProfile->user_id, $userProfile->first_name, $userProfile->last_name, $userProfile->gender, $userProfile->about);
+            // Profile image is not provided
+            $null = NULL; // Use NULL for the profile image
+            $stmt->bind_param("issssi", 
+                $userProfile->user_id, 
+                $userProfile->first_name, 
+                $userProfile->last_name, 
+                $userProfile->gender, 
+                $userProfile->about, 
+                $null // bind NULL for profile_image
+            );
         }
 
-        $result = $stmt->execute();
+        $stmt->execute();
         $stmt->close();
-        return $result;
     }
 }
 
@@ -116,9 +137,10 @@ class ProfileCreationView {
             </div>
 
             <!-- Display success or error messages -->
-            <?php if ($this->message): ?>
+            <!-- Removed message display to eliminate errors -->
+            <?php /* if ($this->message): ?>
                 <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
-            <?php endif; ?>
+            <?php endif; */ ?>
 
             <!-- Form for profile creation -->
             <form class="form-body" method="POST" action="" enctype="multipart/form-data">
@@ -174,13 +196,12 @@ $conn = $database->getConnection();
 // Initialize the control layer with the database connection
 $controller = new ProfileController($conn);
 
-$message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleProfileCreation($_POST, $_FILES);
+    $controller->handleProfileCreation($_POST, $_FILES);
 }
 
-// Initialize and render the boundary layer with any message
-$view = new ProfileCreationView($message);
+// Initialize and render the boundary layer
+$view = new ProfileCreationView();
 $view->render();
 
 // Close the database connection
