@@ -36,7 +36,7 @@ class UserProfile {
         if ($data['profile_image'] !== null) {
             // Bind parameters including the BLOB
             $stmt->bind_param(
-                "ssssbsii",
+                "sssssssi",
                 $data['first_name'],
                 $data['last_name'],
                 $data['gender'],
@@ -63,7 +63,7 @@ class UserProfile {
 
             // Bind parameters excluding the BLOB
             $stmt->bind_param(
-                "ssssis",
+                "ssssssi",
                 $data['first_name'],
                 $data['last_name'],
                 $data['gender'],
@@ -106,7 +106,8 @@ class UserProfileController {
             }
 
             if ($this->model->updateProfile($conn, $data)) {
-                header("Location: agent_manage_profile.php");
+                // Redirect to the profile details page with the updated profile ID
+                header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
                 exit();
             }
         }

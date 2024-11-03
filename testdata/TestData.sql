@@ -66,7 +66,7 @@ CREATE TABLE review (
 INSERT INTO status(status_name) VALUES("Active");
 INSERT INTO status(status_name) VALUES("Suspended");
 
-INSERT INTO role(role_id, role_name,role_description) VALUES(1,"user admin, super admin");
+INSERT INTO role(role_id, role_name,role_description) VALUES(1,"user admin", "super admin");
 INSERT INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
 INSERT INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
 INSERT INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
