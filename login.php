@@ -8,14 +8,12 @@ class User {
     private $role;
     private $password;
 
-    // Constructor with only essential user attributes
     public function __construct($username, $password, $role) {
         $this->username = $username;
         $this->password = $password;
         $this->role = $role;
     }
 
-    // Authenticate user by verifying the username, role, password, and suspension status
     public function authenticate($db) {
         $roleMapping = [
             'user admin' => 1,
@@ -29,20 +27,22 @@ class User {
         }
 
         $role_id = $roleMapping[$this->role];
-        $stmt = $db->prepare("SELECT password, status_id FROM users WHERE username = ? AND role_id = ?");
+        // Modify the query to also select user_id
+        $stmt = $db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $this->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($stored_password, $status_id);
+            $stmt->bind_result($user_id, $stored_password, $status_id);
             $stmt->fetch();
 
             // Check if the user is suspended (status_id = 2)
             if ($status_id == 2) {
                 return "Account suspended. Please contact support.";
             }
-            return $this->password === $stored_password;
+            // Return user_id and authentication result
+            return ['authenticated' => $this->password === $stored_password, 'user_id' => $user_id];
         } else {
             return false;
         }
@@ -62,9 +62,11 @@ class AuthController {
         $dbConnection = $this->database->getConnection();
 
         $authResult = $user->authenticate($dbConnection);
-        
-        if ($authResult === true) {
+
+        if (is_array($authResult) && $authResult['authenticated'] === true) {
+            // Store user_id in session
             $_SESSION['username'] = $username;
+            $_SESSION['user_id'] = $authResult['user_id']; // Store user_id
             return $this->getRedirectLocation($role);
         } elseif ($authResult === "Account suspended. Please contact support.") {
             return $authResult;
