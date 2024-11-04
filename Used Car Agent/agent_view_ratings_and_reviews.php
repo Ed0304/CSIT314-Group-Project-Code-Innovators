@@ -3,22 +3,72 @@ session_start();
 
 require 'connectDatabase.php';
 
-// Entity Class: User
-class User {
-    private $userId;
-    private $username;
+// Entity Class: Review
+class Review {
+    private $mysqli;
+    private $details;
+    private $stars;
+    private $date;
+    private $reviewerUsername;
 
-    public function __construct($userId, $username) {
-        $this->userId = $userId;
-        $this->username = $username;
+    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null) {
+        $this->mysqli = $mysqli;
+        $this->details = $details;
+        $this->stars = $stars;
+        $this->date = $date;
+        $this->reviewerUsername = $reviewerUsername;
     }
 
-    public function getUserId() {
-        return $this->userId;
+    public function getDetails() {
+        return $this->details;
     }
 
-    public function getUsername() {
-        return $this->username;
+    public function getStars() {
+        return $this->stars;
+    }
+
+    public function getDate() {
+        return $this->date;
+    }
+
+    public function getReviewerUsername() {
+        return $this->reviewerUsername;
+    }
+
+    // Method to retrieve user ID by username
+    public function getUserIdByUsername($username) {
+        $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
+        if (!$stmt) {
+            return null;
+        }
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return $row['user_id'];
+        }
+        return null;
+    }
+
+    // Method to retrieve reviews for a specific agent
+    public function getAgentRatingsAndReviews($agent_id) {
+        $query = "SELECT r.review_details, r.review_stars, r.review_date, u.username
+                  FROM review r
+                  JOIN users u ON r.reviewer_id = u.user_id
+                  WHERE r.agent_id = ?";
+        $stmt = $this->mysqli->prepare($query);
+        if (!$stmt) {
+            return false;
+        }
+        $stmt->bind_param('i', $agent_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $reviews = [];
+        while ($row = $result->fetch_assoc()) {
+            $reviews[] = new Review($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username']);
+        }
+        return $reviews;
     }
 }
 
@@ -29,54 +79,32 @@ class RatingsReviewsController {
 
     public function __construct($mysqli) {
         $this->mysqli = $mysqli;
-        $this->view = new RatingsReviewsView(); // Instantiate the view
+        $this->view = new RatingsReviewsView();
     }
 
     public function handleRequest() {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
             $username = trim($_GET['username']);
             if (empty($username)) {
-                return $this->view->render([], "Username cannot be empty.");
+                $this->view->renderError("Username cannot be empty.");
+                return;
             }
 
-            $user = $this->getUserByUsername($username);
-            if ($user) {
-                $reviews = $this->getAgentRatingsAndReviews($user->getUserId());
-                return $this->view->render($reviews);
+            $reviewEntity = new Review($this->mysqli);
+            $userId = $reviewEntity->getUserIdByUsername($username);
+            if ($userId) {
+                $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
+                if ($reviews === false) {
+                    $this->view->renderError("Error retrieving reviews.");
+                    return;
+                }
+                $this->view->render($reviews);
             } else {
-                return $this->view->render([], "Agent not found for the given username.");
+                $this->view->renderError("Agent not found for the given username.");
             }
         } else {
-            return $this->view->render([], "No username provided.");
+            $this->view->renderError("No username provided.");
         }
-    }
-
-    private function getUserByUsername($username) {
-        $stmt = $this->mysqli->prepare("SELECT user_id, username FROM users WHERE username = ?");
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            return new User($row['user_id'], $row['username']);
-        }
-        return null;
-    }
-
-    private function getAgentRatingsAndReviews($agent_id) {
-        $query = "SELECT r.review_details, r.review_stars, r.review_date, u.username
-                  FROM review r
-                  JOIN users u ON r.reviewer_id = u.user_id
-                  WHERE r.agent_id = ?";
-        $stmt = $this->mysqli->prepare($query);
-        $stmt->bind_param('i', $agent_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $reviews = [];
-        while ($row = $result->fetch_assoc()) {
-            $reviews[] = $row;
-        }
-        return $reviews;
     }
 }
 
@@ -107,8 +135,8 @@ class RatingsReviewsView {
                     text-align: center;
                 }
                 .star {
-                    width: 25px; /* Adjust size as needed */
-                    height: 25px; /* Adjust size as needed */
+                    width: 25px;
+                    height: 25px;
                 }
                 .button-font {
                     font-size: 18px;
@@ -128,16 +156,16 @@ class RatingsReviewsView {
                     echo "<tr>";
                     echo "<td>";
                     for ($i = 1; $i <= 5; $i++) {
-                        if ($i <= $review['review_stars']) {
-                            echo "<img src='star.png' alt='Star' class='star'>";
+                        if ($i <= $review->getStars()) {
+                            echo "<img src='star.png' alt='Filled Star' class='star'>";
                         } else {
                             echo "<img src='empty-star.png' alt='Empty Star' class='star'>";
                         }
                     }
                     echo "</td>";
-                    echo "<td>" . htmlspecialchars($review['review_details']) . "</td>";
-                    echo "<td>" . htmlspecialchars($review['review_date']) . "</td>";
-                    echo "<td>" . htmlspecialchars($review['username']) . "</td>";
+                    echo "<td>" . htmlspecialchars($review->getDetails()) . "</td>";
+                    echo "<td>" . htmlspecialchars($review->getDate()) . "</td>";
+                    echo "<td>" . htmlspecialchars($review->getReviewerUsername()) . "</td>";
                     echo "</tr>";
                 }
                 echo "</table>";
@@ -152,6 +180,10 @@ class RatingsReviewsView {
         </body>
         </html>
         <?php
+    }
+
+    public function renderError($message) {
+        $this->render([], $message);
     }
 }
 

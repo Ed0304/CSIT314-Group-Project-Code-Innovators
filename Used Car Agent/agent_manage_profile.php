@@ -8,6 +8,13 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
+// Redirect to the update profile page if the update action is requested
+if (isset($_POST['profile_id'])) {
+    $profile_id = $_POST['profile_id'];
+    header("Location: agent_update_profile.php?profile_id=" . urlencode($profile_id)); 
+    exit();
+}
+
 $username = $_SESSION['username']; // Use the username from session
 
 // ENTITY LAYER: Represents a user's profile as an object
@@ -22,6 +29,7 @@ class UserProfile {
     public $role_name;
     public $phone_num;
     public $profile_image;
+    public $profile_id; // Add profile_id here
 
     public function __construct($data) {
         $this->username = $data['username'];
@@ -34,6 +42,7 @@ class UserProfile {
         $this->role_name = $data['role_name'];
         $this->phone_num = $data['phone_num'];
         $this->profile_image = $data['profile_image'];
+        $this->profile_id = $data['profile_id'];
     }
 }
 
@@ -47,7 +56,7 @@ class UserProfileRepository {
 
     // Retrieves user profile data from the database
     public function getProfileByUsername($username) {
-        $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image 
+        $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id 
@@ -158,8 +167,9 @@ class ProfileView {
                             </form>
                         </td>
                         <td>
-                            <form action="agent_update_profile.php">
-                                <button type="submit" class="button">Update account profile</button>
+                            <form action="" method="POST">
+                                <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($this->profileData->profile_id); ?>">
+                                <button type="submit" name="update" class="button">Update account profile</button>
                             </form>
                         </td>
                     </tr>
