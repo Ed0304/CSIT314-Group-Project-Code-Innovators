@@ -1,198 +1,153 @@
 <?php
+require "connectDatabase.php";
+// Start the session
 session_start();
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
 
-require 'connectDatabase.php';
+if (isset($_POST['create'])) {
+    header("Location: agent_create_listings.php");
+    exit();
+}
 
-// Entity Class: Review
-class Review {
-    private $mysqli;
-    private $details;
-    private $stars;
-    private $date;
-    private $reviewerUsername;
+if (isset($_POST['view'])) {
+    $username = urlencode($this->view->listing_id); // Encode the username
+    header("Location: listing_details.php?listing_id=" . $listing_id);
+    exit();
+}
 
-    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null) {
-        $this->mysqli = $mysqli;
-        $this->details = $details;
-        $this->stars = $stars;
-        $this->date = $date;
-        $this->reviewerUsername = $reviewerUsername;
+
+// CarListing Entity
+class CarListing {
+    public $listing_id;
+    public $manufacturer_name;
+    public $model_name;
+    public $model_year;
+
+    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year) {
+        $this->listing_id = $listing_id;
+        $this->manufacturer_name = $manufacturer_name;
+        $this->model_name = $model_name;
+        $this->model_year = $model_year;
+    }
+}
+
+// Controller for retrieving listings
+class ListingController {
+    private $db;
+    private $username;
+    private $listings;
+
+    public function __construct($dbConnection) {
+        $this->db = $dbConnection;
+        $this->username = $_SESSION['username'];
+        $this->listings = $this->getListingsByUsername($this->username);
     }
 
-    public function getDetails() {
-        return $this->details;
-    }
+    private function getListingsByUsername($username) {
+        $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing
+                  WHERE user_id = (SELECT user_id FROM users WHERE username = ?)";
 
-    public function getStars() {
-        return $this->stars;
-    }
-
-    public function getDate() {
-        return $this->date;
-    }
-
-    public function getReviewerUsername() {
-        return $this->reviewerUsername;
-    }
-
-    // Method to retrieve user ID by username
-    public function getUserIdByUsername($username) {
-        $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
-        if (!$stmt) {
-            return null;
-        }
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            return $row['user_id'];
-        }
-        return null;
-    }
-
-    // Method to retrieve reviews for a specific agent
-    public function getAgentRatingsAndReviews($agent_id) {
-        $query = "SELECT r.review_details, r.review_stars, r.review_date, u.username
-                  FROM review r
-                  JOIN users u ON r.reviewer_id = u.user_id
-                  WHERE r.agent_id = ?";
-        $stmt = $this->mysqli->prepare($query);
-        if (!$stmt) {
-            return false;
-        }
-        $stmt->bind_param('i', $agent_id);
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        $reviews = [];
+        $listings = [];
         while ($row = $result->fetch_assoc()) {
-            $reviews[] = new Review($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username']);
+            $listings[] = new CarListing($row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
         }
-        return $reviews;
+
+        $stmt->close();
+        return $listings;
+    }
+
+    public function getUsername() {
+        return $this->username;
+    }
+
+    public function getListings() {
+        return $this->listings;
     }
 }
 
-// Control Class: RatingsReviewsController
-class RatingsReviewsController {
-    private $mysqli;
-    private $view;
-
-    public function __construct($mysqli) {
-        $this->mysqli = $mysqli;
-        $this->view = new RatingsReviewsView();
-    }
-
-    public function handleRequest() {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
-            $username = trim($_GET['username']);
-            if (empty($username)) {
-                $this->view->renderError("Username cannot be empty.");
-                return;
-            }
-
-            $reviewEntity = new Review($this->mysqli);
-            $userId = $reviewEntity->getUserIdByUsername($username);
-            if ($userId) {
-                $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
-                if ($reviews === false) {
-                    $this->view->renderError("Error retrieving reviews.");
-                    return;
-                }
-                $this->view->render($reviews);
-            } else {
-                $this->view->renderError("Agent not found for the given username.");
-            }
-        } else {
-            $this->view->renderError("No username provided.");
-        }
-    }
-}
-
-// Boundary Class: RatingsReviewsView
-class RatingsReviewsView {
-    public function render($reviews = [], $message = "") {
+// Boundary class for displaying listings
+class CarListingBoundary {
+    public function displayListings(ListingController $controller) {
+        $username = $controller->getUsername();
+        $listings = $controller->getListings();
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Agent Ratings & Reviews</title>
+            <title>My Listings</title>
             <style>
-                #reviews-table {
-                    border-collapse: collapse;
-                    width: 100%;
-                }
-                #reviews-table, 
-                #reviews-table th, 
-                #reviews-table td {
-                    border: 1px solid black;
-                }
-                #reviews-table th, 
-                #reviews-table td {
-                    padding: 10px;
-                    font-size: 20px;
-                    text-align: center;
-                }
-                .star {
-                    width: 25px;
-                    height: 25px;
-                }
-                .button-font {
-                    font-size: 18px;
-                }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { padding: 10px; border: 1px solid black; }
+                th { background-color: #f2f2f2; }
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">Agent Ratings & Reviews</h1>
-            <?php
-            if ($message) {
-                echo "<p style='color: red; text-align:center;'>$message</p>";
-            }
-            if (!empty($reviews)) {
-                echo "<table id='reviews-table'>";
-                echo "<tr><th>Stars</th><th>Review</th><th>Date</th><th>Rated By:</th></tr>";
-                foreach ($reviews as $review) {
-                    echo "<tr>";
-                    echo "<td>";
-                    for ($i = 1; $i <= 5; $i++) {
-                        if ($i <= $review->getStars()) {
-                            echo "<img src='star.png' alt='Filled Star' class='star'>";
-                        } else {
-                            echo "<img src='empty-star.png' alt='Empty Star' class='star'>";
-                        }
-                    }
-                    echo "</td>";
-                    echo "<td>" . htmlspecialchars($review->getDetails()) . "</td>";
-                    echo "<td>" . htmlspecialchars($review->getDate()) . "</td>";
-                    echo "<td>" . htmlspecialchars($review->getReviewerUsername()) . "</td>";
-                    echo "</tr>";
-                }
-                echo "</table>";
-            } else {
-                echo "<p>No ratings or reviews found for this agent.</p>";
-            }
-            ?>
+            <h2><?php echo htmlspecialchars($username); ?>'s Car Listings</h2>
+            <br/><br/>
+            <br/>
+            <form>
+                <input type="text" style="font-size:24px" name="search" placeholder="Search listings...">
+                <button type="submit" style="font-size:24px">Search</button>
+            </form>
+            <br/><br/>
+            <form method="post" action="agent_create_listings.php">
+                <button type="submit" id="create" name="create" style="font-size:24px">Create new listings</button>
+                <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->username); ?>" />
+            </form>
+            <br/><br/>
+            <table>
+                <tr>
+                    <th>Manufacturer</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Actions</th>
+                </tr>
+                <?php foreach ($listings as $listing): ?>
+                    <tr>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->manufacturer_name); ?></td>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->model_name); ?></td>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->model_year); ?></td>
+                        <td style="text-align:center">
+                            <form action="listing_details.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
+                                <button type="submit">View more details</button>
+                            </form>
+                            <form action="update_listing_details.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
+                                <button type="submit">Update Listing</button>
+                            </form>
+                            <form action="agent_delete_listing.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
+                                <button type="submit">Delete Listing</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+            <br/>
             <form method="post" action="agent_dashboard.php" style="text-align:center">
-                <br/>
                 <input type="submit" value="Return" style="font-size: 24px">
             </form>
         </body>
         </html>
         <?php
     }
-
-    public function renderError($message) {
-        $this->render([], $message);
-    }
 }
 
-// Entry Point
-$database = new Database();
-$mysqli = $database->getConnection();
+// Main script logic
+$db = new Database(); // Assuming connectDatabase.php defines Database class
+$controller = new ListingController($db->getConnection());
 
-$ratingsReviewsController = new RatingsReviewsController($mysqli);
-$ratingsReviewsController->handleRequest();
-
-$database->closeConnection();
+// Create a boundary instance and display the listings
+$boundary = new CarListingBoundary();
+$boundary->displayListings($controller);
 ?>

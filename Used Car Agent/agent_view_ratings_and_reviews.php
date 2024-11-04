@@ -85,27 +85,14 @@ class RatingsReviewsController {
     public function handleRequest() {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
             $username = trim($_GET['username']);
-            if (empty($username)) {
-                $this->view->renderError("Username cannot be empty.");
-                return;
-            }
-
+            $this->view->renderError("Username cannot be empty.");
             $reviewEntity = new Review($this->mysqli);
             $userId = $reviewEntity->getUserIdByUsername($username);
-            if ($userId) {
-                $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
-                if ($reviews === false) {
-                    $this->view->renderError("Error retrieving reviews.");
-                    return;
-                }
-                $this->view->render($reviews);
-            } else {
-                $this->view->renderError("Agent not found for the given username.");
-            }
-        } else {
-            $this->view->renderError("No username provided.");
+            $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);    
+            $this->view->render($reviews);
         }
     }
+            
 }
 
 // Boundary Class: RatingsReviewsView
