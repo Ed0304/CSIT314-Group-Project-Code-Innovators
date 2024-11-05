@@ -65,6 +65,7 @@ CREATE TABLE shortlist(
     shortlist_id INT AUTO_INCREMENT PRIMARY KEY,
     buyer_id INT NOT NULL,
     listing_id INT NOT NULL,
+    shortlist_date DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (buyer_id) REFERENCES users(user_id),
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
