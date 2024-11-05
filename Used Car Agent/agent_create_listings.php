@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'connectDatabase.php';
+require_once '../connectDatabase.php';
 
 // ENTITY LAYER
 class CarListing {

@@ -1,5 +1,5 @@
 <?php
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // ENTITY LAYER: Represents user data without direct database interactions
 class User

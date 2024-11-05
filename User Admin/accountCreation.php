@@ -1,5 +1,5 @@
 <?php
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // ENTITY LAYER: Handles data-related tasks (database interactions)
 class UserAccount {

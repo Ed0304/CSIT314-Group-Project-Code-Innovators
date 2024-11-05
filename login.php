@@ -77,11 +77,11 @@ class AuthController {
     private function getRedirectLocation($role) {
         switch($role) {
             case 'user admin':
-                return "admin_dashboard.php";
+                return "User Admin/admin_dashboard.php";
             case 'used car agent':
-                return "agent_dashboard.php";
+                return "Used Car Agent/agent_dashboard.php";
             case 'buyer':
-                return "buyer_dashboard.php";
+                return "Buyer/buyer_dashboard.php";
             case 'seller':
                 return "seller_dashboard.php";
             default:

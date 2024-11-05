@@ -1,5 +1,5 @@
 <?php
-require "connectDatabase.php";
+require "../connectDatabase.php";
 session_start();
 
 // Check if the user is logged in

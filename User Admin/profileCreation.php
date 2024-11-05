@@ -1,107 +1,60 @@
 <?php
-require "connectDatabase.php";
+require "../connectDatabase.php"; // Ensure this file contains your Database class
 
 // ENTITY LAYER: Represents the UserProfile data structure
-class UserProfile {
-    public $user_id;
-    public $first_name;
-    public $last_name;
-    public $gender;
-    public $about;
-    public $profile_image;
-
-    public function __construct($user_id, $first_name, $last_name, $gender, $about, $profile_image = null) {
-        $this->user_id = $user_id;
-        $this->first_name = $first_name;
-        $this->last_name = $last_name;
-        $this->gender = $gender;
-        $this->about = $about;
-        $this->profile_image = $profile_image;
-    }
-}
-
-// CONTROL LAYER: Handles business logic and database interactions for user profiles
-class ProfileController {
+class UserProfileEntity {
     private $conn;
 
-    // Constructor to initialize the connection
     public function __construct($conn) {
         $this->conn = $conn;
     }
 
-    // Handle form submission for profile creation
-    public function handleProfileCreation($formData, $fileData) {
-        // Check if keys exist before accessing them
-        $username = isset($formData['username']) ? $formData['username'] : null;
-        $first_name = isset($formData['first_name']) ? $formData['first_name'] : null;
-        $last_name = isset($formData['last_name']) ? $formData['last_name'] : null;
-        $gender = isset($formData['gender']) ? $formData['gender'] : null;
-        $about = isset($formData['about']) ? $formData['about'] : null;
-
-        // Ensure all required fields are present
-        if (is_null($username) || is_null($first_name) || is_null($last_name) || is_null($gender) || is_null($about)) {
-            return; // Do nothing if fields are missing
-        }
-
-        // Check if the username exists in the database
-        $user_id = $this->checkUsernameExists($username);
-        if (!$user_id) {
-            return; // Do nothing if the username does not match
-        }
-
-        // Handle the profile image if provided
-        $profile_image = null;
-        if (isset($fileData['profile_image']) && $fileData['profile_image']['error'] == 0) {
-            $profile_image = file_get_contents($fileData['profile_image']['tmp_name']);
-        }
-
-        // Create a new UserProfile entity
-        $userProfile = new UserProfile($user_id, $first_name, $last_name, $gender, $about, $profile_image);
-
-        // Insert the profile into the database
-        $this->createProfile($userProfile);
-    }
-
-    // CONTROL LAYER: Checks if a username exists in the database
-    private function checkUsernameExists($username) {
-        $stmt = $this->conn->prepare("SELECT user_id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
+    // Check if a role exists in the database
+    public function checkRoleExists($role_name) {
+        $stmt = $this->conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
+        $stmt->bind_param("s", $role_name);
         $stmt->execute();
         $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $role = $result->fetch_assoc();
         $stmt->close();
-        return $user ? $user['user_id'] : null;
+        return $role ? $role['role_id'] : null;
     }
 
-    // CONTROL LAYER: Inserts the UserProfile entity data into the database
-    private function createProfile($userProfile) {
-        $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, gender, about, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
-
-        if ($userProfile->profile_image) {
-            // Profile image is provided
-            $stmt->bind_param("issssb", 
-                $userProfile->user_id, 
-                $userProfile->first_name, 
-                $userProfile->last_name, 
-                $userProfile->gender, 
-                $userProfile->about, 
-                $userProfile->profile_image // bind the actual profile image
-            );
-        } else {
-            // Profile image is not provided
-            $null = NULL; // Use NULL for the profile image
-            $stmt->bind_param("issssi", 
-                $userProfile->user_id, 
-                $userProfile->first_name, 
-                $userProfile->last_name, 
-                $userProfile->gender, 
-                $userProfile->about, 
-                $null // bind NULL for profile_image
-            );
-        }
-
+    // Inserts a UserProfile entity data into the database
+    public function createProfile($role_name, $role_description) {
+        $stmt = $this->conn->prepare("INSERT INTO role (role_name, role_description) VALUES (?, ?)");
+        $stmt->bind_param("ss", $role_name, $role_description);
         $stmt->execute();
         $stmt->close();
+    }
+}
+
+// CONTROLLER LAYER: Handles business logic and database interactions for user profiles
+class ProfileController {
+    private $entity;
+
+    public function __construct($entity) {
+        $this->entity = $entity;
+    }
+
+    // Handle form submission for profile creation
+    public function handleProfileCreation($formData) {
+        $role_name = isset($formData['role_name']) ? $formData['role_name'] : null;
+        $role_description = isset($formData['role_description']) ? $formData['role_description'] : null;
+
+        // Ensure all required fields are present
+        if (is_null($role_name) || is_null($role_description)) {
+            return null; // Indicate that fields are missing
+        }
+
+        // Check if the role already exists in the database
+        if ($this->entity->checkRoleExists($role_name)) {
+            return "Profile name already exists. Please choose a different name."; // Return error message
+        }
+
+        // Insert the profile into the database
+        $this->entity->createProfile($role_name, $role_description);
+        return true; // Indicate success
     }
 }
 
@@ -137,43 +90,21 @@ class ProfileCreationView {
             </div>
 
             <!-- Display success or error messages -->
-            <!-- Removed message display to eliminate errors -->
-            <?php /* if ($this->message): ?>
+            <?php if ($this->message): ?>
                 <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
-            <?php endif; */ ?>
+            <?php endif; ?>
 
             <!-- Form for profile creation -->
-            <form class="form-body" method="POST" action="" enctype="multipart/form-data">
-                <h4>Note: Username should match with one of the data in the accounts list!</h4>
+            <form class="form-body" method="POST" action="">
+                <h4>Note: Profile Name should not exist in the list!</h4>
                 <table class="invisible-table">
                     <tr>
-                        <td><label style="font-size: 24px">Profile Picture:</label></td>
-                        <td><input type="file" name="profile_image" style="font-size: 24px"/></td>
+                        <td><label style="font-size: 24px">Profile Name:</label></td>
+                        <td><input type="text" name="role_name" style="font-size: 24px" required/></td>
                     </tr>
                     <tr>
-                        <td><label style="font-size: 24px">Username:</label></td>
-                        <td><input type="text" name="username" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">First Name:</label></td>
-                        <td><input type="text" name="first_name" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">Last Name:</label></td>
-                        <td><input type="text" name="last_name" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">Gender:</label></td>
-                        <td>
-                            <select name="gender" style="font-size: 24px" required>
-                                <option value="M">Male</option>
-                                <option value="F">Female</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">About:</label></td>
-                        <td><textarea name="about" style="font-size: 24px" rows="4" cols="50"></textarea></td>
+                        <td><label style="font-size: 24px">Profile Description:</label></td>
+                        <td><input type="text" name="role_description" style="font-size: 24px" required/></td>
                     </tr>
                 </table>
                 <br/>
@@ -193,15 +124,27 @@ class ProfileCreationView {
 $database = new Database();
 $conn = $database->getConnection();
 
-// Initialize the control layer with the database connection
-$controller = new ProfileController($conn);
+// Initialize the entity and controller
+$userProfileEntity = new UserProfileEntity($conn);
+$controller = new ProfileController($userProfileEntity);
 
+$message = null;
+
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $controller->handleProfileCreation($_POST, $_FILES);
+    $result = $controller->handleProfileCreation($_POST);
+    
+    // Check the result and redirect if successful
+    if ($result === true) {
+        header("Location: admin_manage_user_profiles.php");
+        exit(); // Make sure to exit after redirection
+    } else {
+        $message = $result; // Set error message if the role already exists
+    }
 }
 
 // Initialize and render the boundary layer
-$view = new ProfileCreationView();
+$view = new ProfileCreationView($message);
 $view->render();
 
 // Close the database connection

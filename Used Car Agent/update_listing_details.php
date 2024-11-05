@@ -1,5 +1,5 @@
 <?php
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // ENTITY LAYER: Represents Listing
 class Listing {

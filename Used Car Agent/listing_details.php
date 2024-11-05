@@ -1,7 +1,7 @@
 <?php
 // listingDetails.php
 
-require_once 'connectDatabase.php'; // Contains the Database class
+require_once '../connectDatabase.php'; // Contains the Database class
 session_start();
 
 if (!isset($_SESSION['username'])) {

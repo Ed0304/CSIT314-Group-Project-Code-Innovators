@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // BOUNDARY LAYER: Responsible for rendering user information
 class ProfileView {
