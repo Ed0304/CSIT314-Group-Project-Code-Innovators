@@ -107,7 +107,7 @@ class DashboardController {
         }
 
         if (isset($_POST['logout'])) {
-            $this->redirectTo('logout.php');
+            $this->redirectTo('../logout.php');
         }
     }
 
