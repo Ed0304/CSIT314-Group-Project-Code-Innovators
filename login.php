@@ -132,7 +132,7 @@ class LoginForm {
                     <label for="password" class="form-label">Password </label>
                     <input type="password" id="password" name="password" class="form-label" required/>
                     <br/><br/>
-                    <button type="submit" class="form-label">Submit</button>
+                    <button type="submit" class="form-label">Login</button>
                     <br/>
                 </div>
             </form>
