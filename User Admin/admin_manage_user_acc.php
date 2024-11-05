@@ -4,7 +4,16 @@ require 'connectDatabase.php';
 // ENTITY LAYER: Represents user data without direct database interactions
 class User
 {
-    // This class remains empty, representing the user entity.
+    public $username;
+    public $role_name;
+    public $status_name;
+
+    public function __construct($username, $role_name, $status_name)
+    {
+        $this->username = htmlspecialchars($username);
+        $this->role_name = htmlspecialchars($role_name);
+        $this->status_name = htmlspecialchars($status_name);
+    }
 }
 
 // BOUNDARY LAYER: HTML View for managing user accounts
@@ -62,61 +71,58 @@ class UserAccountView
 
         <body>
             <h1 style="text-align:center">Manage user accounts here...</h1>
-            <!-- Form for filtering users based on role and username -->
-                <form method="POST" action="admin_manage_user_acc.php">
-                    <label for="role" class="select-label">Filter based on:</label>
-                    <select id="role" name="role" class="select-label">
-                        <option value="" class="select-label">All roles</option>
-                        <option value="used car agent" class="select-label">Used Car Agent</option>
-                        <option value="buyer" class="select-label">Buyer</option>
-                        <option value="seller" class="select-label">Seller</option>
-                    </select>
-                    <input type="text" id="search" name="search" placeholder="Enter username" />
-                    <button type="submit" name="searchButton" id="searchButton">Search</button>
-                    <br /><br />
-                </form>
-                <!-- Form ends here-->
-
-                <form method="post" action="">
-                    <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user
-                        account</button>
-                </form>
+            <form method="POST" action="admin_manage_user_acc.php">
+                <label for="role" class="select-label">Filter based on:</label>
+                <select id="role" name="role" class="select-label">
+                    <option value="">All roles</option>
+                    <option value="used car agent">Used Car Agent</option>
+                    <option value="buyer">Buyer</option>
+                    <option value="seller">Seller</option>
+                </select>
+                <input type="text" id="search" name="search" placeholder="Enter username" />
+                <button type="submit" name="searchButton" id="searchButton">Search</button>
                 <br /><br />
+            </form>
 
-                <table id="main-table">
-                    <tr>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    <?php if (!empty($this->users)): ?>
-                        <?php foreach ($this->users as $user): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($user['username']); ?></td>
-                                <td><?php echo htmlspecialchars($user['role_name']); ?></td>
-                                <td><?php echo htmlspecialchars($user['status_name']); ?></td>
-                                <td>
-                                    <form method="post" action="">
-                                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($user['username']); ?>">
-                                        <button type="submit" class="button-font" name="viewAccount">View</button>
-                                        <button type="submit" class="button-font" name="updateAccount">Update</button>
-                                        <button type="submit" class="button-font" name="suspendAccount">Suspend</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
+            <form method="post" action="">
+                <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user account</button>
+            </form>
+            <br /><br />
+
+            <table id="main-table">
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                <?php if (!empty($this->users)): ?>
+                    <?php foreach ($this->users as $user): ?>
                         <tr>
-                            <td colspan="3">No users found.</td>
+                            <td><?php echo $user->username; ?></td>
+                            <td><?php echo $user->role_name; ?></td>
+                            <td><?php echo $user->status_name; ?></td>
+                            <td>
+                                <form method="post" action="">
+                                    <input type="hidden" name="username" value="<?php echo $user->username; ?>">
+                                    <button type="submit" class="button-font" name="viewAccount">View</button>
+                                    <button type="submit" class="button-font" name="updateAccount">Update</button>
+                                    <button type="submit" class="button-font" name="suspendAccount">Suspend</button>
+                                </form>
+                            </td>
                         </tr>
-                    <?php endif; ?>
-                </table>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="4">No users found.</td>
+                    </tr>
+                <?php endif; ?>
+            </table>
 
-                <form method="post" action="admin_dashboard.php" style="text-align:center">
-                    <br />
-                    <input type="submit" value="Return" style="font-size: 24px">
-                </form>
+            <form method="post" action="admin_dashboard.php" style="text-align:center">
+                <br />
+                <input type="submit" value="Return" style="font-size: 24px">
+            </form>
         </body>
 
         </html>
@@ -135,7 +141,7 @@ class UserAccountController
         $this->mysqli = $mysqli;
     }
 
-    // Fetch users from the database
+    // Fetch users from the database and create User objects
     private function getUsers()
     {
         $query = "SELECT u.username, r.role_name, s.status_name
@@ -144,14 +150,14 @@ class UserAccountController
                   JOIN status s ON u.status_id = s.status_id";
         $result = $this->mysqli->query($query);
 
-        $users = []; // Initialize an array to store users
+        $users = []; // Initialize an array to store User objects
         while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = $row; // Add each row to the users array
+            $users[] = new User($row['username'], $row['role_name'], $row['status_name']); // Create User object
         }
-        return $users; // Return the array of users
+        return $users; // Return the array of User objects
     }
 
-    // SEARCHUSERACCOUNT: Search for users based on role and username
+    // SEARCH USER ACCOUNT: Search for users based on role and username
     private function searchUserAccount($role, $username)
     {
         $query = "SELECT u.username, r.role_name, s.status_name
@@ -170,11 +176,11 @@ class UserAccountController
 
         $result = $this->mysqli->query($query);
 
-        $users = []; // Initialize an array to store users
+        $users = []; // Initialize an array to store User objects
         while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = $row; // Add each row to the users array
+            $users[] = new User($row['username'], $row['role_name'], $row['status_name']); // Create User object
         }
-        return $users; // Return the array of users
+        return $users; // Return the array of User objects
     }
 
     public function handleRequest()
@@ -191,7 +197,7 @@ class UserAccountController
             $users = $this->getUsers();
         }
 
-        $this->view = new UserAccountView($users); // Initialize the view with the users
+        $this->view = new UserAccountView($users); // Initialize the view with the User objects
 
         if (isset($action['createAccount'])) {
             header("Location: accountCreation.php");
@@ -227,4 +233,3 @@ $mysqli = $database->getConnection(); // Get the database connection
 
 $userController = new UserAccountController($mysqli); // Instantiate the controller
 $userController->handleRequest();
-?>

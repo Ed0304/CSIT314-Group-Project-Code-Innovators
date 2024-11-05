@@ -74,7 +74,6 @@ class ViewReviewController {
 }
 
 // Boundary Class: ViewReviewBoundary
-// Boundary Class: ViewReviewBoundary
 class ViewReviewBoundary {
     public function render(Review $review, $username) {
         if ($review) {
@@ -86,72 +85,170 @@ class ViewReviewBoundary {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Review Details</title>
                 <style>
-                    #review-table {
-                        border-collapse: collapse;
-                        width: 100%;
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
                     }
-                    #review-table, 
-                    #review-table th, 
-                    #review-table td {
-                        border: 1px solid black;
+
+                    body {
+                        font-family: 'Arial', sans-serif;
+                        background-color: #f5f5f5;
+                        padding: 2rem;
+                        line-height: 1.6;
                     }
-                    #review-table th, 
-                    #review-table td {
-                        padding: 10px;
+
+                    .container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+
+                    .page-title {
                         text-align: center;
+                        color: #333;
+                        margin-bottom: 2rem;
+                        font-size: 2.5rem;
                     }
+
+                    .review-card {
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        padding: 2rem;
+                        margin-bottom: 2rem;
+                    }
+
+                    .review-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 1.5rem;
+                        padding-bottom: 1rem;
+                        border-bottom: 1px solid #eee;
+                    }
+
+                    .review-meta {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 1rem;
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .meta-item {
+                        background: #f8f9fa;
+                        padding: 1rem;
+                        border-radius: 8px;
+                    }
+
+                    .meta-label {
+                        color: #666;
+                        font-size: 0.9rem;
+                        margin-bottom: 0.3rem;
+                    }
+
+                    .meta-value {
+                        color: #333;
+                        font-weight: bold;
+                    }
+
+                    .stars-container {
+                        display: flex;
+                        gap: 0.25rem;
+                        margin-bottom: 1.5rem;
+                    }
+
                     .star {
-                        width: 25px;
-                        height: 25px;
+                        width: 30px;
+                        height: 30px;
+                        transition: transform 0.2s;
                     }
+
+                    .star:hover {
+                        transform: scale(1.1);
+                    }
+
+                    .review-content {
+                        background: #f8f9fa;
+                        padding: 1.5rem;
+                        border-radius: 8px;
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .review-text {
+                        color: #444;
+                        line-height: 1.8;
+                    }
+
                     .button {
                         display: inline-block;
-                        padding: 10px 20px;
-                        font-size: 24px;
+                        padding: 0.8rem 1.5rem;
+                        font-size: 1rem;
                         color: white;
-                        background-color: #007BFF; /* Bootstrap primary color */
+                        background-color: #007BFF;
                         border: none;
-                        border-radius: 5px;
-                        text-decoration: none; /* Remove underline */
+                        border-radius: 6px;
+                        text-decoration: none;
                         text-align: center;
-                        transition: background-color 0.3s;
+                        transition: all 0.3s ease;
+                        cursor: pointer;
                     }
+
                     .button:hover {
-                        background-color: #0056b3; /* Darker shade on hover */
+                        background-color: #0056b3;
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .button-container {
+                        text-align: center;
                     }
                 </style>
             </head>
             <body>
-                <h1 style="text-align:center">Review Details</h1>
-                <table id='review-table'>
-                    <tr>
-                        <th>Review ID</th>
-                        <th>Reviewer Name</th>
-                        <th>Agent Name</th> <!-- New column for agent name -->
-                        <th>Review Stars</th>
-                        <th>Review Details</th>
-                    </tr>
-                    <tr>
-                        <td><?php echo htmlspecialchars($review->getReviewId()); ?></td>
-                        <td><?php echo htmlspecialchars($review->getReviewerUsername()); ?></td>
-                        <td><?php echo htmlspecialchars($review->getAgentUsername()); ?></td> <!-- Display agent username -->
-                        <td>
-                            <?php
-                            // Display stars
-                            for ($i = 1; $i <= 5; $i++) {
-                                if ($i <= $review->getStars()) {
-                                    echo "<img src='star.png' alt='Filled Star' class='star'>";
-                                } else {
-                                    echo "<img src='empty-star.png' alt='Empty Star' class='star'>";
+                <div class="container">
+                    <h1 class="page-title">Review Details</h1>
+                    
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="stars-container">
+                                <?php
+                                for ($i = 1; $i <= 5; $i++) {
+                                    if ($i <= $review->getStars()) {
+                                        echo "<img src='star.png' alt='Filled Star' class='star'>";
+                                    } else {
+                                        echo "<img src='empty-star.png' alt='Empty Star' class='star'>";
+                                    }
                                 }
-                            }
-                            ?>
-                        </td>
-                        <td><?php echo htmlspecialchars($review->getDetails()); ?></td>
-                    </tr>
-                </table>
-                <div style="text-align:center; margin-top: 20px;">
-                    <a href="buyerviewReviews.php?username=<?php echo urlencode($review->getAgentUsername()); ?>" class="button">Return</a>
+                                ?>
+                            </div>
+                            <span class="meta-value">Review #<?php echo htmlspecialchars($review->getReviewId()); ?></span>
+                        </div>
+
+                        <div class="review-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">Reviewer</div>
+                                <div class="meta-value"><?php echo htmlspecialchars($review->getReviewerUsername()); ?></div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Agent</div>
+                                <div class="meta-value"><?php echo htmlspecialchars($review->getAgentUsername()); ?></div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Date</div>
+                                <div class="meta-value"><?php echo htmlspecialchars($review->getDate()); ?></div>
+                            </div>
+                        </div>
+
+                        <div class="review-content">
+                            <p class="review-text"><?php echo htmlspecialchars($review->getDetails()); ?></p>
+                        </div>
+
+                        <div class="button-container">
+                            <a href="buyerviewReviews.php?username=<?php echo urlencode($review->getAgentUsername()); ?>" class="button">
+                                Return to Reviews
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </body>
             </html>

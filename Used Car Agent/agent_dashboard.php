@@ -2,7 +2,7 @@
 session_start();
 
 // Entity layer
-class User {
+class Agent {
     private $username;
 
     public function __construct($username) {
@@ -16,10 +16,10 @@ class User {
 
 // Boundary layer
 class DashboardView {
-    public $username;
+    private $username;
 
-    public function __construct(User $user) {
-        $this->username = $user->getUsername();
+    public function setUsername($username) { // Method to set username
+        $this->username = $username;
     }
 
     public function render() {
@@ -64,9 +64,12 @@ class DashboardView {
 // Control layer
 class DashboardController {
     private $view;
+    private $agent;
 
-    public function __construct(User $user) {
-        $this->view = new DashboardView($user);
+    public function __construct(Agent $agent) {
+        $this->agent = $agent;
+        $this->view = new DashboardView();
+        $this->view->setUsername($this->agent->getUsername()); // Set the username in the view
     }
 
     public function handleRequest() {
@@ -77,7 +80,7 @@ class DashboardController {
             }
 
             if (isset($_POST['view'])) {
-                $username = urlencode($this->view->username);
+                $username = urlencode($this->agent->getUsername());
                 header("Location: agent_view_listings.php?username=" . $username);
                 exit();
             }
@@ -88,12 +91,13 @@ class DashboardController {
             }
 
             if (isset($_POST['reviews'])) {
-                $username = urlencode($this->view->username);
+                $username = urlencode($this->agent->getUsername());
                 header("Location: agent_view_ratings_and_reviews.php?username=" . $username);
                 exit();
             }
         }
 
+        // Render the view without parameters
         $this->view->render();
     }
 }
@@ -105,7 +109,6 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
-$user = new User($username);
-$controller = new DashboardController($user);
+$agent = new Agent($username);
+$controller = new DashboardController($agent);
 $controller->handleRequest();
-?>

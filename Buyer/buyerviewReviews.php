@@ -11,14 +11,18 @@ class Review {
     private $date;
     private $reviewerUsername;
     private $review_id; // Added review_id property
+    private $agentFirstName; // Added property for agent's first name
+    private $agentLastName;  // Added property for agent's last name
 
-    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null, $review_id = null) {
+    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null, $review_id = null, $agentFirstName = null, $agentLastName = null) {
         $this->mysqli = $mysqli;
         $this->details = $details;
         $this->stars = $stars;
         $this->date = $date;
         $this->reviewerUsername = $reviewerUsername;
         $this->review_id = $review_id; // Store the review_id
+        $this->agentFirstName = $agentFirstName; // Store agent's first name
+        $this->agentLastName = $agentLastName; // Store agent's last name
     }
 
     public function getDetails() {
@@ -41,6 +45,14 @@ class Review {
         return $this->review_id;
     }
 
+    public function getAgentFirstName() { // Method to retrieve agent's first name
+        return $this->agentFirstName;
+    }
+
+    public function getAgentLastName() { // Method to retrieve agent's last name
+        return $this->agentLastName;
+    }
+
     // Method to retrieve user ID by username
     public function getUserIdByUsername($username) {
         $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
@@ -58,9 +70,11 @@ class Review {
 
     // Method to retrieve reviews for a specific agent
     public function getAgentRatingsAndReviews($agent_id) {
-        $query = "SELECT r.review_id, r.review_details, r.review_stars, r.review_date, u.username
+        $query = "SELECT r.review_id, r.review_details, r.review_stars, r.review_date, 
+                         u.username, p.first_name, p.last_name
                   FROM review r
                   JOIN users u ON r.reviewer_id = u.user_id
+                  JOIN profile p ON r.agent_id = p.user_id
                   WHERE r.agent_id = ?";
         $stmt = $this->mysqli->prepare($query);
         if (!$stmt) {
@@ -72,7 +86,16 @@ class Review {
 
         $reviews = [];
         while ($row = $result->fetch_assoc()) {
-            $reviews[] = new Review($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username'], $row['review_id']);
+            $reviews[] = new Review(
+                $this->mysqli, 
+                $row['review_details'], 
+                $row['review_stars'], 
+                $row['review_date'], 
+                $row['username'], 
+                $row['review_id'], 
+                $row['first_name'], // Pass the agent's first name
+                $row['last_name']   // Pass the agent's last name
+            );
         }
         return $reviews;
     }
@@ -106,7 +129,7 @@ class RatingsReviewsController {
 
 // Boundary Class: RatingsReviewsView
 class RatingsReviewsView {
-    public function render($reviews = [], $message = "", $agent_id = null) {
+    public function render($reviews = [], $message = "", $agentFirstName = "", $agentLastName = "", $agent_id = null) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -152,11 +175,14 @@ class RatingsReviewsView {
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">Ratings given</h1>
+            <h1 style="text-align:center">Ratings for <?php echo htmlspecialchars($agentFirstName . ' ' . $agentLastName); ?></h1> <!-- Display agent's name in the heading -->
+            <div style="text-align:center">
+                <a href="buyer_give_reviews.php?agent_id=<?php echo htmlspecialchars($agent_id); ?>" class="button">Create a review</a>
+            </div>
             <?php
             if (!empty($reviews)) {
                 echo "<table id='reviews-table'>";
-                echo "<tr><th>Stars</th><th>Rated By:</th><th>Action</th></tr>";
+                echo "<tr><th>Ratings</th><th>Rated By:</th><th>Action</th></tr>";
                 foreach ($reviews as $review) {
                     echo "<tr>";
                     echo "<td>";
@@ -196,8 +222,12 @@ $mysqli = $database->getConnection();
 $ratingsReviewsController = new RatingsReviewsController($mysqli);
 list($reviews, $agent_id) = $ratingsReviewsController->handleRequest(); // Get reviews and agent_id
 
+// Get agent's name from the first review (if available) to display in the heading
+$agentFirstName = !empty($reviews) ? $reviews[0]->getAgentFirstName() : '';
+$agentLastName = !empty($reviews) ? $reviews[0]->getAgentLastName() : '';
+
 $view = new RatingsReviewsView();
-$view->render($reviews, "", $agent_id); // Pass agent_id to render
+$view->render($reviews, "", $agentFirstName, $agentLastName, $agent_id); // Pass agent names to render
 
 $database->closeConnection();
 ?>

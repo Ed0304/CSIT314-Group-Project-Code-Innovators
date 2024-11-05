@@ -58,7 +58,7 @@ class Review {
                   WHERE r.agent_id = ?";
         $stmt = $this->mysqli->prepare($query);
         if (!$stmt) {
-            return false;
+            return [];
         }
         $stmt->bind_param('i', $agent_id);
         $stmt->execute();
@@ -75,24 +75,25 @@ class Review {
 // Control Class: RatingsReviewsController
 class RatingsReviewsController {
     private $mysqli;
-    private $view;
 
     public function __construct($mysqli) {
         $this->mysqli = $mysqli;
-        $this->view = new RatingsReviewsView();
     }
 
     public function handleRequest() {
+        $reviews = [];
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
             $username = trim($_GET['username']);
-            $this->view->renderError("Username cannot be empty.");
-            $reviewEntity = new Review($this->mysqli);
-            $userId = $reviewEntity->getUserIdByUsername($username);
-            $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);    
-            $this->view->render($reviews);
+            if (!empty($username)) {
+                $reviewEntity = new Review($this->mysqli);
+                $userId = $reviewEntity->getUserIdByUsername($username);
+                if ($userId) {
+                    $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
+                }
+            }
         }
+        return $reviews;
     }
-            
 }
 
 // Boundary Class: RatingsReviewsView
@@ -133,9 +134,6 @@ class RatingsReviewsView {
         <body>
             <h1 style="text-align:center">Agent Ratings & Reviews</h1>
             <?php
-            if ($message) {
-                echo "<p style='color: red; text-align:center;'>$message</p>";
-            }
             if (!empty($reviews)) {
                 echo "<table id='reviews-table'>";
                 echo "<tr><th>Stars</th><th>Review</th><th>Date</th><th>Rated By:</th></tr>";
@@ -168,10 +166,6 @@ class RatingsReviewsView {
         </html>
         <?php
     }
-
-    public function renderError($message) {
-        $this->render([], $message);
-    }
 }
 
 // Entry Point
@@ -179,7 +173,10 @@ $database = new Database();
 $mysqli = $database->getConnection();
 
 $ratingsReviewsController = new RatingsReviewsController($mysqli);
-$ratingsReviewsController->handleRequest();
+$reviews = $ratingsReviewsController->handleRequest();
+
+$view = new RatingsReviewsView();
+$view->render($reviews);
 
 $database->closeConnection();
 ?>
