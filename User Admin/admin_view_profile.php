@@ -1,5 +1,5 @@
 <?php
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // BOUNDARY LAYER: HTML View for managing user accounts
 class UserAccountView
@@ -52,18 +52,13 @@ class UserAccountView
                 <button type="submit" class="button-font" name="searchUser">Search</button>
             </form>
 
-            <!-- Create Profile Button -->
-            <form method="post" action="profileCreation.php" style="text-align:center">
-                <button type="submit" class="button-font">Create Profile</button>
-            </form>
-
             <table id="main-table">
                 <tr>
                     <th>UserID</th>
                     <th>Username</th>
                     <th>Status</th>
                     <th>Role</th>
-                    <th>Actions</th>
+                    <th>Role description</th>
                 </tr>
                 <?php if (!empty($this->users)): ?>
                     <?php foreach ($this->users as $user): ?>
@@ -72,14 +67,7 @@ class UserAccountView
                             <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['status_name'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></td>
-                            <td>
-                                <form method="post" action="">
-                                    <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($user['profile_id']); ?>">
-                                    <button type="submit" class="button-font" name="viewAccount">View</button>
-                                    <button type="submit" class="button-font" name="updateAccount">Update</button>
-                                    <button type="submit" class="button-font" name="suspendAccount">Suspend</button>
-                                </form>
-                            </td>
+                            <td><?php echo htmlspecialchars($user['role_description'] ?? 'N/A'); ?></td>                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -162,9 +150,8 @@ class UserProfile {
 
     public function getUsersByRole($role_id = '') {
         $query = "
-            SELECT u.user_id, u.username, p.profile_id, s.status_name, r.role_name
+            SELECT u.user_id, u.username, s.status_name, r.role_name, r.role_description
             FROM users u
-            JOIN profile p ON u.user_id = p.user_id
             JOIN role r ON u.role_id = r.role_id
             JOIN status s ON u.status_id = s.status_id";
         
@@ -189,9 +176,8 @@ class UserProfile {
 
     public function searchUsers($search_query, $role_id = '') {
         $query = "
-            SELECT u.user_id, u.username, p.profile_id, s.status_name, r.role_name
+            SELECT u.user_id, u.username, s.status_name, r.role_name
             FROM users u
-            JOIN profile p ON u.user_id = p.user_id
             JOIN role r ON u.role_id = r.role_id
             JOIN status s ON u.status_id = s.status_id
             WHERE u.username LIKE ?";

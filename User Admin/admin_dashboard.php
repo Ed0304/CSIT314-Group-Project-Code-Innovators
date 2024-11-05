@@ -1,5 +1,6 @@
 <?php
 session_start(); // Start the session
+require '../connectDatabase.php';
 
 // Entity Layer
 class User {

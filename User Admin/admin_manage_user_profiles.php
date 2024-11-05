@@ -1,5 +1,5 @@
 <?php
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // BOUNDARY LAYER: HTML View for managing user Profiles
 class UserProfileView {
@@ -52,20 +52,26 @@ class UserProfileView {
             <form method="post" action="">
                 <label for="role" class="select-label">Filter based on role:</label>
                 <select id="role" name="role" class="select-label">
-                    <option value="">All roles</option> <!-- Default option -->
+                    <option value="">All profile</option> <!-- Default option -->
                     <?php foreach ($this->roles as $role): ?>
                         <option value="<?php echo htmlspecialchars($role['role_name']); ?>">
                             <?php echo htmlspecialchars($role['role_name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit" class="select-label" id="filterRole">Filter</button>
+                <button type="submit" class="select-label" id="filterProfile">Filter</button>
             </form>
             <br/><br/>
+
+            <!-- Create Profile Button -->
+            <form method="post" action="profileCreation.php" style="text-align:left">
+                <button type="submit" class="button-font">Create Profile</button>
+            </form>
+
             <br/><br/>
             <table id="main-table">
                 <tr>
-                    <th>Role</th>
+                    <th>Profile</th>
                     <th>Status</th>
                     <th>Number of Accounts</th>
                     <th>Actions</th>

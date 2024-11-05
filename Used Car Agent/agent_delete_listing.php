@@ -1,7 +1,7 @@
 <?php
 // listingDetails.php
 
-require_once 'connectDatabase.php';
+require_once '../connectDatabase.php';
 session_start();
 
 if (!isset($_SESSION['username'])) {

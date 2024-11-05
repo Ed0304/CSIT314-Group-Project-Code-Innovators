@@ -1,5 +1,6 @@
 <?php
 session_start();
+require '../connectDatabase.php';
 
 // ENTITY: Represents user data and database retrieval
 class UserAccount {
@@ -117,7 +118,7 @@ class ProfileView {
 
 // MAIN LOGIC: Coordinates the application
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 

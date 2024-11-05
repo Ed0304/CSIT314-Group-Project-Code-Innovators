@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-require 'connectDatabase.php';
+require '../connectDatabase.php';
 
 // Entity Class: Review
 class Review {

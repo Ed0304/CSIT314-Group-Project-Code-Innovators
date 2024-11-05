@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require '../connectDatabase.php';
 class UserProfile {
     // Fetch profile information using profile_id
     public function getProfileByProfileId($pdo, $profile_id) {
