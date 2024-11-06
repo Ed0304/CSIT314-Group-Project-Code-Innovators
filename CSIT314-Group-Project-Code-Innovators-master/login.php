@@ -83,7 +83,7 @@ class AuthController {
             case 'buyer':
                 return "Buyer/buyer_dashboard.php";
             case 'seller':
-                return "Seller/seller_dashboard.php";
+                return "seller_dashboard.php";
             default:
                 return "Invalid role selected.";
         }
@@ -132,7 +132,7 @@ class LoginForm {
                     <label for="password" class="form-label">Password </label>
                     <input type="password" id="password" name="password" class="form-label" required/>
                     <br/><br/>
-                    <button type="submit" class="form-label">Login</button>
+                    <button type="submit" class="form-label">Submit</button>
                     <br/>
                 </div>
             </form>
