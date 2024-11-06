@@ -2,7 +2,7 @@
 session_start();
 
 // Entity layer
-class Agent {
+class Seller {
     private $username;
 
     public function __construct($username) {
@@ -40,16 +40,16 @@ class DashboardView {
         </head>
         <body>
             <div class="headDiv">
-                <h1 class="header">Welcome to the Used Car Agent Dashboard, <?php echo $this->username; ?>!</h1>
+                <h1 class="header">Welcome to the seller Dashboard, <?php echo $this->username; ?>!</h1>
                 <h2 class="header">What would you like to do for today?</h2>
             </div>
             <div class="mainInterface">
                 <form method="post" class="formBody">
                     <button type="submit" id="manageProfile" name="manageProfile">View/Update profile</button>
                     <br/><br/>
-                    <button type="submit" id="view" name="view">View my listings</button>
+                    <button type="submit" id="view" name="view">Manage my listings</button>
                     <br/><br/>
-                    <button type="submit" id="reviews" name="reviews">See my reviews and ratings</button>
+                    <button type="submit" id="reviews" name="reviews">Manage reviews and ratings</button>
                     <br/><br/>
                     <input type="submit" id="logout" value="Logout" name="logout">
                     <br/><br/>
@@ -64,24 +64,24 @@ class DashboardView {
 // Control layer
 class DashboardController {
     private $view;
-    private $agent;
+    private $seller;
 
-    public function __construct(Agent $agent) {
-        $this->agent = $agent;
+    public function __construct(Seller $seller) {
+        $this->seller = $seller;
         $this->view = new DashboardView();
-        $this->view->setUsername($this->agent->getUsername()); // Set the username in the view
+        $this->view->setUsername($this->seller->getUsername()); // Set the username in the view
     }
 
     public function handleRequest() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['manageProfile'])) {
-                header("Location: agent_manage_profile.php");
+                header("Location: seller_manage_profile.php");
                 exit();
             }
 
             if (isset($_POST['view'])) {
-                $username = urlencode($this->agent->getUsername());
-                header("Location: agent_view_listings.php?username=" . $username);
+                $username = urlencode($this->seller->getUsername());
+                header("Location: seller_view_listings.php?username=" . $username);
                 exit();
             }
 
@@ -91,8 +91,8 @@ class DashboardController {
             }
 
             if (isset($_POST['reviews'])) {
-                $username = urlencode($this->agent->getUsername());
-                header("Location: agent_view_ratings_and_reviews.php?username=" . $username);
+                $username = urlencode($this->seller->getUsername());
+                header("Location: seller_view_ratings_and_reviews.php?username=" . $username);
                 exit();
             }
         }
@@ -109,6 +109,6 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
-$agent = new Agent($username);
-$controller = new DashboardController($agent);
+$seller = new Seller($username);
+$controller = new DashboardController($seller);
 $controller->handleRequest();

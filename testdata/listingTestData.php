@@ -21,6 +21,8 @@ $testListings = [
         'listing_price' => 500000,
         'listing_description' => 'A reliable and comfortable sedan.',
         'user_id' => 2,
+        'views' => 0,
+        'shortlisted' => 0,
     ],
     [
         'manufacturer_name' => 'Nissan',
@@ -31,6 +33,8 @@ $testListings = [
         'listing_price' => 400000,
         'listing_description' => 'A classic Japanese sports car from Wangan Midnight Anime. It has a horsepower of 600 HP.',
         'user_id' => 2,
+        'views' => 0,
+        'shortlisted' => 0,
     ],
     [
         'manufacturer_name' => 'Toyota',
@@ -41,6 +45,8 @@ $testListings = [
         'listing_price' => 500000,
         'listing_description' => 'A classic Japanese car. All decals are modified to match Takumi Fujiwara\'s iconic vehicle in Initial D Anime.',
         'user_id' => 2,
+        'views' => 0,
+        'shortlisted' => 0,
     ],
     [
         'manufacturer_name' => 'Mazda',
@@ -51,6 +57,8 @@ $testListings = [
         'listing_price' => 600000,
         'listing_description' => 'A classic Japanese car. Rotary engine still works fine.',
         'user_id' => 2,
+        'views' => 0,
+        'shortlisted' => 0,
     ],
     [
         'manufacturer_name' => 'Honda',
@@ -61,12 +69,14 @@ $testListings = [
         'listing_price' => 300000,
         'listing_description' => 'Everyone\'s favorite MPV! Powerful engine and still in mint condition!',
         'user_id' => 2,
+        'views' => 0,
+        'shortlisted' => 0,
     ],
 ];
 
 // Insert test data into the database
-$sql = "INSERT INTO listing (manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description, user_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO listing (manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description, user_id, views, shortlisted)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $pdo->prepare($sql);
 
@@ -79,6 +89,8 @@ foreach ($testListings as $listing) {
     $stmt->bindParam(6, $listing['listing_price']);
     $stmt->bindParam(7, $listing['listing_description']);
     $stmt->bindParam(8, $listing['user_id']);
+    $stmt->bindParam(9, $listing['views']);
+    $stmt->bindParam(10, $listing['shortlisted']);
 
     $stmt->execute();
 }

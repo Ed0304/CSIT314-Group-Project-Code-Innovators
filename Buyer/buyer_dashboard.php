@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "connectDatabase.php";
+require_once "../connectDatabase.php";
 $user_id = $_SESSION['user_id'];
 
 // Entity: Represents a listing
@@ -150,7 +150,7 @@ class UserBoundary {
                 <h1>Welcome to the Buyer Dashboard</h1>
                 <a href="loanCalculator.php">Calculate Loan</a>        
                 <a href="buyer_view_shortlist.php?user_id=<?php echo $buyerID; ?>">View Shortlist</a>
-                <a href="logout.php">Logout</a>
+                <a href="../logout.php">Logout</a>
             </header>
             <h2>Available Listings</h2>
             <table>

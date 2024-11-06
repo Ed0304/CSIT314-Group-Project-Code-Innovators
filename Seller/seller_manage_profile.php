@@ -11,7 +11,7 @@ if (!isset($_SESSION['username'])) {
 // Redirect to the update profile page if the update action is requested
 if (isset($_POST['profile_id'])) {
     $profile_id = $_POST['profile_id'];
-    header("Location: agent_update_profile.php?profile_id=" . urlencode($profile_id)); 
+    header("Location: seller_update_profile.php?profile_id=" . urlencode($profile_id)); 
     exit();
 }
 
@@ -153,7 +153,7 @@ class ProfileView {
                     </tr>
                     <tr>
                         <td>
-                            <form action="agent_dashboard.php">
+                            <form action="seller_dashboard.php">
                                 <button type="submit" class="button">Return to main dashboard</button>
                             </form>
                         </td>

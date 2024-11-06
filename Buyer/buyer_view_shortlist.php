@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "connectDatabase.php";
+require_once "../connectDatabase.php";
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
 // Entity: Represents a shortlisted car

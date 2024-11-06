@@ -83,7 +83,7 @@ class AuthController {
             case 'buyer':
                 return "Buyer/buyer_dashboard.php";
             case 'seller':
-                return "seller_dashboard.php";
+                return "Seller/seller_dashboard.php";
             default:
                 return "Invalid role selected.";
         }
