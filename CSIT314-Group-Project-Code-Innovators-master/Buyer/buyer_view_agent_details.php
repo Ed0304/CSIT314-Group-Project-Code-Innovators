@@ -1,5 +1,5 @@
 <?php
-require "connectDatabase.php";
+require_once "../connectDatabase.php";
 session_start();
 
 // Retrieve user_id from GET parameters

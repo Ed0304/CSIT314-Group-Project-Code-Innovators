@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "connectDatabase.php";
+require_once "../connectDatabase.php";
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
 // Entity: Represents a listing
@@ -51,17 +51,25 @@ class AddToShortlistController {
         $stmt->execute();
         $stmt->bind_result($count);
         $stmt->fetch();
-        return $count > 0; // Return true if a duplicate exists
+        return $count > 0;
     }
 
     public function addToShortlist($listingId, $buyerId) {
         if ($this->isDuplicateShortlist($listingId, $buyerId)) {
-            return false; // Prevent addition if it's a duplicate
+            return false;
         }
 
+        // Insert into the shortlist table
         $stmt = $this->conn->prepare("INSERT INTO shortlist (listing_id, buyer_id, shortlist_date) VALUES (?, ?, NOW())");
         $stmt->bind_param("ii", $listingId, $buyerId);
-        return $stmt->execute();
+        $stmt->execute();
+
+        // Increment the shortlisted count in the listing table
+        $updateStmt = $this->conn->prepare("UPDATE listing SET shortlisted = shortlisted + 1 WHERE listing_id = ?");
+        $updateStmt->bind_param("i", $listingId);
+        $updateStmt->execute();
+
+        return true;
     }
 
     public function getBuyerID() {
@@ -168,20 +176,20 @@ $conn = $database->getConnection();
 $controller = new AddToShortlistController($conn);
 
 // Handle form submission to add to shortlist
-$added = false; // Flag for successful addition
-$duplicate = false; // Flag for duplicate detection
+$added = false;
+$duplicate = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
     $listingId = $_POST['listing_id'];
     $buyerId = $_POST['user_id'];
     if ($controller->addToShortlist($listingId, $buyerId)) {
-        $added = true; // Set flag to true if added successfully
+        $added = true;
     } else {
-        $duplicate = true; // Set flag if a duplicate is detected
+        $duplicate = true;
     }
 }
 
 // Render the confirmation screen with the provided listing ID and addition status
-$listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0; // Get listing ID from query parameter
+$listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0;
 $boundary = new AddToShortlistBoundary($controller);
 $boundary->render($listingId, $added, $duplicate);
 

@@ -1,10 +1,11 @@
 <?php
 // Start session and include the database connection
 session_start();
-require_once "connectDatabase.php";
+require_once "../connectDatabase.php";
 
+// Redirect if listing_id is not provided
 if (!isset($_POST['listing_id'])) {
-    header("Location: buyerDashboard.php");
+    header("Location: buyer_dashboard.php");
     exit();
 }
 
@@ -20,7 +21,7 @@ class CarListing {
     public $listingDescription;
     public $agentFirstName;
     public $agentLastName;
-    public $listingImage; // Add listing image property
+    public $listingImage;
 
     public function __construct($data) {
         $this->manufacturerName = $data['manufacturer_name'];
@@ -31,7 +32,7 @@ class CarListing {
         $this->listingDescription = $data['listing_description'];
         $this->agentFirstName = $data['first_name'];
         $this->agentLastName = $data['last_name'];
-        $this->listingImage = $data['listing_image']; // Set the image data
+        $this->listingImage = $data['listing_image'];
     }
 }
 
@@ -44,6 +45,10 @@ class ListingDetailsController {
     }
 
     public function getListingDetails($listing_id) {
+        // Increment view count before retrieving the details
+        $this->incrementViews($listing_id);
+
+        // Prepare and execute the SQL statement to get listing details
         $stmt = $this->conn->prepare("
             SELECT 
                 l.manufacturer_name, 
@@ -69,6 +74,13 @@ class ListingDetailsController {
 
         return $data ? new CarListing($data) : null;
     }
+
+    private function incrementViews($listing_id) {
+        // Update the views count by 1 for the specified listing_id
+        $stmt = $this->conn->prepare("UPDATE listing SET views = views + 1 WHERE listing_id = ?");
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+    }
 }
 
 // Boundary: ListingDetailsView
@@ -81,54 +93,15 @@ class ListingDetailsView {
             <meta charset="UTF-8">
             <title>Listing Details</title>
             <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f4f4f4;
-                    color: #333;
-                }
-                .container {
-                    max-width: 800px;
-                    margin: 50px auto;
-                    padding: 20px;
-                    background: #fff;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                }
-                h1 {
-                    color: #0066cc;
-                }
-                .details {
-                    margin-top: 20px;
-                }
-                .details p {
-                    margin: 10px 0;
-                    font-size: 1.1em;
-                }
-                .details p strong {
-                    color: #555;
-                }
-                .back-link {
-                    display: inline-block;
-                    margin-top: 20px;
-                    padding: 10px 15px;
-                    background-color: #0066cc;
-                    color: #fff;
-                    text-decoration: none;
-                    border-radius: 4px;
-                    transition: background-color 0.3s ease;
-                }
-                .back-link:hover {
-                    background-color: #004a99;
-                }
-                .listing-image {
-                    margin-top: 20px;
-                    max-width: 100%;
-                    height: auto;
-                    border-radius: 4px;
-                    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-                }
+                body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; }
+                .container { max-width: 800px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+                h1 { color: #0066cc; }
+                .details { margin-top: 20px; }
+                .details p { margin: 10px 0; font-size: 1.1em; }
+                .details p strong { color: #555; }
+                .back-link { display: inline-block; margin-top: 20px; padding: 10px 15px; background-color: #0066cc; color: #fff; text-decoration: none; border-radius: 4px; transition: background-color 0.3s ease; }
+                .back-link:hover { background-color: #004a99; }
+                .listing-image { margin-top: 20px; max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); }
             </style>
         </head>
         <body>
@@ -146,8 +119,6 @@ class ListingDetailsView {
                         <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->listingPrice); ?></p>
                         <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->listingDescription); ?></p>
                         <p><strong>Agent:</strong> <?php echo htmlspecialchars($listing->agentFirstName . " " . $listing->agentLastName); ?></p>
-                        <br/>
-                        <br/>
                         <a href="buyer_dashboard.php" class="back-link">Back to Dashboard</a>
                     </div>
                 <?php else: ?>
@@ -160,7 +131,7 @@ class ListingDetailsView {
     }
 }
 
-// Initialize the database connection and retrieve listing details
+// Initialize database connection, controller, and retrieve listing details
 $database = new Database();
 $conn = $database->getConnection();
 $controller = new ListingDetailsController($conn);
@@ -170,3 +141,4 @@ $database->closeConnection();
 // Render the view
 $view = new ListingDetailsView();
 $view->render($listing);
+?>

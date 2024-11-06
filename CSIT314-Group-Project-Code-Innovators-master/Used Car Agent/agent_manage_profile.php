@@ -17,7 +17,7 @@ if (isset($_POST['profile_id'])) {
 
 $username = $_SESSION['username']; // Use the username from session
 
-// ENTITY LAYER: Represents a user's profile as an object
+// ENTITY LAYER: Represents and fetches user profile data from the database
 class UserProfile {
     public $username;
     public $first_name;
@@ -29,7 +29,7 @@ class UserProfile {
     public $role_name;
     public $phone_num;
     public $profile_image;
-    public $profile_id; // Add profile_id here
+    public $profile_id;
 
     public function __construct($data) {
         $this->username = $data['username'];
@@ -44,44 +44,35 @@ class UserProfile {
         $this->profile_image = $data['profile_image'];
         $this->profile_id = $data['profile_id'];
     }
-}
 
-// DATABASE LAYER: Handles database interactions
-class UserProfileRepository {
-    private $pdo;
-
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
-    }
-
-    // Retrieves user profile data from the database
-    public function getProfileByUsername($username) {
+    // Fetches profile data directly from the database
+    public static function getProfileByUsername($pdo, $username) {
         $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id 
                   WHERE u.username = :username";
         
-        $stmt = $this->pdo->prepare($query);
+        $stmt = $pdo->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->execute();
         
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $data ? new UserProfile($data) : null;
+        return $data ? new self($data) : null;
     }
 }
 
-// CONTROL LAYER: Manages business logic and bridges entity and database layers
+// CONTROL LAYER: Handles business logic and manages the entity layer
 class ProfileController {
-    private $repository;
+    private $pdo;
 
-    public function __construct($repository) {
-        $this->repository = $repository;
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
     }
 
     // Fetches the profile as a UserProfile object
     public function getProfile($username) {
-        return $this->repository->getProfileByUsername($username);
+        return UserProfile::getProfileByUsername($this->pdo, $username);
     }
 }
 
@@ -132,7 +123,7 @@ class ProfileView {
                             <?php if (!empty($this->profileData->profile_image)): ?>
                                 <img src="data:image/jpeg;base64,<?php echo base64_encode($this->profileData->profile_image); ?>" class="profile-image" alt="Profile Picture">
                             <?php else: ?>
-                                <img src="default-profile.jpg" class="profile-image" alt="Default Profile Picture">
+                                <img src="../default-profile.jpg" class="profile-image" alt="Default Profile Picture">
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -191,9 +182,8 @@ try {
     $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Initialize repository and controller
-    $repository = new UserProfileRepository($pdo);
-    $profileController = new ProfileController($repository);
+    // Initialize controller
+    $profileController = new ProfileController($pdo);
 
     // Retrieve user profile data
     $profileData = $profileController->getProfile($username);

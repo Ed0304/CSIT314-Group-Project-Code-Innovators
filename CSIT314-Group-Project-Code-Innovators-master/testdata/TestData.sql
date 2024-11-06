@@ -47,7 +47,11 @@ CREATE TABLE listing(
     listing_price DOUBLE,
     listing_description VARCHAR(256) NOT NULL,
     user_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    views INT DEFAULT 0,
+    CONSTRAINT views CHECK (views >= 0);
+    shortlisted INT DEFAULT 0,
+    CONSTRAINT shortlisted CHECK (shortlisted >= 0);
 );
 
 CREATE TABLE review (
@@ -67,6 +71,15 @@ CREATE TABLE shortlist(
     listing_id INT NOT NULL,
     shortlist_date DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (buyer_id) REFERENCES users(user_id),
+    FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
+);
+
+CREATE TABLE ownership(
+    ownership_id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id INT NOT NULL,
+    listing_id INT NOT NULL,
+    ownership_date DATE DEFAULT CURRENT_DATE,
+    FOREIGN KEY (seller_id) REFERENCES users(user_id),
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
@@ -84,3 +97,8 @@ INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUE
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("BuntaFujiwara", "initialD", 4, "Bun@TouWenziD.com", "+811234567899",1);
 INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES("MuzanKibutsuji", "demonSlayer", 4, "kibutsuji@kny.com", "+816666666666",1);
 
+INSERT INTO ownership(seller_id, listing_id) VALUES(4, 1);
+INSERT INTO ownership(seller_id, listing_id) VALUES(4, 2);
+INSERT INTO ownership(seller_id, listing_id) VALUES(4, 3);
+INSERT INTO ownership(seller_id, listing_id) VALUES(5, 4);
+INSERT INTO ownership(seller_id, listing_id) VALUES(5, 5);

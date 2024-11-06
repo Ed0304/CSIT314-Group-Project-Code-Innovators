@@ -86,7 +86,7 @@ class DashboardController {
             }
 
             if (isset($_POST['logout'])) {
-                header("Location: logout.php");
+                header("Location: ../logout.php");
                 exit();
             }
 

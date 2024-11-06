@@ -1,7 +1,6 @@
 <?php
 session_start();
-
-require 'connectDatabase.php'; // Assuming you have a database connection class
+require_once "../connectDatabase.php"; // Assuming you have a database connection class
 
 // Entity Class: Review
 class Review {
