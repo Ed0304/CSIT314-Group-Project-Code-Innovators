@@ -1,10 +1,11 @@
 <?php
 session_start();
 
-require_once "../connectDatabase.php";
+require '../connectDatabase.php';
 
 // Entity Class: Review
-class Review {
+class Review
+{
     private $mysqli;
     private $details;
     private $stars;
@@ -14,7 +15,8 @@ class Review {
     private $agentFirstName; // Added property for agent's first name
     private $agentLastName;  // Added property for agent's last name
 
-    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null, $review_id = null, $agentFirstName = null, $agentLastName = null) {
+    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null, $review_id = null, $agentFirstName = null, $agentLastName = null)
+    {
         $this->mysqli = $mysqli;
         $this->details = $details;
         $this->stars = $stars;
@@ -25,36 +27,44 @@ class Review {
         $this->agentLastName = $agentLastName; // Store agent's last name
     }
 
-    public function getDetails() {
+    public function getDetails()
+    {
         return $this->details;
     }
 
-    public function getStars() {
+    public function getStars()
+    {
         return $this->stars;
     }
 
-    public function getDate() {
+    public function getDate()
+    {
         return $this->date;
     }
 
-    public function getReviewerUsername() {
+    public function getReviewerUsername()
+    {
         return $this->reviewerUsername;
     }
 
-    public function getReviewId() { // Method to retrieve review_id
+    public function getReviewId()
+    { // Method to retrieve review_id
         return $this->review_id;
     }
 
-    public function getAgentFirstName() { // Method to retrieve agent's first name
+    public function getAgentFirstName()
+    { // Method to retrieve agent's first name
         return $this->agentFirstName;
     }
 
-    public function getAgentLastName() { // Method to retrieve agent's last name
+    public function getAgentLastName()
+    { // Method to retrieve agent's last name
         return $this->agentLastName;
     }
 
     // Method to retrieve user ID by username
-    public function getUserIdByUsername($username) {
+    public function getUserIdByUsername($username)
+    {
         $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
         if (!$stmt) {
             return null;
@@ -69,7 +79,8 @@ class Review {
     }
 
     // Method to retrieve reviews for a specific agent
-    public function getAgentRatingsAndReviews($agent_id) {
+    public function getAgentRatingsAndReviews($agent_id)
+    {
         $query = "SELECT r.review_id, r.review_details, r.review_stars, r.review_date, 
                          u.username, p.first_name, p.last_name
                   FROM review r
@@ -87,12 +98,12 @@ class Review {
         $reviews = [];
         while ($row = $result->fetch_assoc()) {
             $reviews[] = new Review(
-                $this->mysqli, 
-                $row['review_details'], 
-                $row['review_stars'], 
-                $row['review_date'], 
-                $row['username'], 
-                $row['review_id'], 
+                $this->mysqli,
+                $row['review_details'],
+                $row['review_stars'],
+                $row['review_date'],
+                $row['username'],
+                $row['review_id'],
                 $row['first_name'], // Pass the agent's first name
                 $row['last_name']   // Pass the agent's last name
             );
@@ -102,14 +113,17 @@ class Review {
 }
 
 // Control Class: RatingsReviewsController
-class RatingsReviewsController {
+class RatingsReviewsController
+{
     private $mysqli;
 
-    public function __construct($mysqli) {
+    public function __construct($mysqli)
+    {
         $this->mysqli = $mysqli;
     }
 
-    public function handleRequest() {
+    public function handleRequest()
+    {
         $reviews = [];
         $agent_id = null; // Initialize agent_id
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
@@ -128,11 +142,14 @@ class RatingsReviewsController {
 }
 
 // Boundary Class: RatingsReviewsView
-class RatingsReviewsView {
-    public function render($reviews = [], $message = "", $agentFirstName = "", $agentLastName = "", $agent_id = null) {
+class RatingsReviewsView
+{
+    public function render($reviews = [], $message = "", $agentFirstName = "", $agentLastName = "", $agent_id = null)
+    {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
+
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -142,42 +159,53 @@ class RatingsReviewsView {
                     border-collapse: collapse;
                     width: 100%;
                 }
-                #reviews-table, 
-                #reviews-table th, 
+
+                #reviews-table,
+                #reviews-table th,
                 #reviews-table td {
                     border: 1px solid black;
                 }
-                #reviews-table th, 
+
+                #reviews-table th,
                 #reviews-table td {
                     padding: 10px;
                     font-size: 20px;
                     text-align: center;
                 }
+
                 .star {
                     width: 25px;
                     height: 25px;
                 }
+
                 .button {
                     display: inline-block;
                     padding: 10px 20px;
                     font-size: 24px;
                     color: white;
-                    background-color: #007BFF; /* Bootstrap primary color */
+                    background-color: #007BFF;
+                    /* Bootstrap primary color */
                     border: none;
                     border-radius: 5px;
-                    text-decoration: none; /* Remove underline */
+                    text-decoration: none;
+                    /* Remove underline */
                     text-align: center;
                     transition: background-color 0.3s;
                 }
+
                 .button:hover {
-                    background-color: #0056b3; /* Darker shade on hover */
+                    background-color: #0056b3;
+                    /* Darker shade on hover */
                 }
             </style>
         </head>
+
         <body>
-            <h1 style="text-align:center">Ratings for <?php echo htmlspecialchars($agentFirstName . ' ' . $agentLastName); ?></h1> <!-- Display agent's name in the heading -->
+            <h1 style="text-align:center">Ratings for <?php echo htmlspecialchars($agentFirstName . ' ' . $agentLastName); ?>
+            </h1> <!-- Display agent's name in the heading -->
             <div style="text-align:center">
-                <a href="buyer_give_reviews.php?agent_id=<?php echo htmlspecialchars($agent_id); ?>" class="button">Create a review</a>
+                <a href="buyer_give_reviews.php?agent_id=<?php echo htmlspecialchars($agent_id); ?>" class="button">Create a
+                    review</a>
             </div>
             <?php
             if (!empty($reviews)) {
@@ -204,12 +232,14 @@ class RatingsReviewsView {
                 echo "<p>No ratings or reviews found for this agent.</p>";
             }
             ?>
-            <br/>
-            <br/>
+            <br />
+            <br />
             <div style="text-align:center">
-                <a href="buyer_view_agent_details.php?user_id=<?php echo htmlspecialchars($agent_id); ?>" class="button">Return</a>
+                <a href="buyer_view_agent_details.php?user_id=<?php echo htmlspecialchars($agent_id); ?>"
+                    class="button">Return</a>
             </div>
         </body>
+
         </html>
         <?php
     }

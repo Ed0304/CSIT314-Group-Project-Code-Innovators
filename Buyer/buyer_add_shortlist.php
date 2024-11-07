@@ -4,7 +4,8 @@ require_once "../connectDatabase.php";
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
 // Entity: Represents a listing
-class Listing {
+class Listing
+{
     public $listing_id;
     public $manufacturer_name;
     public $model_name;
@@ -13,7 +14,8 @@ class Listing {
     public $listing_price;
     public $listing_description;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->listing_id = $data['listing_id'] ?? null;
         $this->manufacturer_name = $data['manufacturer_name'] ?? null;
         $this->model_name = $data['model_name'] ?? null;
@@ -25,14 +27,17 @@ class Listing {
 }
 
 // Controller: Manages the interaction for adding to shortlist
-class AddToShortlistController {
+class AddToShortlistController
+{
     private $conn;
 
-    public function __construct($conn) {
+    public function __construct($conn)
+    {
         $this->conn = $conn;
     }
 
-    public function getListingDetails($listingId) {
+    public function getListingDetails($listingId)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM listing WHERE listing_id = ?");
         $stmt->bind_param("i", $listingId);
         $stmt->execute();
@@ -45,47 +50,45 @@ class AddToShortlistController {
     }
 
     // Check if the listing is already in the shortlist
-    public function isDuplicateShortlist($listingId, $buyerId) {
+    public function isDuplicateShortlist($listingId, $buyerId)
+    {
         $stmt = $this->conn->prepare("SELECT COUNT(*) FROM shortlist WHERE listing_id = ? AND buyer_id = ?");
         $stmt->bind_param("ii", $listingId, $buyerId);
         $stmt->execute();
         $stmt->bind_result($count);
         $stmt->fetch();
-        return $count > 0;
+        return $count > 0; // Return true if a duplicate exists
     }
 
-    public function addToShortlist($listingId, $buyerId) {
+    public function addToShortlist($listingId, $buyerId)
+    {
         if ($this->isDuplicateShortlist($listingId, $buyerId)) {
-            return false;
+            return false; // Prevent addition if it's a duplicate
         }
 
-        // Insert into the shortlist table
         $stmt = $this->conn->prepare("INSERT INTO shortlist (listing_id, buyer_id, shortlist_date) VALUES (?, ?, NOW())");
         $stmt->bind_param("ii", $listingId, $buyerId);
-        $stmt->execute();
-
-        // Increment the shortlisted count in the listing table
-        $updateStmt = $this->conn->prepare("UPDATE listing SET shortlisted = shortlisted + 1 WHERE listing_id = ?");
-        $updateStmt->bind_param("i", $listingId);
-        $updateStmt->execute();
-
-        return true;
+        return $stmt->execute();
     }
 
-    public function getBuyerID() {
+    public function getBuyerID()
+    {
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
 }
 
 // Boundary: Manages the display of the confirmation screen
-class AddToShortlistBoundary {
+class AddToShortlistBoundary
+{
     private $controller;
 
-    public function __construct($controller) {
+    public function __construct($controller)
+    {
         $this->controller = $controller;
     }
 
-    public function render($listingId, $added = false, $duplicate = false) {
+    public function render($listingId, $added = false, $duplicate = false)
+    {
         $listing = $this->controller->getListingDetails($listingId);
         if ($listing === null) {
             echo "Listing not found.";
@@ -94,6 +97,7 @@ class AddToShortlistBoundary {
         ?>
         <!DOCTYPE html>
         <html>
+
         <head>
             <title>Confirm Add to Shortlist</title>
             <style>
@@ -103,11 +107,13 @@ class AddToShortlistBoundary {
                     padding: 0;
                     background-color: #f8f9fa;
                 }
+
                 header {
                     padding: 20px;
                     background-color: #343a40;
                     color: #ffffff;
                 }
+
                 .confirmation-container {
                     width: 90%;
                     max-width: 600px;
@@ -116,6 +122,7 @@ class AddToShortlistBoundary {
                     background-color: #ffffff;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 }
+
                 .button {
                     display: inline-block;
                     padding: 10px 20px;
@@ -125,19 +132,23 @@ class AddToShortlistBoundary {
                     text-decoration: none;
                     border-radius: 5px;
                 }
+
                 .button:hover {
                     background-color: #0056b3;
                 }
+
                 .message {
                     color: green;
                     font-weight: bold;
                 }
+
                 .error {
                     color: red;
                     font-weight: bold;
                 }
             </style>
         </head>
+
         <body>
             <header>
                 <h1>Confirm Add to Shortlist</h1>
@@ -155,7 +166,7 @@ class AddToShortlistBoundary {
                 <p><strong>Color:</strong> <?php echo htmlspecialchars($listing->listing_color); ?></p>
                 <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->listing_price); ?></p>
                 <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->listing_description); ?></p>
-                
+
                 <form method="post">
                     <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
                     <input type="hidden" name="user_id" value="<?php echo $this->controller->getBuyerID(); ?>">
@@ -164,6 +175,7 @@ class AddToShortlistBoundary {
                 <a href="buyer_dashboard.php" class="button">Cancel</a>
             </div>
         </body>
+
         </html>
         <?php
     }
@@ -176,20 +188,20 @@ $conn = $database->getConnection();
 $controller = new AddToShortlistController($conn);
 
 // Handle form submission to add to shortlist
-$added = false;
-$duplicate = false;
+$added = false; // Flag for successful addition
+$duplicate = false; // Flag for duplicate detection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
     $listingId = $_POST['listing_id'];
     $buyerId = $_POST['user_id'];
     if ($controller->addToShortlist($listingId, $buyerId)) {
-        $added = true;
+        $added = true; // Set flag to true if added successfully
     } else {
-        $duplicate = true;
+        $duplicate = true; // Set flag if a duplicate is detected
     }
 }
 
 // Render the confirmation screen with the provided listing ID and addition status
-$listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0;
+$listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0; // Get listing ID from query parameter
 $boundary = new AddToShortlistBoundary($controller);
 $boundary->render($listingId, $added, $duplicate);
 

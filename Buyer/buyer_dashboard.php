@@ -4,7 +4,8 @@ require_once "../connectDatabase.php";
 $user_id = $_SESSION['user_id'];
 
 // Entity: Represents a listing
-class Listing {
+class Listing
+{
     public $listing_id;
     public $manufacturer_name;
     public $model_name;
@@ -16,7 +17,8 @@ class Listing {
     public $first_name;
     public $last_name;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->listing_id = $data['listing_id'];
         $this->manufacturer_name = $data['manufacturer_name'];
         $this->model_name = $data['model_name'];
@@ -31,19 +33,23 @@ class Listing {
 }
 
 // Controller: Manages the interaction with the database
-class UserController {
+class UserController
+{
     private $conn;
 
-    public function __construct($conn) {
+    public function __construct($conn)
+    {
         $this->conn = $conn;
     }
 
     // Method to get the buyer user ID from the session
-    public function getBuyerID() {
+    public function getBuyerID()
+    {
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
 
-    public function getAllListings() {
+    public function getAllListings()
+    {
         $stmt = $this->conn->prepare("
             SELECT 
                 l.listing_id, 
@@ -63,7 +69,7 @@ class UserController {
         ");
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         $listings = [];
         while ($row = $result->fetch_assoc()) {
             $listings[] = new Listing($row); // Create Listing objects from the results
@@ -73,19 +79,23 @@ class UserController {
 }
 
 // Boundary: Manages the display of data
-class UserBoundary {
+class UserBoundary
+{
     private $controller;
 
-    public function __construct($controller) {
+    public function __construct($controller)
+    {
         $this->controller = $controller;
     }
 
-    public function render() {
+    public function render()
+    {
         $listings = $this->controller->getAllListings();
         $buyerID = $this->controller->getBuyerID(); // Get the buyer ID
         ?>
         <!DOCTYPE html>
         <html>
+
         <head>
             <title>Buyer Dashboard</title>
             <style>
@@ -95,6 +105,7 @@ class UserBoundary {
                     padding: 0;
                     background-color: #f8f9fa;
                 }
+
                 header {
                     display: flex;
                     justify-content: space-between;
@@ -103,52 +114,106 @@ class UserBoundary {
                     background-color: #343a40;
                     color: #ffffff;
                 }
+
                 header h1 {
                     margin: 0;
                     font-size: 1.5em;
                 }
+
                 header a {
                     text-decoration: none;
                     color: #ffffff;
-                    background-color: #dc3545;
+                    background-color: #007bff;
                     padding: 8px 16px;
                     border-radius: 4px;
                     font-size: 0.9em;
                 }
+
+                header a:hover {
+                    background-color: #0056b3;
+                }
+
                 h2 {
                     text-align: center;
                     color: #343a40;
                     margin-top: 20px;
                 }
+
                 table {
                     width: 90%;
                     margin: 20px auto;
                     border-collapse: collapse;
-                    background-color: #ffffff;
+                    background-color: white;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 }
-                table, th, td {
+
+                table,
+                th,
+                td {
                     border: 1px solid #dee2e6;
                 }
-                th, td {
+
+                th,
+                td {
                     padding: 12px;
                     text-align: center;
                     color: #343a40;
                 }
+
                 th {
                     background-color: #6c757d;
                     color: #ffffff;
                     font-weight: bold;
                 }
+
                 tr:nth-child(even) {
                     background-color: #f1f1f1;
                 }
+
+                .shortlist-button {
+                    background-color: #007bff;
+                    color: white;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                }
+
+                .shortlist-button:hover {
+                    background-color: #0056b3;
+                }
+
+                .agent-button {
+                    background-color: green;
+                    color: white;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                }
+
+                .agent-button:hover {
+                    background-color: darkgreen;
+                }
+
+                .listing-button {
+                    background-color: green;
+                    color: white;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                }
+
+                .listing-button:hover {
+                    background-color: darkgreen;
+                }
             </style>
         </head>
+
         <body>
             <header>
                 <h1>Welcome to the Buyer Dashboard</h1>
-                <a href="loanCalculator.php">Calculate Loan</a>        
+                <!-- New "Update Account Details" button -->
+                <a href="buyer_update_profile.php?user_id=<?php echo $buyerID; ?>">Update Account Details</a>
+                <a href="loanCalculator.php">Calculate Loan</a>
                 <a href="buyer_view_shortlist.php?user_id=<?php echo $buyerID; ?>">View Shortlist</a>
                 <a href="../logout.php">Logout</a>
             </header>
@@ -176,19 +241,24 @@ class UserBoundary {
                         <td>
                             <form action="buyerListingDetails.php" method="post">
                                 <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
-                                <button type="submit">View Listing Details</button>
+                                <input type="hidden" name="referrer" value="dashboard">
+                                <button class="listing-button" id="listing-button" type="submit">View Listing Details</button>
                             </form>
-                            <a href="buyer_view_agent_details.php?user_id=<?php echo $listing->user_id; ?>">
-                                <button type="button">View Agent Details</button>
+
+                            <a href="buyer_view_agent_details.php?user_id=<?php echo $listing->user_id; ?>&referrer=dashboard">
+                                <button class="agent-button" id="agent-button" type="button">View Agent Details</button>
                             </a>
+
                             <a href="buyer_add_shortlist.php?listing_id=<?php echo $listing->listing_id; ?>">
-                                <button type="button">Add this listing to shortlist</button>
+                                <button class="shortlist-button" id="shortlist-button" type="button">Add this listing to
+                                    shortlist</button>
                             </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
         </body>
+
         </html>
         <?php
     }

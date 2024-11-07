@@ -1,8 +1,9 @@
 <?php
 session_start();
-require_once "connectDatabase.php";
+require_once "../connectDatabase.php";
 // Entity Layer
-class Review {
+class Review
+{
     private $review_id;
     private $details;
     private $stars;
@@ -11,7 +12,8 @@ class Review {
     private $date;
 
     // Constructor only accepts raw data
-    public function __construct($details, $stars, $reviewer_id, $agent_id) {
+    public function __construct($details, $stars, $reviewer_id, $agent_id)
+    {
         $this->details = $details;
         $this->stars = $stars;
         $this->reviewer_id = $reviewer_id;
@@ -20,14 +22,30 @@ class Review {
     }
 
     // Getters - Entity only provides data access
-    public function getDetails() { return $this->details; }
-    public function getStars() { return $this->stars; }
-    public function getReviewerId() { return $this->reviewer_id; }
-    public function getAgentId() { return $this->agent_id; }
-    public function getDate() { return $this->date; }
+    public function getDetails()
+    {
+        return $this->details;
+    }
+    public function getStars()
+    {
+        return $this->stars;
+    }
+    public function getReviewerId()
+    {
+        return $this->reviewer_id;
+    }
+    public function getAgentId()
+    {
+        return $this->agent_id;
+    }
+    public function getDate()
+    {
+        return $this->date;
+    }
 
     // Entity-level validation
-    public function validate() {
+    public function validate()
+    {
         $errors = [];
         if (empty($this->details)) {
             $errors[] = "Review details cannot be empty";
@@ -43,15 +61,18 @@ class Review {
 }
 
 // Control Layer
-class CreateReviewController {
+class CreateReviewController
+{
     private $mysqli;
 
-    public function __construct($mysqli) {
+    public function __construct($mysqli)
+    {
         $this->mysqli = $mysqli;
     }
 
     // Main control method that orchestrates the review creation process
-    public function processCreateReview($post_data, $reviewer_id) {
+    public function processCreateReview($post_data, $reviewer_id)
+    {
         // Input validation
         if (!$this->validateInput($post_data)) {
             return ['success' => false, 'errors' => ['Invalid input data']];
@@ -76,14 +97,16 @@ class CreateReviewController {
     }
 
     // Input validation
-    private function validateInput($post_data) {
-        return isset($post_data['details']) && 
-               isset($post_data['stars']) && 
-               isset($post_data['agent_id']);
+    private function validateInput($post_data)
+    {
+        return isset($post_data['details']) &&
+            isset($post_data['stars']) &&
+            isset($post_data['agent_id']);
     }
 
     // Data persistence
-    private function saveReview(Review $review) {
+    private function saveReview(Review $review)
+    {
         $stmt = $this->mysqli->prepare(
             "INSERT INTO review (review_details, review_stars, reviewer_id, agent_id, review_date) 
              VALUES (?, ?, ?, ?, ?)"
@@ -112,7 +135,8 @@ class CreateReviewController {
     }
 
     // Agent data retrieval
-    public function getAgentDetails($agent_id) {
+    public function getAgentDetails($agent_id)
+    {
         $stmt = $this->mysqli->prepare(
             "SELECT user_id, username 
              FROM users 
@@ -125,22 +149,25 @@ class CreateReviewController {
 }
 
 // Boundary Layer
-class CreateReviewBoundary {
+class CreateReviewBoundary
+{
     private $controller;
 
-    public function __construct($controller) {
+    public function __construct($controller)
+    {
         $this->controller = $controller;
     }
 
     // Main entry point for the boundary
-    public function processRequest($request_method, $get_data, $post_data, $session_data) {
+    public function processRequest($request_method, $get_data, $post_data, $session_data)
+    {
         // Authentication check
         if (!isset($session_data['user_id'])) {
             return $this->render(null, ['Please log in to submit a review']);
         }
 
         // Get agent_id from URL parameter
-        $agent_id = isset($get_data['agent_id']) ? (int)$get_data['agent_id'] : null;
+        $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             return $this->render(null, ['Invalid agent ID']);
         }
@@ -154,9 +181,11 @@ class CreateReviewBoundary {
         // Handle form submission
         if ($request_method === 'POST') {
             $result = $this->controller->processCreateReview($post_data, $session_data['user_id']);
-            return $this->render($agent_details, 
-                               $result['success'] ? [] : $result['errors'],
-                               $result['success'] ? $result['message'] : '');
+            return $this->render(
+                $agent_details,
+                $result['success'] ? [] : $result['errors'],
+                $result['success'] ? $result['message'] : ''
+            );
         }
 
         // Display initial form
@@ -164,35 +193,123 @@ class CreateReviewBoundary {
     }
 
     // Render view
-    public function render($agent_details = null, $errors = [], $success_message = '') {
+    public function render($agent_details = null, $errors = [], $success_message = '')
+    {
         // Start output buffering
         ob_start();
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
+
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Create Review</title>
             <style>
-                body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-                .container { width: 100%; max-width: 600px; background: #f9f9f9; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-                .form-title { text-align: center; font-size: 24px; margin-bottom: 20px; }
-                .error-message, .success-message { background: #ffdddd; padding: 10px; margin-bottom: 15px; color: #d8000c; border-radius: 5px; }
-                .success-message { background: #ddffdd; color: #4caf50; }
-                .agent-info h2 { font-size: 18px; margin-bottom: 10px; }
-                .form-group { margin-bottom: 15px; }
-                .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-                .star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; font-size: 24px; }
-                .star-rating input { display: none; }
-                .star-rating label { color: #ddd; cursor: pointer; padding: 5px; }
-                .star-rating input:checked ~ label { color: #ffbb33; }
-                .star-rating label:hover, .star-rating label:hover ~ label { color: #ffbb33; }
-                .form-control { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-                .btn { width: 100%; background: #4caf50; color: #fff; padding: 10px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-                .btn:hover { background: #45a049; }
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
+
+                .container {
+                    width: 100%;
+                    max-width: 600px;
+                    background: #f9f9f9;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+
+                .form-title {
+                    text-align: center;
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
+
+                .error-message,
+                .success-message {
+                    background: #ffdddd;
+                    padding: 10px;
+                    margin-bottom: 15px;
+                    color: #d8000c;
+                    border-radius: 5px;
+                }
+
+                .success-message {
+                    background: #ddffdd;
+                    color: #4caf50;
+                }
+
+                .agent-info h2 {
+                    font-size: 18px;
+                    margin-bottom: 10px;
+                }
+
+                .form-group {
+                    margin-bottom: 15px;
+                }
+
+                .form-group label {
+                    display: block;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+
+                .star-rating {
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: flex-end;
+                    font-size: 24px;
+                }
+
+                .star-rating input {
+                    display: none;
+                }
+
+                .star-rating label {
+                    color: #ddd;
+                    cursor: pointer;
+                    padding: 5px;
+                }
+
+                .star-rating input:checked~label {
+                    color: #ffbb33;
+                }
+
+                .star-rating label:hover,
+                .star-rating label:hover~label {
+                    color: #ffbb33;
+                }
+
+                .form-control {
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 4px;
+                    border: 1px solid #ccc;
+                    resize: vertical;
+                }
+
+                .btn {
+                    width: 100%;
+                    background: #4caf50;
+                    color: #fff;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+
+                .btn:hover {
+                    background: #45a049;
+                }
             </style>
         </head>
+
         <body>
             <div class="container">
                 <h1 class="form-title">Write a Review</h1>
@@ -218,7 +335,7 @@ class CreateReviewBoundary {
 
                     <form method="POST" action="">
                         <input type="hidden" name="agent_id" value="<?php echo htmlspecialchars($agent_details['user_id']); ?>">
-                        
+
                         <div class="form-group">
                             <label>Rating</label>
                             <div class="star-rating">
@@ -239,6 +356,7 @@ class CreateReviewBoundary {
                 <?php endif; ?>
             </div>
         </body>
+
         </html>
         <?php
         // End output buffering and flush output

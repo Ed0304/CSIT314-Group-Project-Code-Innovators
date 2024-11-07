@@ -1,9 +1,11 @@
 <?php
 session_start();
-require_once "../connectDatabase.php"; // Assuming you have a database connection class
+
+require '../connectDatabase.php'; // Assuming you have a database connection class
 
 // Entity Class: Review
-class Review {
+class Review
+{
     private $review_id;
     private $details;
     private $stars;
@@ -11,7 +13,8 @@ class Review {
     private $reviewerUsername;
     private $agentUsername; // New property for agent username
 
-    public function __construct($review_id, $details, $stars, $date, $reviewerUsername, $agentUsername) {
+    public function __construct($review_id, $details, $stars, $date, $reviewerUsername, $agentUsername)
+    {
         $this->review_id = $review_id;
         $this->details = $details;
         $this->stars = $stars;
@@ -20,40 +23,49 @@ class Review {
         $this->agentUsername = $agentUsername; // Initialize agent username
     }
 
-    public function getReviewId() {
+    public function getReviewId()
+    {
         return $this->review_id;
     }
 
-    public function getDetails() {
+    public function getDetails()
+    {
         return $this->details;
     }
 
-    public function getStars() {
+    public function getStars()
+    {
         return $this->stars;
     }
 
-    public function getDate() {
+    public function getDate()
+    {
         return $this->date;
     }
 
-    public function getReviewerUsername() {
+    public function getReviewerUsername()
+    {
         return $this->reviewerUsername;
     }
 
-    public function getAgentUsername() { // New method for agent username
+    public function getAgentUsername()
+    { // New method for agent username
         return $this->agentUsername;
     }
 }
 
 // Control Class: ViewReviewController
-class ViewReviewController {
+class ViewReviewController
+{
     private $mysqli;
 
-    public function __construct($mysqli) {
+    public function __construct($mysqli)
+    {
         $this->mysqli = $mysqli;
     }
 
-    public function getReviewById($review_id) {
+    public function getReviewById($review_id)
+    {
         // Updated SQL query to include agent username
         $stmt = $this->mysqli->prepare("SELECT r.review_id, r.review_details, r.review_stars, r.review_date,
                                         u.username AS reviewer_username, a.username AS agent_username
@@ -65,20 +77,29 @@ class ViewReviewController {
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
-            return new Review($row['review_id'], $row['review_details'], $row['review_stars'], $row['review_date'],
-                              $row['reviewer_username'], $row['agent_username']); // Pass agent username
+            return new Review(
+                $row['review_id'],
+                $row['review_details'],
+                $row['review_stars'],
+                $row['review_date'],
+                $row['reviewer_username'],
+                $row['agent_username']
+            ); // Pass agent username
         }
         return null; // Return null if no review is found
     }
 }
 
 // Boundary Class: ViewReviewBoundary
-class ViewReviewBoundary {
-    public function render(Review $review, $username) {
+class ViewReviewBoundary
+{
+    public function render(Review $review, $username)
+    {
         if ($review) {
             ?>
             <!DOCTYPE HTML>
             <html lang="en">
+
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,10 +224,11 @@ class ViewReviewBoundary {
                     }
                 </style>
             </head>
+
             <body>
                 <div class="container">
                     <h1 class="page-title">Review Details</h1>
-                    
+
                     <div class="review-card">
                         <div class="review-header">
                             <div class="stars-container">
@@ -243,13 +265,15 @@ class ViewReviewBoundary {
                         </div>
 
                         <div class="button-container">
-                            <a href="buyerviewReviews.php?username=<?php echo urlencode($review->getAgentUsername()); ?>" class="button">
+                            <a href="buyerviewReviews.php?username=<?php echo urlencode($review->getAgentUsername()); ?>"
+                                class="button">
                                 Return to Reviews
                             </a>
                         </div>
                     </div>
                 </div>
             </body>
+
             </html>
             <?php
         } else {
@@ -264,7 +288,7 @@ class ViewReviewBoundary {
 $database = new Database();
 $mysqli = $database->getConnection();
 
-$review_id = isset($_GET['review_id']) ? (int)$_GET['review_id'] : null;
+$review_id = isset($_GET['review_id']) ? (int) $_GET['review_id'] : null;
 
 if ($review_id) {
     $controller = new ViewReviewController($mysqli);
