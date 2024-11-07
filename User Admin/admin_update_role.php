@@ -7,13 +7,18 @@ if (!$role_id) {
     die("Role ID not provided.");
 }
 
+// Entity class: Handles database operations and acts as the data structure for Role
 class Role {
+    private $conn;
     private $role_id;
     private $role_description;
 
-    public function __construct($role_id, $role_description) {
-        $this->role_id = $role_id;
-        $this->role_description = $role_description;
+    public function __construct($connection, $role_id = null) {
+        $this->conn = $connection;
+        if ($role_id) {
+            $this->role_id = $role_id;
+            $this->loadRole();
+        }
     }
 
     public function getRoleId() {
@@ -27,39 +32,46 @@ class Role {
     public function setRoleDescription($role_description) {
         $this->role_description = $role_description;
     }
-}
 
-class RoleController {
-    private $conn;
-    private $role_id;
-
-    public function __construct($connection, $role_id) {
-        $this->conn = $connection;
-        $this->role_id = $role_id;
-    }
-
-    public function getRole() {
+    public function loadRole() {
         $stmt = $this->conn->prepare("SELECT * FROM role WHERE role_id = ?");
         $stmt->bind_param("i", $this->role_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         if ($row = $result->fetch_assoc()) {
-            return new Role($row['role_id'], $row['role_description']);
+            $this->role_description = $row['role_description'];
+        } else {
+            throw new Exception("Role not found");
         }
-        
-        return null;
     }
 
-    public function updateRoleDescription(Role $role) {
-        $role_description = $role->getRoleDescription();
-        $role_id = $role->getRoleId();
+    public function updateRoleDescription() {
         $stmt = $this->conn->prepare("UPDATE role SET role_description = ? WHERE role_id = ?");
-        $stmt->bind_param("si", $role_description, $role_id);
+        $stmt->bind_param("si", $this->role_description, $this->role_id);
         return $stmt->execute();
     }
 }
 
+// Controller class: Calls methods in the Role entity
+class RoleController {
+    private $role;
+
+    public function __construct($connection, $role_id) {
+        $this->role = new Role($connection, $role_id);
+    }
+
+    public function getRole() {
+        return $this->role;
+    }
+
+    public function updateRoleDescription($new_description) {
+        $this->role->setRoleDescription($new_description);
+        return $this->role->updateRoleDescription();
+    }
+}
+
+// Boundary class: Handles display and form interactions
 class RoleBoundary {
     private $roleController;
     private $role;
@@ -67,23 +79,16 @@ class RoleBoundary {
     public function __construct($connection, $role_id) {
         $this->roleController = new RoleController($connection, $role_id);
         $this->role = $this->roleController->getRole();
-        
-        if (!$this->role) {
-            die("Role not found");
-        }
     }
 
     public function handleFormSubmission() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (isset($_POST['role_description'])) {
-                $new_description = trim($_POST['role_description']);
-                $this->role->setRoleDescription($new_description);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role_description'])) {
+            $new_description = trim($_POST['role_description']);
 
-                if ($this->roleController->updateRoleDescription($this->role)) {
-                    echo "<p style='color: green;'>Role description updated successfully.</p>";
-                } else {
-                    echo "<p style='color: red;'>Error updating description.</p>";
-                }
+            if ($this->roleController->updateRoleDescription($new_description)) {
+                echo "<p style='color: green;'>Role description updated successfully.</p>";
+            } else {
+                echo "<p style='color: red;'>Error updating description.</p>";
             }
         }
     }

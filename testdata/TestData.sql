@@ -49,7 +49,7 @@ CREATE TABLE listing(
     user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     views INT DEFAULT 0,
-    CONSTRAINT views CHECK (views >= 0);
+    CONSTRAINT views CHECK (views >= 0),
     shortlisted INT DEFAULT 0,
     CONSTRAINT shortlisted CHECK (shortlisted >= 0);
 );
@@ -71,7 +71,7 @@ CREATE TABLE shortlist(
     listing_id INT NOT NULL,
     shortlist_date DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (buyer_id) REFERENCES users(user_id),
-    FOREIGN KEY (listing_id) REFERENCES listing(listing_id),
+    FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
 CREATE TABLE ownership(

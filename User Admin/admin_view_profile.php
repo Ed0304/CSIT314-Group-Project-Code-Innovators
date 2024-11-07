@@ -1,19 +1,49 @@
 <?php
 require '../connectDatabase.php';
+session_start();
 
 // BOUNDARY LAYER: HTML View for managing user accounts
 class UserAccountView
 {
-    private $users;
-    private $about;
+    private $controller;
 
-    public function __construct($users, $about)
+    public function __construct($controller)
     {
-        $this->users = $users;
-        $this->about = $about;
+        $this->controller = $controller;
     }
 
-    public function render()
+    public function handleRequest()
+    {
+        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST;
+            $search_query = $action['search_query'] ?? '';
+
+            if (isset($action['searchUser'])) {
+                $users = $this->controller->searchUsers($search_query, $role_id);
+            } elseif (isset($action['viewAccount'])) {
+                $profile_id = $action['profile_id'] ?? '';
+                header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
+                exit();
+            } elseif (isset($action['updateAccount'])) {
+                $profile_id = $action['profile_id'] ?? '';
+                header("Location: admin_update_profile.php?profile_id=" . urlencode($profile_id));
+                exit();
+            } elseif (isset($action['suspendAccount'])) {
+                $profile_id = $action['profile_id'] ?? '';
+                header("Location: admin_suspend_profile.php?profile_id=" . urlencode($profile_id));
+                exit();
+            }
+        } else {
+            $users = $this->controller->getUsersByRole($role_id);
+        }
+
+        $about = $this->controller->getAbout();
+        $this->render($users, $about);
+    }
+
+    public function render($users, $about)
     {
         ?>
         <!DOCTYPE HTML>
@@ -60,14 +90,14 @@ class UserAccountView
                     <th>Role</th>
                     <th>Role description</th>
                 </tr>
-                <?php if (!empty($this->users)): ?>
-                    <?php foreach ($this->users as $user): ?>
+                <?php if (!empty($users)): ?>
+                    <?php foreach ($users as $user): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($user['user_id'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['status_name'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($user['role_description'] ?? 'N/A'); ?></td>                            </td>
+                            <td><?php echo htmlspecialchars($user['role_description'] ?? 'N/A'); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -87,7 +117,7 @@ class UserAccountView
     }
 }
 
-// CONTROL LAYER: Handle form submissions and orchestrate data flow
+// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
 class UserAccountController
 {
     private $userProfile;
@@ -97,47 +127,23 @@ class UserAccountController
         $this->userProfile = $userProfile;
     }
 
-    public function handleRequest()
+    public function getUsersByRole($role_id)
     {
-        $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : null;
-        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        return $this->userProfile->getUsersByRole($role_id);
+    }
 
-        // Handle search action
-        if ($action && isset($action['searchUser'])) {
-            $search_query = $action['search_query'] ?? '';
-            $users = $this->userProfile->searchUsers($search_query, $role_id);
-        } else {
-            // Fetch data from the entity
-            $users = $this->userProfile->getUsersByRole($role_id);
-        }
-        
-        // Fetch 'about' information
-        $about = $this->userProfile->getAbout();
+    public function searchUsers($search_query, $role_id)
+    {
+        return $this->userProfile->searchUsers($search_query, $role_id);
+    }
 
-        // Instantiate view with retrieved data
-        $view = new UserAccountView($users, $about);
-
-        // Process actions without direct interaction between boundary and entity layers
-        if ($action) {
-            $profile_id = $action['profile_id'] ?? ''; // Get profile_id from form input
-            if (isset($action['viewAccount'])) {
-                header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['updateAccount'])) {
-                header("Location: admin_update_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['suspendAccount'])) {
-                header("Location: admin_suspend_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            }
-        }
-
-        // Render the view if no action is taken
-        $view->render();
+    public function getAbout()
+    {
+        return $this->userProfile->getAbout();
     }
 }
 
-// ENTITY LAYER: UserProfile to handle all logic for user data and database interactions
+// ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
     private $mysqli;
 
@@ -211,9 +217,9 @@ class UserProfile {
     }
 }
 
-// MAIN LOGIC: Initialize components and handle the request
-$role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+// MAIN LOGIC: Initialize components and delegate request handling to the view
 $userProfile = new UserProfile();
 $userController = new UserAccountController($userProfile); 
-$userController->handleRequest();
+$userView = new UserAccountView($userController);
+$userView->handleRequest();
 ?>

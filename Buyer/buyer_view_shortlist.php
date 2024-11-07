@@ -170,6 +170,7 @@ class ViewShortlistsBoundary {
                     <th>Price</th>
                     <th>Description</th>
                     <th>Date Added</th>
+                    <th>Action</th>
                 </tr>
                 <?php foreach ($shortlists as $shortlist): ?>
                     <tr>
@@ -180,6 +181,13 @@ class ViewShortlistsBoundary {
                         <td><?php echo htmlspecialchars($shortlist->listing_price); ?></td>
                         <td><?php echo htmlspecialchars($shortlist->listing_description); ?></td>
                         <td><?php echo htmlspecialchars($shortlist->date_added); ?></td>
+                        <td>
+                            <form method="post" action="buyer_remove_shortlist.php">
+                                <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($shortlist->listing_id); ?>">
+                                <button type="submit" class="button-font" id="deleteshortlist" name="deleteshortlist">Delete</button>
+                            </form>
+                        </td>
+
                     </tr>
                 <?php endforeach; ?>
             </table>
