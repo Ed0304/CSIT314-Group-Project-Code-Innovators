@@ -101,24 +101,25 @@ class ViewListingBoundary {
                 .btn-view, .btn-shortlist, .btn-return { margin-top: 10px; padding: 8px 16px; background-color: #007bff; color: white; border-radius: 5px; text-decoration: none; }
                 .btn-view:hover, .btn-shortlist:hover, .btn-return:hover { background-color: #0056b3; }
               </style>";
-
+    
         $user_id = $this->viewListingController->getUserIdByUsername($username);
-
+    
         if ($user_id) {
             $listings = $this->viewListingController->getListingsBySeller($user_id);
-
+    
             echo "<div class='listing-container'>";
             if (count($listings) > 0) {
                 foreach ($listings as $listing) {
                     $formatted_price = "$" . number_format($listing->listing_price, 2);
-
+    
                     echo "<div class='listing-item'>";
                     echo "<h3>{$listing->manufacturer_name} {$listing->model_name} ({$listing->model_year})</h3>";
                     echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
                     echo "<p>Price: {$formatted_price}</p>";
                     echo "<p>Description: {$listing->listing_description}</p>";
                     echo "<a href='listing-views.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
-                    echo "<a href='listing-shortlists.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
+                    // Update the "See Shortlists" button to point to seller_count_shortlist.php
+                    echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
                     echo "</div>";
                 }
             } else {

@@ -13,7 +13,7 @@ class Seller {
         return $this->username;
     }
 }
-
+    
 // Boundary layer
 class DashboardView {
     private $username;
@@ -92,7 +92,7 @@ class DashboardController {
 
             if (isset($_POST['reviews'])) {
                 $username = urlencode($this->seller->getUsername());
-                header("Location: seller_view_ratings_and_reviews.php?username=" . $username);
+                header("Location: seller_manage_review.php?username=" . $username);
                 exit();
             }
         }
@@ -112,3 +112,4 @@ $username = $_SESSION['username'];
 $seller = new Seller($username);
 $controller = new DashboardController($seller);
 $controller->handleRequest();
+?>
