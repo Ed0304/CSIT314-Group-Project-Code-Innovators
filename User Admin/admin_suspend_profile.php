@@ -242,4 +242,43 @@ class UserAccount {
     }
 }
 
+
+// Use GET parameter to fetch the profile_id
+$profile_id = isset($_GET['profile_id']) ? $_GET['profile_id'] : '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $profile_id = $_POST['profile_id'];
+    $username = $_POST['username'];
+
+    // Create an instance of AccountController and handle actions
+    $accountController = new AccountController();
+    
+    if ($_POST['action'] === 'suspend') {
+        $accountController->setSuspend($profile_id, $username);
+
+        $_SESSION['success_message'] = "Profile and account suspended successfully.";
+        // Redirect to profile details page
+        header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
+        exit();
+    } elseif ($_POST['action'] === 'remove_suspend') {
+        $accountController->removeSuspend($profile_id, $username);
+
+        $_SESSION['remove_suspend_message'] = "Profile and account suspension removed.";
+        // Redirect to profile details page
+        header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
+        exit();
+    }
+}
+
+if ($profile_id) {
+    // Create an instance of AccountController and fetch profile data
+    $accountController = new AccountController();
+    $profileData = $accountController->getProfile($profile_id, $user_id);
+
+    // Render the view with retrieved profile data
+    $profileView = new ProfileView($profileData);
+    $profileView->render();
+} else {
+    echo "No profile provided.";
+}
 ?>

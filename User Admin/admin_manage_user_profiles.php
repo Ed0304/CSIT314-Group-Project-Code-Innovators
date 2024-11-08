@@ -49,18 +49,19 @@ class UserProfileView {
         <body>
             <h1 style="text-align:center">Manage user profiles here...</h1>
 
-            <form method="post" action="">
+            <form method="get" action="admin_search_profile.php">
                 <label for="role" class="select-label">Filter based on role:</label>
-                <select id="role" name="role" class="select-label">
-                    <option value="">All profile</option> <!-- Default option -->
+                <select id="role_id" name="role_id" class="select-label">
+                    <option value="">All profiles</option> <!-- Default option -->
                     <?php foreach ($this->roles as $role): ?>
-                        <option value="<?php echo htmlspecialchars($role['role_name']); ?>">
+                        <option value="<?php echo htmlspecialchars($role['role_id']); ?>">
                             <?php echo htmlspecialchars($role['role_name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
                 <button type="submit" class="select-label" id="filterProfile">Filter</button>
             </form>
+
             <br/><br/>
 
             <!-- Create Profile Button -->

@@ -30,7 +30,7 @@ class UserAccount {
 }
 
 // CONTROL LAYER: Handles the logic and mediates between boundary and entity layers
-class AccountController {
+class CreateAccountController {
     private $userAccountModel;
 
     // Constructor to initialize the UserAccount entity model
@@ -62,7 +62,7 @@ class AccountController {
 }
 
 // BOUNDARY LAYER: Manages the user interface (display form and messages)
-class AccountCreationView {
+class CreateAccountBoundary {
     private $message;
 
     // Constructor to initialize any message to display
@@ -148,15 +148,15 @@ class AccountCreationView {
 // Initialize variables
 $message = "";
 $userAccountModel = new UserAccount(); // Entity layer: Initialize UserAccount model
-$controller = new AccountController($userAccountModel); // Control layer: Initialize AccountController with the entity model
+$controller = new CreateAccountController($userAccountModel); // Control layer: Initialize CreateAccountController with the entity model
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $message = $controller->handleAccountCreation($_POST, $conn);
 }
 
-// Boundary layer: Initialize AccountCreationView with any message and render the form
-$view = new AccountCreationView($message);
+// Boundary layer: Initialize CreateAccountBoundary with any message and render the form
+$view = new CreateAccountBoundary($message);
 $view->render();
 
 // Close the database connection

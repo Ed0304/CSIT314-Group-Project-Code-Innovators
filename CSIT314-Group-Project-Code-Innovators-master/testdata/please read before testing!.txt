@@ -1,7 +1,0 @@
-put this folder into the following path: C:\xampp\htdocs\CSIT314-Project\testdata
-
-1. Run testdata.sql first (only create database part)
-2. Go to the database, after that you can create the table and insert the status, account, and role data.
-3. Then run two php files by typing:
-http://localhost/CSIT314-Project/testdata/profileTestdata.php
-http://localhost/CSIT314-Project/testdata/listingTestdata.php

@@ -15,36 +15,13 @@ class UserAccountView
     public function handleRequest()
     {
         $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $action = $_POST;
-
-            if (isset($action['viewAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['updateAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: admin_update_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['suspendAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: admin_suspend_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['searchUser'])) {
-                $role_id = $action['role_id']; // Capture the role_id from the form
-                header("Location: admin_search_profile.php?role_id=" . urlencode($role_id));
-                exit();
-            }
-        } else {
-            $users = $this->controller->getUsersByRole($role_id);
-        }
-
+        $searchTerm = isset($_POST['searchTerm']) ? $_POST['searchTerm'] : ''; // Get search term from POST
+        $users = $this->controller->getUsersByRole($role_id, $searchTerm);
         $about = $this->controller->getAbout();
-        $this->render($users, $about, $role_id);
+        $this->render($users, $about, $role_id, $searchTerm);
     }
 
-    public function render($users, $about, $role_id)
+    public function render($users, $about, $role_id, $searchTerm)
     {
         ?>
         <!DOCTYPE HTML>
@@ -73,6 +50,12 @@ class UserAccountView
         </head>
         <body>
             <h1 style="text-align:center">Users in this role</h1>
+            <!-- Added search bar and hidden field to pass role_id -->
+            <form method="post" action="" style="text-align:center">
+                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($role_id); ?>">
+                <input type="text" name="searchTerm" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search by username" style="font-size: 24px">
+                <input type="submit" name="searchUser" value="Search" style="font-size: 24px">
+            </form>
             <br/>
             <table id="main-table">
                 <tr>
@@ -120,9 +103,9 @@ class UserAccountController
         $this->userProfile = $userProfile;
     }
 
-    public function getUsersByRole($role_id)
+    public function getUsersByRole($role_id, $searchTerm)
     {
-        return $this->userProfile->getUsersByRole($role_id);
+        return $this->userProfile->getUsersByRole($role_id, $searchTerm);
     }
 
     public function getAbout()
@@ -142,21 +125,33 @@ class UserProfile {
         }
     }
 
-    public function getUsersByRole($role_id = '') {
+    public function getUsersByRole($role_id = '', $searchTerm = '') {
         $query = "
             SELECT u.user_id, u.username, s.status_name, r.role_name, r.role_description
             FROM users u
             JOIN role r ON u.role_id = r.role_id
             JOIN status s ON u.status_id = s.status_id";
         
+        $params = [];
+        $types = '';
+        
         if (!empty($role_id)) {
             $query .= " WHERE u.role_id = ?";
+            $types .= 'i';
+            $params[] = $role_id;
+        }
+
+        if (!empty($searchTerm)) {
+            $query .= !empty($role_id) ? " AND" : " WHERE";
+            $query .= " u.username LIKE ?";
+            $types .= 's';
+            $params[] = '%' . $searchTerm . '%';
         }
 
         $stmt = $this->mysqli->prepare($query);
 
-        if (!empty($role_id)) {
-            $stmt->bind_param('i', $role_id);
+        if ($types) {
+            $stmt->bind_param($types, ...$params);
         }
 
         $stmt->execute();
@@ -169,9 +164,9 @@ class UserProfile {
     }
 
     public function getAbout() {
-        $query = "SELECT about FROM profile LIMIT 1"; // Assume one general 'about' section if applicable
+        $query = "SELECT about FROM profile LIMIT 1";
         $result = $this->mysqli->query($query);
-        return $result->fetch_assoc()['about'] ?? ''; // Return 'about' or empty string if not found
+        return $result->fetch_assoc()['about'] ?? '';
     }
 }
 

@@ -1,20 +1,23 @@
 <?php
-session_start(); // Start the session to maintain user data across requests
+session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: User class to handle user authentication
+// Entity Layer: User class to handle user authentication with direct database interaction
 class User {
-    private $username;
-    private $role;
-    private $password;
+    public $username;
+    public $password;
+    public $role;
+    public $db;
 
-    public function __construct($username, $password, $role) {
+    public function __construct($db, $username, $password, $role) {
+        $this->db = $db;
         $this->username = $username;
         $this->password = $password;
         $this->role = $role;
     }
 
-    public function authenticate($db) {
+    // Handles database query to authenticate the user
+    public function getUserData() {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -27,8 +30,7 @@ class User {
         }
 
         $role_id = $roleMapping[$this->role];
-        // Modify the query to also select user_id
-        $stmt = $db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
+        $stmt = $this->db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $this->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
@@ -37,65 +39,47 @@ class User {
             $stmt->bind_result($user_id, $stored_password, $status_id);
             $stmt->fetch();
 
-            // Check if the user is suspended (status_id = 2)
-            if ($status_id == 2) {
-                return "Account suspended. Please contact support.";
-            }
-            // Return user_id and authentication result
-            return ['authenticated' => $this->password === $stored_password, 'user_id' => $user_id];
+            return ['user_id' => $user_id, 'password' => $stored_password, 'status_id' => $status_id];
         } else {
             return false;
         }
     }
 }
 
-// Control Layer: AuthController class to handle form submission and user authentication
+// Controller Layer: AuthController class to handle user authentication and communication with the User entity
 class AuthController {
-    private $database;
 
-    public function __construct() {
-        $this->database = new Database();
+    private $user;
+
+    public function __construct($user) {
+        $this->user = $user;
     }
 
-    public function authenticateUser($username, $password, $role) {
-        $user = new User($username, $password, $role);
-        $dbConnection = $this->database->getConnection();
+    // Authenticate the user by interacting with the User entity
+    public function authenticateUser() {
+        $userData = $this->user->getUserData();
 
-        $authResult = $user->authenticate($dbConnection);
-
-        if (is_array($authResult) && $authResult['authenticated'] === true) {
-            // Store user_id in session
-            $_SESSION['username'] = $username;
-            $_SESSION['user_id'] = $authResult['user_id']; // Store user_id
-            return $this->getRedirectLocation($role);
-        } elseif ($authResult === "Account suspended. Please contact support.") {
-            return $authResult;
+        if ($userData === false) {
+            return "Invalid username, password, or role.";
         }
-        return "Invalid username, password, or role.";
-    }
 
-    private function getRedirectLocation($role) {
-        switch($role) {
-            case 'user admin':
-                return "User Admin/admin_dashboard.php";
-            case 'used car agent':
-                return "Used Car Agent/agent_dashboard.php";
-            case 'buyer':
-                return "Buyer/buyer_dashboard.php";
-            case 'seller':
-                return "Seller/seller_dashboard.php";
-            default:
-                return "Invalid role selected.";
+        // Check if the account is suspended
+        if ($userData['status_id'] == 2) {
+            return "Account suspended. Please contact support.";
         }
-    }
 
-    public function closeDatabaseConnection() {
-        $this->database->closeConnection();
+        // Authenticate password
+        if ($userData['password'] === $this->user->password) {
+            return ['authenticated' => true, 'user_id' => $userData['user_id']];
+        } else {
+            return "Invalid username, password, or role.";
+        }
     }
 }
 
-// Boundary Layer: LoginForm class to generate the login form HTML
+// Boundary Layer: LoginForm class to generate and display the login form HTML and handle user interaction
 class LoginForm {
+
     public static function display($message = "") {
         ?>
         <!DOCTYPE HTML>
@@ -140,29 +124,67 @@ class LoginForm {
         </html>
         <?php
     }
-}
 
-// Handle form submission and interaction with the controller
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $controller = new AuthController();
-    $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    $role = htmlspecialchars($_POST['role']);
+    public static function handleLogin() {
+        // Only handle post if the form is submitted
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            // Get input from the form
+            $username = htmlspecialchars($_POST['username']);
+            $password = htmlspecialchars($_POST['password']);
+            $role = htmlspecialchars($_POST['role']);
 
-    if ($username && $password && $role) {
-        $location = $controller->authenticateUser($username, $password, $role);
+            // Ensure all fields are filled
+            if ($username && $password && $role) {
+                // Create a new User entity
+                $db = (new Database())->getConnection();
+                $user = new User($db, $username, $password, $role);
 
-        if ($location && strpos($location, '.php') !== false) {
-            header("Location: $location");
-            exit();
+                // Create AuthController and authenticate
+                $authController = new AuthController($user);
+                $authResult = $authController->authenticateUser();
+
+                // Check authentication result
+                if (is_array($authResult) && $authResult['authenticated'] === true) {
+                    $_SESSION['username'] = $username;
+                    $_SESSION['user_id'] = $authResult['user_id'];
+
+                    // Redirect based on the role
+                    self::redirectToDashboard($role);
+                } else {
+                    // If authentication fails, display the error message
+                    self::display($authResult); // Error message handled by the Boundary
+                }
+            } else {
+                self::display("Please fill in all fields.");
+            }
         } else {
-            LoginForm::display($location);
+            self::display();
         }
-    } else {
-        LoginForm::display("Please fill in all fields.");
     }
-    $controller->closeDatabaseConnection();
-} else {
-    LoginForm::display();
+
+    // Redirect the user based on their role
+    public static function redirectToDashboard($role) {
+        switch($role) {
+            case 'user admin':
+                header("Location: User Admin/admin_dashboard.php");
+                break;
+            case 'used car agent':
+                header("Location: Used Car Agent/agent_dashboard.php");
+                break;
+            case 'buyer':
+                header("Location: Buyer/buyer_dashboard.php");
+                break;
+            case 'seller':
+                header("Location: Seller/seller_dashboard.php");
+                break;
+            default:
+                echo "Invalid role selected.";
+                break;
+        }
+        exit();
+    }
 }
+
+// Handle login request
+LoginForm::handleLogin();
 ?>

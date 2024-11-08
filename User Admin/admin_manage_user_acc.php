@@ -17,7 +17,7 @@ class User
 }
 
 // BOUNDARY LAYER: HTML View for managing user accounts
-class UserAccountView
+class SearchAccountView
 {
     private $users;
 
@@ -131,7 +131,7 @@ class UserAccountView
 }
 
 // CONTROL LAYER: Handle form submissions and orchestrate data flow
-class UserAccountController
+class SearchUserAccountController
 {
     private $mysqli;
     private $view;
@@ -197,7 +197,7 @@ class UserAccountController
             $users = $this->getUsers();
         }
 
-        $this->view = new UserAccountView($users); // Initialize the view with the User objects
+        $this->view = new SearchAccountView($users); // Initialize the view with the User objects
 
         if (isset($action['createAccount'])) {
             header("Location: accountCreation.php");
@@ -231,5 +231,5 @@ class UserAccountController
 $database = new Database();
 $mysqli = $database->getConnection(); // Get the database connection
 
-$userController = new UserAccountController($mysqli); // Instantiate the controller
+$userController = new SearchUserAccountController($mysqli); // Instantiate the controller
 $userController->handleRequest();
