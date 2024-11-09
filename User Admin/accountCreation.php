@@ -1,9 +1,7 @@
 <?php
 require '../connectDatabase.php';
 
-// ENTITY LAYER: Handles data-related tasks (database interactions)
 class UserAccount {
-    // Constructor with no parameters
     public function __construct() {
         // Empty constructor
     }
@@ -19,58 +17,80 @@ class UserAccount {
         return $role_id;
     }
 
-    // Insert a new user into the users table
-    public function createUser($conn, $username, $password, $role_id, $email, $phone_num) {
-        $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num,status_id) VALUES (?, ?, ?, ?, ?,1)");
-        $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
+    // Insert a new user and profile into the respective tables
+    public function createUser($conn, $username, $password, $role_id, $email, $phone_num, $first_name, $last_name, $about, $gender, $profile_image) {
+        // Begin transaction
+        $conn->begin_transaction();
+
+        try {
+            // Insert the new user into users table
+            $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num, status_id) VALUES (?, ?, ?, ?, ?, 1)");
+            $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
+            $stmt->execute();
+            $user_id = $conn->insert_id; // Get the last inserted user_id
+            $stmt->close();
+
+            // Insert profile data into the profile table with raw binary image data
+            $stmt = $conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
+            $stmt->bind_param("issssb", $user_id, $first_name, $last_name, $about, $gender, $null);
+
+            // Bind and send raw binary data
+            $stmt->send_long_data(5, file_get_contents($profile_image['tmp_name']));
+
+            $stmt->execute();
+            $stmt->close();
+
+            // Commit transaction
+            $conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $conn->rollback();
+            return false;
+        }
     }
 }
 
-// CONTROL LAYER: Handles the logic and mediates between boundary and entity layers
 class CreateAccountController {
     private $userAccountModel;
 
-    // Constructor to initialize the UserAccount entity model
     public function __construct($userAccountModel) {
         $this->userAccountModel = $userAccountModel;
     }
 
-    // Handle form submission for account creation
-    public function handleAccountCreation($formData, $conn) {
+    public function handleAccountCreation($formData, $fileData, $conn) {
         $username = $formData['username'];
         $password = $formData['password'];
         $email = $formData['email'];
         $phone_num = $formData['phone_num'];
         $role_name = $formData['role'];
+        $first_name = $formData['first_name'];
+        $last_name = $formData['last_name'];
+        $about = $formData['about'];
+        $gender = $formData['gender'];
+
+        // Handle profile image file upload
+        $profile_image = $fileData['profile_image'];
 
         // Get the role ID based on the role name
         $role_id = $this->userAccountModel->getRoleId($conn, $role_name);
-
-        // Check if the role ID exists
         if (!$role_id) {
             return "Error: Role not found.";
         }
 
-        // Insert the new account into the users table
-        $result = $this->userAccountModel->createUser($conn, $username, $password, $role_id, $email, $phone_num);
+        // Insert the new account into the users table and profile into profile table
+        $result = $this->userAccountModel->createUser($conn, $username, $password, $role_id, $email, $phone_num, $first_name, $last_name, $about, $gender, $profile_image);
 
         return $result ? "New account created successfully." : "Error: Failed to create account.";
     }
 }
 
-// BOUNDARY LAYER: Manages the user interface (display form and messages)
 class CreateAccountBoundary {
     private $message;
 
-    // Constructor to initialize any message to display
     public function __construct($message = "") {
         $this->message = $message;
     }
 
-    // Render the account creation form
     public function render() {
         ?>
         <html>
@@ -79,11 +99,7 @@ class CreateAccountBoundary {
             <style>
                 .form-body { text-align: center; }
                 .select-label { font-size: 24px; }
-                .invisible-table {
-                    border-collapse: collapse;
-                    width: 0%;
-                    margin: auto;
-                }
+                .invisible-table { border-collapse: collapse; width: 0%; margin: auto; }
                 .invisible-table td { border: none; padding: 10px; }
             </style>
         </head>
@@ -94,40 +110,34 @@ class CreateAccountBoundary {
                 <h3 style="text-align:center">All fields are mandatory</h3>
             </div>
 
-            <!-- Display success or error messages -->
             <?php if ($this->message): ?>
                 <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
             <?php endif; ?>
 
-            <!-- Form for account creation -->
-            <form class="form-body" method="POST" action="">
+            <form class="form-body" method="POST" action="" enctype="multipart/form-data">
                 <table class="invisible-table">
+                    <tr><td><label style="font-size: 24px">Username:</label></td><td><input type="text" name="username" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">Password:</label></td><td><input type="password" name="password" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">First Name:</label></td><td><input type="text" name="first_name" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">Last Name:</label></td><td><input type="text" name="last_name" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">About:</label></td><td><textarea name="about" style="font-size: 24px" required></textarea></td></tr>
                     <tr>
-                        <td><label style="font-size: 24px">Username:</label></td>
-                        <td><input type="text" name="username" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">Password:</label></td>
-                        <td><input type="password" name="password" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label for="role" class="select-label">Role:</label></td>
+                        <td><label style="font-size: 24px">Gender:</label></td>
                         <td>
-                            <select id="role" name="role" class="select-label" required>
-                                <option value="used car agent" class="select-label">Used Car Agent</option>
-                                <option value="buyer" class="select-label">Buyer</option>
-                                <option value="seller" class="select-label">Seller</option>
+                            <select name="gender" style="font-size: 24px" required>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
                             </select>
                         </td>
                     </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">Email:</label></td>
-                        <td><input type="text" name="email" style="font-size: 24px" required/></td>
-                    </tr>
-                    <tr>
-                        <td><label style="font-size: 24px">Phone Number:</label></td>
-                        <td><input type="text" name="phone_num" style="font-size: 24px" required/></td>
-                    </tr>
+                    <tr><td><label for="role" class="select-label">Role:</label></td><td><select id="role" name="role" class="select-label" required>
+                        <option value="used car agent">Used Car Agent</option>
+                        <option value="buyer">Buyer</option>
+                        <option value="seller">Seller</option>
+                    </select></td></tr>
+                    <tr><td><label style="font-size: 24px">Email:</label></td><td><input type="text" name="email" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">Phone Number:</label></td><td><input type="text" name="phone_num" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">Profile Image:</label></td><td><input type="file" name="profile_image" style="font-size: 24px" required/></td></tr>
                 </table>
                 <br/>
                 <button type="submit" style="font-size: 24px">Create New Account</button>
@@ -143,22 +153,17 @@ class CreateAccountBoundary {
     }
 }
 
-// MAIN LOGIC: Connects the BCE components
-
-// Initialize variables
+// MAIN LOGIC: Connect BCE components
 $message = "";
-$userAccountModel = new UserAccount(); // Entity layer: Initialize UserAccount model
-$controller = new CreateAccountController($userAccountModel); // Control layer: Initialize CreateAccountController with the entity model
+$userAccountModel = new UserAccount();
+$controller = new CreateAccountController($userAccountModel);
 
-// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleAccountCreation($_POST, $conn);
+    $message = $controller->handleAccountCreation($_POST, $_FILES, $conn);
 }
 
-// Boundary layer: Initialize CreateAccountBoundary with any message and render the form
 $view = new CreateAccountBoundary($message);
 $view->render();
 
-// Close the database connection
 $database->closeConnection();
 ?>
