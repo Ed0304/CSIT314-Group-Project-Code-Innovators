@@ -162,7 +162,7 @@ class UserProfileController {
 
         if (isset($action['updateProfile'])) {
             $role_id = $action['role_id'];
-            header("Location: admin_update_role.php?role_id=" . urlencode($role_id));
+            header("Location: admin_update_profile.php?role_id=" . urlencode($role_id));
             exit();
         }
 

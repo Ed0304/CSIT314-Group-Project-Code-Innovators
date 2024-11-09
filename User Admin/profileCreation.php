@@ -2,7 +2,7 @@
 require "../connectDatabase.php"; // Ensure this file contains your Database class
 
 // ENTITY LAYER: Represents the UserProfile data structure
-class UserProfileEntity {
+class UserProfile {
     private $conn;
 
     public function __construct() {
@@ -33,7 +33,7 @@ class UserProfileEntity {
 }
 
 // CONTROLLER LAYER: Handles business logic and database interactions for user profiles
-class ProfileController {
+class CreateUserProfileController {
     private $entity;
 
     public function __construct($entity) {
@@ -58,7 +58,7 @@ class ProfileController {
 }
 
 // BOUNDARY LAYER: Handles user interface tasks for profile creation
-class ProfileCreationView {
+class CreateUserProfilePage {
     private $controller;
     private $message;
 
@@ -132,9 +132,9 @@ class ProfileCreationView {
 }
 
 // MAIN APPLICATION LOGIC
-$userProfileEntity = new UserProfileEntity();
-$controller = new ProfileController($userProfileEntity);
-$view = new ProfileCreationView($controller);
+$userProfileEntity = new UserProfile();
+$controller = new CreateUserProfileController($userProfileEntity);
+$view = new CreateUserProfilePage($controller);
 
 // Handle the request and render the form
 $view->handleRequest();

@@ -2,7 +2,7 @@
 require '../connectDatabase.php';
 
 // ENTITY LAYER: Represents user data without direct database interactions
-class User
+class UserAccount
 {
     public $username;
     public $role_name;
@@ -17,7 +17,7 @@ class User
 }
 
 // BOUNDARY LAYER: HTML View for managing user accounts
-class SearchAccountView
+class SearchUserAccountPage
 {
     private $users;
 
@@ -152,7 +152,7 @@ class SearchUserAccountController
 
         $users = []; // Initialize an array to store User objects
         while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = new User($row['username'], $row['role_name'], $row['status_name']); // Create User object
+            $users[] = new UserAccount($row['username'], $row['role_name'], $row['status_name']); // Create User object
         }
         return $users; // Return the array of User objects
     }
@@ -178,7 +178,7 @@ class SearchUserAccountController
 
         $users = []; // Initialize an array to store User objects
         while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = new User($row['username'], $row['role_name'], $row['status_name']); // Create User object
+            $users[] = new UserAccount($row['username'], $row['role_name'], $row['status_name']); // Create User object
         }
         return $users; // Return the array of User objects
     }
@@ -197,7 +197,7 @@ class SearchUserAccountController
             $users = $this->getUsers();
         }
 
-        $this->view = new SearchAccountView($users); // Initialize the view with the User objects
+        $this->view = new SearchUserAccountPage($users); // Initialize the view with the UserAccount objects
 
         if (isset($action['createAccount'])) {
             header("Location: accountCreation.php");

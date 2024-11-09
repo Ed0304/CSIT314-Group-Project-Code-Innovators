@@ -2,7 +2,7 @@
 session_start();
 
 // BOUNDARY LAYER: Responsible for rendering user information
-class ProfileView {
+class SuspendUserAccountPage {
     private $profileData;
 
     public function __construct($profileData) {
@@ -99,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $username = $_POST['username'];
 
     
-    // Create an instance of AccountController and suspend the user
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserAccountController and suspend the user
+    $accountController = new SuspendUserAccountController();
     $accountController->setSuspend($username);
 
     //prompt message before redirecting
@@ -115,8 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'Remove') {
     $username = $_POST['username'];
 
-    // Create an instance of AccountController and suspend the user
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserAccountController and suspend the user
+    $accountController = new SuspendUserAccountController();
     $accountController->setRemoveSuspend($username);
     
     //Prompt message before redirecting
@@ -130,18 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 if ($username) {
     // Controller instance creation
-    $accountController = new AccountController();
+    $accountController = new SuspendUserAccountController();
     $profileData = $accountController->getProfile($username);
 
     // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
+    $profileView = new SuspendUserAccountPage($profileData);
     $profileView->render();
 } else {
     echo "No username provided.";
 }
 
 // CONTROL LAYER: Serves as an intermediary between view and entity
-class AccountController {
+class SuspendUserAccountController {
     private $userAccountModel;
 
     public function __construct() {

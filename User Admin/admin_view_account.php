@@ -17,7 +17,7 @@ class UserAccount {
 }
 
 // CONTROL LAYER: Passes the connection to the entity layer when necessary
-class AccountController {
+class ViewUserAccountController {
     private $userAccountModel;
     private $pdo;
 
@@ -32,7 +32,7 @@ class AccountController {
 }
 
 // BOUNDARY LAYER: Responsible for rendering user information
-class ProfileView {
+class ViewUserAccountPage {
     private $profileData;
 
     public function __construct($profileData) {
@@ -153,12 +153,12 @@ if ($username) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Controller instance creation
-        $accountController = new AccountController($pdo);
-        $profileData = $accountController->getProfile($username);
+        $ViewUserAccountController = new ViewUserAccountController($pdo);
+        $profileData = $ViewUserAccountController->getProfile($username);
 
         // Render the view with retrieved profile data
-        $profileView = new ProfileView($profileData);
-        $profileView->render();
+        $ViewUserAccountPage = new ViewUserAccountPage($profileData);
+        $ViewUserAccountPage->render();
     } catch (PDOException $e) {
         die("Database connection failed: " . $e->getMessage());
     }

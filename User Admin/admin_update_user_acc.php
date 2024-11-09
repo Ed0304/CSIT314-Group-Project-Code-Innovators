@@ -75,7 +75,7 @@ class UserAccount {
 }
 
 // CONTROL LAYER: Manages account updates and data retrieval
-class UserAccountController {
+class UpdateUserAccountController {
     private $entity;
 
     public function __construct() {
@@ -96,11 +96,11 @@ class UserAccountController {
 }
 
 // BOUNDARY LAYER: Renders the form and handles form submission
-class UserAccountView {
+class UpdateUserAccountPage {
     private $controller;
 
     public function __construct() {
-        $this->controller = new UserAccountController();
+        $this->controller = new UpdateUserAccountController();
     }
 
     public function handleFormSubmission() {
@@ -196,7 +196,7 @@ class UserAccountView {
 }
 
 // Instantiate the Boundary class and handle the form submission
-$view = new UserAccountView();
+$view = new UpdateUserAccountPage();
 $view->handleFormSubmission();
 $view->renderForm();
 ?>

@@ -3,7 +3,7 @@ session_start();
 require '../connectDatabase.php';
 
 // BOUNDARY LAYER: Responsible for rendering user information
-class ProfileView {
+class SuspendUserProfileView {
     private $profileData;
 
     public function __construct($profileData) {
@@ -130,8 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $profile_id = $_POST['profile_id'];
     $username = $_POST['username'];
 
-    // Create an instance of AccountController and handle actions
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserProfileController and handle actions
+    $accountController = new SuspendUserProfileController();
     
     if ($_POST['action'] === 'suspend') {
         $accountController->setSuspend($profile_id, $username);
@@ -151,19 +151,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 if ($profile_id) {
-    // Create an instance of AccountController and fetch profile data
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserProfileController and fetch profile data
+    $accountController = new SuspendUserProfileController();
     $profileData = $accountController->getProfile($profile_id, $user_id);
 
     // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
+    $profileView = new SuspendUserProfileView($profileData);
     $profileView->render();
 } else {
     echo "No profile provided.";
 }
 
 // CONTROL LAYER: Serves as an intermediary between view and entity
-class AccountController {
+class SuspendUserProfileController {
     private $userAccountModel;
 
     public function __construct() {
@@ -250,8 +250,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $profile_id = $_POST['profile_id'];
     $username = $_POST['username'];
 
-    // Create an instance of AccountController and handle actions
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserProfileController and handle actions
+    $accountController = new SuspendUserProfileController();
     
     if ($_POST['action'] === 'suspend') {
         $accountController->setSuspend($profile_id, $username);
@@ -271,12 +271,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 if ($profile_id) {
-    // Create an instance of AccountController and fetch profile data
-    $accountController = new AccountController();
+    // Create an instance of SuspendUserProfileController and fetch profile data
+    $accountController = new SuspendUserProfileController();
     $profileData = $accountController->getProfile($profile_id, $user_id);
 
     // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
+    $profileView = new SuspendUserProfileView($profileData);
     $profileView->render();
 } else {
     echo "No profile provided.";

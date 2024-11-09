@@ -2,8 +2,8 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: userAccount class for user authentication with direct database interaction
-class userAccount {
+// Entity Layer: UserAccountAccount class for UserAccount authentication with direct database interaction
+class UserAccount {
     public $username;
     public $password;
     public $role;
@@ -17,7 +17,7 @@ class userAccount {
     }
 
     // Retrieves user data from the database
-    public function getuserAccountData() {
+    public function getUserAccountData() {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -46,8 +46,8 @@ class userAccount {
     }
 }
 
-// Controller Layer: loginPageController class for handling user authentication logic
-class loginPageController {
+// Controller Layer: LoginPageController class for handling user authentication logic
+class LoginPageController {
     private $user;
     private $isSuspended = false;
 
@@ -82,8 +82,8 @@ class loginPageController {
     }
 }
 
-// Boundary Layer: loginPage class to handle form display and user interaction
-class loginPage {
+// Boundary Layer: LoginPage class to handle form display and user interaction
+class LoginPage {
 
     public static function display($message = "") {
         ?>
@@ -131,19 +131,20 @@ class loginPage {
     }
 
     public static function handleLogin() {
-        // Only handle post if the form is submitted
+        // Only handle POST if the form is submitted
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $username = htmlspecialchars($_POST['username']);
-            $password = htmlspecialchars($_POST['password']);
-            $role = htmlspecialchars($_POST['role']);
-
+            // Use null coalescing to handle undefined keys
+            $username = htmlspecialchars($_POST['username'] ?? '');
+            $password = htmlspecialchars($_POST['password'] ?? '');
+            $role = htmlspecialchars($_POST['role'] ?? '');
+    
             if ($username && $password && $role) {
                 $db = (new Database())->getConnection();
-                $user = new userAccount($db, $username, $password, $role);
-
-                $authController = new loginPageController($user);
+                $user = new UserAccount($db, $username, $password, $role);
+    
+                $authController = new LoginPageController($user);
                 $authResult = $authController->authenticateUser();
-
+    
                 if ($authResult === true) {
                     $_SESSION['username'] = $username;
                     $_SESSION['user_id'] = $authController->getUserId();
@@ -161,6 +162,7 @@ class loginPage {
             self::display();
         }
     }
+    
 
     public static function redirectToDashboard($role) {
         switch($role) {
@@ -185,5 +187,5 @@ class loginPage {
 }
 
 // Handle login request
-loginPage::handleLogin();
+LoginPage::handleLogin();
 ?>
