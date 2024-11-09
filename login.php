@@ -57,7 +57,7 @@ class loginPageController {
 
     // Attempts to authenticate the user, returns true if successful, false otherwise
     public function authenticateUser() {
-        $userData = $this->user->getUserData();
+        $userData = $this->user->getUserAccountData();
 
         if ($userData === false) {
             return false;
@@ -78,7 +78,7 @@ class loginPageController {
     }
 
     public function getUserId() {
-        return $this->user->getUserData()['user_id'];
+        return $this->user->getUserAccountData()['user_id'];
     }
 }
 
