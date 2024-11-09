@@ -2,8 +2,8 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: User class for user authentication with direct database interaction
-class User {
+// Entity Layer: userAccount class for user authentication with direct database interaction
+class userAccount {
     public $username;
     public $password;
     public $role;
@@ -17,7 +17,7 @@ class User {
     }
 
     // Retrieves user data from the database
-    public function getUserData() {
+    public function getuserAccountData() {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -46,8 +46,8 @@ class User {
     }
 }
 
-// Controller Layer: AuthController class for handling user authentication logic
-class AuthController {
+// Controller Layer: loginPageController class for handling user authentication logic
+class loginPageController {
     private $user;
     private $isSuspended = false;
 
@@ -82,8 +82,8 @@ class AuthController {
     }
 }
 
-// Boundary Layer: LoginForm class to handle form display and user interaction
-class LoginForm {
+// Boundary Layer: loginPage class to handle form display and user interaction
+class loginPage {
 
     public static function display($message = "") {
         ?>
@@ -139,9 +139,9 @@ class LoginForm {
 
             if ($username && $password && $role) {
                 $db = (new Database())->getConnection();
-                $user = new User($db, $username, $password, $role);
+                $user = new userAccount($db, $username, $password, $role);
 
-                $authController = new AuthController($user);
+                $authController = new loginPageController($user);
                 $authResult = $authController->authenticateUser();
 
                 if ($authResult === true) {
@@ -185,5 +185,5 @@ class LoginForm {
 }
 
 // Handle login request
-LoginForm::handleLogin();
+loginPage::handleLogin();
 ?>
