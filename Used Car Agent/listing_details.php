@@ -40,7 +40,7 @@ class CarListing {
 }
 
 // CONTROL LAYER: Responsible for data retrieval
-class ListingController {
+class CarListingController {
     private $db;
 
     public function __construct($db) {
@@ -120,7 +120,7 @@ class ListingController {
 }
 
 // BOUNDARY LAYER: Generates HTML for displaying the listing
-class ListingView {
+class CarListingPage {
     private $listing;
 
     public function __construct($listing) {
@@ -187,11 +187,11 @@ class ListingView {
 // MAIN LOGIC: Initializes classes and renders listing
 $listing_id = $_GET['listing_id'];
 $db = new Database(); // Ensure your Database class properly implements the connection
-$controller = new ListingController($db->getConnection());
+$controller = new CarListingController($db->getConnection());
 $listing = $controller->getListingDetails($listing_id);
 
 if ($listing !== null) {
-    $view = new ListingView($listing);
+    $view = new CarListingPage($listing);
     $view->render();
 } else {
     echo "Listing not found.";

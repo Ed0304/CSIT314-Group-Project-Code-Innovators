@@ -4,7 +4,7 @@ session_start();
 require '../connectDatabase.php';
 
 // Entity Class: Review
-class Review {
+class Reviews {
     private $mysqli;
     private $details;
     private $stars;
@@ -66,14 +66,14 @@ class Review {
 
         $reviews = [];
         while ($row = $result->fetch_assoc()) {
-            $reviews[] = new Review($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username']);
+            $reviews[] = new Reviews($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username']);
         }
         return $reviews;
     }
 }
 
-// Control Class: RatingsReviewsController
-class RatingsReviewsController {
+// Control Class: ViewAllReviewsController
+class ViewAllReviewsController {
     private $mysqli;
 
     public function __construct($mysqli) {
@@ -85,7 +85,7 @@ class RatingsReviewsController {
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
             $username = trim($_GET['username']);
             if (!empty($username)) {
-                $reviewEntity = new Review($this->mysqli);
+                $reviewEntity = new Reviews($this->mysqli);
                 $userId = $reviewEntity->getUserIdByUsername($username);
                 if ($userId) {
                     $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
@@ -96,8 +96,8 @@ class RatingsReviewsController {
     }
 }
 
-// Boundary Class: RatingsReviewsView
-class RatingsReviewsView {
+// Boundary Class: ViewAllReviewsPage
+class ViewAllReviewsPage {
     public function render($reviews = [], $message = "") {
         ?>
         <!DOCTYPE HTML>
@@ -172,10 +172,10 @@ class RatingsReviewsView {
 $database = new Database();
 $mysqli = $database->getConnection();
 
-$ratingsReviewsController = new RatingsReviewsController($mysqli);
+$ratingsReviewsController = new ViewAllReviewsController($mysqli);
 $reviews = $ratingsReviewsController->handleRequest();
 
-$view = new RatingsReviewsView();
+$view = new ViewAllReviewsPage();
 $view->render($reviews);
 
 $database->closeConnection();

@@ -2,7 +2,7 @@
 require '../connectDatabase.php';
 
 // ENTITY LAYER: Represents User Profile
-class UserProfile {
+class UserAccount {
     public function getProfileDetails($conn, $profile_id) {
         $stmt = $conn->prepare("SELECT p.*, u.phone_num, u.email FROM profile p JOIN users u ON p.user_id = u.user_id WHERE p.profile_id = ?");
         $stmt->bind_param("i", $profile_id);
@@ -72,7 +72,7 @@ class UserProfile {
 }
 
 // CONTROL LAYER: Handles profile updates
-class UserProfileController {
+class UpdateAccountInformationController {
     private $model;
 
     public function __construct($model) {
@@ -99,7 +99,7 @@ class UserProfileController {
 }
 
 // VIEW LAYER: Displays the form
-class UserProfileView {
+class UpdateAccountInformationPage {
     private $profile;
 
     public function __construct($profile) {
@@ -238,9 +238,9 @@ class UserProfileView {
 }
 
 $profile_id = $_GET['profile_id']; // Changed to profile_id
-$model = new UserProfile();
-$controller = new UserProfileController($model);
+$model = new UserAccount();
+$controller = new UpdateAccountInformationController($model);
 $profile = $controller->handleRequest($conn, $profile_id); // Changed to profile_id
-$view = new UserProfileView($profile);
+$view = new UpdateAccountInformationPage($profile);
 $view->render();
 ?>

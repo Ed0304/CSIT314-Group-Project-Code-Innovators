@@ -2,7 +2,7 @@
 require '../connectDatabase.php';
 
 // ENTITY LAYER: Represents Listing
-class Listing {
+class CarListing {
     public function getListingDetails($conn, $listing_id) {
         $stmt = $conn->prepare("SELECT * FROM listing WHERE listing_id = ?");
         $stmt->bind_param("i", $listing_id);
@@ -62,7 +62,7 @@ class Listing {
 }
 
 // CONTROL LAYER: Handles listing updates
-class ListingController {
+class UpdateCarListingController {
     private $model;
 
     public function __construct($model) {
@@ -90,7 +90,7 @@ class ListingController {
 }
 
 // VIEW LAYER: Displays the form
-class ListingView {
+class UpdateCarListingPage {
     private $listing;
 
     public function __construct($listing) {
@@ -212,9 +212,9 @@ class ListingView {
 }
 
 $listing_id = $_GET['listing_id'];
-$model = new Listing();
-$controller = new ListingController($model);
+$model = new CarListing();
+$controller = new UpdateCarListingController($model);
 $listing = $controller->handleRequest($conn, $listing_id);
-$view = new ListingView($listing);
+$view = new UpdateCarListingPage($listing);
 $view->render();
 ?>

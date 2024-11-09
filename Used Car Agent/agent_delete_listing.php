@@ -35,7 +35,7 @@ class CarListing {
 }
 
 // CONTROL LAYER: Manages business logic
-class ListingController {
+class DeleteCarListingController {
     private $db;
 
     public function __construct($db) {
@@ -73,7 +73,7 @@ class ListingController {
 }
 
 // BOUNDARY LAYER: Handles rendering
-class ListingView {
+class DeleteCarListingPage {
     private $controller;
     private $listing;
 
@@ -144,8 +144,8 @@ class ListingView {
 
 // MAIN LOGIC: Setup and render view or process deletion
 $db = new Database();
-$controller = new ListingController($db->getConnection());
-$view = new ListingView($controller);
+$controller = new DeleteCarListingController($db->getConnection());
+$view = new DeleteCarListingPage($controller);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
     $listing_id = $_POST['listing_id'];

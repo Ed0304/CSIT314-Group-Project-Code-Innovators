@@ -216,9 +216,9 @@ class RatingsReviewsView
                     echo "<td>";
                     for ($i = 1; $i <= 5; $i++) {
                         if ($i <= $review->getStars()) {
-                            echo "<img src='star.png' alt='Filled Star' class='star'>";
+                            echo "<img src='../star.png' alt='Filled Star' class='star'>";
                         } else {
-                            echo "<img src='empty-star.png' alt='Empty Star' class='star'>";
+                            echo "<img src='../empty-star.png' alt='Empty Star' class='star'>";
                         }
                     }
                     echo "</td>";

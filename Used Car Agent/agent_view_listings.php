@@ -6,95 +6,141 @@ if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
 }
-
-// Agent Entity
-class Agent {
-    public $agent_id;
-    public $username;
-    public $listings; // Array to hold listing details
-    private $db; // Database connection
-
-    public function __construct($dbConnection, $agent_id, $username) {
-        $this->db = $dbConnection;
-        $this->agent_id = $agent_id;
-        $this->username = $username;
-        $this->listings = []; // Initialize as an empty array
-        $this->loadListings(); // Load listings upon agent creation
-    }
-
-    // Method to load listings from the database
-    private function loadListings() {
-        $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing WHERE user_id = ?";
-        $stmt = $this->db->prepare($query);
-        $stmt->bind_param("i", $this->agent_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        while ($row = $result->fetch_assoc()) {
-            // Directly add listing details as an associative array
-            $this->listings[] = [
-                'listing_id' => $row['listing_id'],
-                'manufacturer_name' => $row['manufacturer_name'],
-                'model_name' => $row['model_name'],
-                'model_year' => $row['model_year'],
-            ];
-        }
-
-        $stmt->close();
+if (isset($_POST['create'])) {
+    header("Location: agent_create_listings.php");
+    exit();
+}
+if (isset($_POST['view'])) {
+    $username = urlencode($this->view->listing_id); // Encode the username
+    header("Location: listing_details.php?listing_id=" . $listing_id);
+    exit();
+}
+// CarListing Entity
+class CarListing
+{
+    public $listing_id;
+    public $manufacturer_name;
+    public $model_name;
+    public $model_year;
+    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year)
+    {
+        $this->listing_id = $listing_id;
+        $this->manufacturer_name = $manufacturer_name;
+        $this->model_name = $model_name;
+        $this->model_year = $model_year;
     }
 }
 
-// Controller for managing the agent
-class ListingController {
-    private $agent;
-
-    public function __construct($dbConnection, $username) {
-        // Fetch agent information
-        $agentQuery = "SELECT user_id FROM users WHERE username = ?";
-        $stmt = $dbConnection->prepare($agentQuery);
+// Controller for retrieving listings
+class SearchCarListingController
+{
+    private $db;
+    private $username;
+    public $listings;
+    public function __construct($dbConnection)
+    {
+        $this->db = $dbConnection;
+        $this->username = $_SESSION['username'];
+        $this->listings = $this->getListingsByUsername($this->username);
+    }
+    private function getListingsByUsername($username)
+    {
+        $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing
+                  WHERE user_id = (SELECT user_id FROM users WHERE username = ?)";
+        $stmt = $this->db->prepare($query);
         $stmt->bind_param("s", $username);
         $stmt->execute();
-        $stmt->bind_result($agent_id);
-        $stmt->fetch();
+        $result = $stmt->get_result();
+        $listings = [];
+        while ($row = $result->fetch_assoc()) {
+            $listings[] = new CarListing($row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
+        }
         $stmt->close();
-
-        // Create the agent object
-        $this->agent = new Agent($dbConnection, $agent_id, $username);
+        return $listings;
     }
 
-    public function getAgent() {
-        return $this->agent;
+    public function getUsername()
+    {
+        return $this->username;
+    }
+    public function getListings()
+    {
+        return $this->listings;
+    }
+    public function searchCarListing($role, $search)
+    {
+        $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing
+                  WHERE user_id = (SELECT user_id FROM users WHERE username = ?)
+                  AND $role LIKE ?";
+        $search = "%$search%";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param("ss", $this->username, $search);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $listings = [];
+        while ($row = $result->fetch_assoc()) {
+            $listings[] = new CarListing($row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
+        }
+        $stmt->close();
+        return $listings;
     }
 }
-
 // Boundary class for displaying listings
-class CarListingBoundary {
-    public function displayListings(ListingController $controller) {
-        $agent = $controller->getAgent();
+class SearchCarListingPage
+{
+    public function displayListings(SearchCarListingController $controller)
+    {
+        $username = $controller->getUsername();
+        $listings = $controller->getListings();
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
+
         <head>
             <meta charset="UTF-8">
             <title>My Listings</title>
             <style>
-                table { width: 100%; border-collapse: collapse; }
-                th, td { padding: 10px; border: 1px solid black; }
-                th { background-color: #f2f2f2; }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                th,
+                td {
+                    padding: 10px;
+                    border: 1px solid black;
+                }
+
+                th {
+                    background-color: #f2f2f2;
+                }
             </style>
         </head>
+
         <body>
-            <h2><?php echo htmlspecialchars($agent->username); ?>'s Car Listings</h2>
-            <br/><br/>
-            <form method="get" action="">
-                <input type="text" style="font-size:24px" name="search" placeholder="Search listings...">
-                <button type="submit" style="font-size:24px">Search</button>
+            <h2><?php echo htmlspecialchars($username); ?>'s Car Listings</h2>
+            <br /><br />
+            <br />
+
+            <!-- Form for filtering users based on manufacturer, model, year -->
+            <form method="POST" action="agent_view_listings.php">
+                <label for="vehicle" class="select-label" style="font-size: 24px">Filter based on:</label>
+                <select id="vehicle" name="vehicle" class="select-label" style="font-size: 24px">
+                    <option value="manufacturer_name" class="select-label" style="font-size: 24px">Manufacturer</option>
+                    <option value="model_name" class="select-label" style="font-size: 24px">Model</option>
+                    <option value="model_year" class="select-label" style="font-size: 24px">Year</option>
+                </select>
+                <input type="text" id="search" name="search" placeholder="Enter Text Here" style="font-size: 22px" />
+                <button type="submit" name="searchButton" id="searchButton" style="font-size: 24px">Search</button>
+                <br /><br />
             </form>
-            <br/><br/>
+            <!-- Form ends here-->
+
             <form method="post" action="agent_create_listings.php">
                 <button type="submit" id="create" name="create" style="font-size:24px">Create new listings</button>
+                <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->username); ?>" />
             </form>
-            <br/><br/>
+            <br /><br />
             <table>
                 <tr>
                     <th>Manufacturer</th>
@@ -102,43 +148,49 @@ class CarListingBoundary {
                     <th>Year</th>
                     <th>Actions</th>
                 </tr>
-                <?php foreach ($agent->listings as $listing): ?>
+                <?php foreach ($listings as $listing): ?>
                     <tr>
-                        <td style="text-align:center"><?php echo htmlspecialchars($listing['manufacturer_name']); ?></td>
-                        <td style="text-align:center"><?php echo htmlspecialchars($listing['model_name']); ?></td>
-                        <td style="text-align:center"><?php echo htmlspecialchars($listing['model_year']); ?></td>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->manufacturer_name); ?></td>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->model_name); ?></td>
+                        <td style="text-align:center"><?php echo htmlspecialchars($listing->model_year); ?></td>
                         <td style="text-align:center">
-                            <form action="listing_details.php" method="get" style="display:inline;">
-                                <input type="hidden" name="listing_id" value="<?php echo $listing['listing_id']; ?>">
+                            <form action="listing_details.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
                                 <button type="submit">View more details</button>
                             </form>
-                            <form action="update_listing_details.php" method="get" style="display:inline;">
-                                <input type="hidden" name="listing_id" value="<?php echo $listing['listing_id']; ?>">
+                            <form action="update_listing_details.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
                                 <button type="submit">Update Listing</button>
                             </form>
-                            <form action="agent_delete_listing.php" method="get" style="display:inline;">
-                                <input type="hidden" name="listing_id" value="<?php echo $listing['listing_id']; ?>">
+                            <form action="agent_delete_listing.php" method="get">
+                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
                                 <button type="submit">Delete Listing</button>
                             </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
-            <br/>
+            <br />
             <form method="post" action="agent_dashboard.php" style="text-align:center">
                 <input type="submit" value="Return" style="font-size: 24px">
             </form>
         </body>
+
         </html>
         <?php
     }
 }
-
 // Main script logic
 $db = new Database(); // Assuming connectDatabase.php defines Database class
-$controller = new ListingController($db->getConnection(), $_SESSION['username']);
+$controller = new SearchCarListingController($db->getConnection());
+
+if (isset($_POST['searchButton'])) {
+    $role = strtolower($_POST['vehicle']);
+    $search = $_POST['search'];
+    $controller->listings = $controller->searchCarListing($role, $search);
+}
 
 // Create a boundary instance and display the listings
-$boundary = new CarListingBoundary();
+$boundary = new SearchCarListingPage();
 $boundary->displayListings($controller);
 ?>

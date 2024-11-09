@@ -29,7 +29,7 @@ class CarListing {
 }
 
 // CONTROL LAYER
-class CarListingController {
+class CreateCarListingController {
     private $carListingModel;
 
     public function __construct($carListingModel) {
@@ -63,7 +63,7 @@ class CarListingController {
 }
 
 // BOUNDARY LAYER: Manages the user interface (display form and messages)
-class CarListingView {
+class CreateCarListingPage {
     private $message;
 
     // Constructor to initialize any message to display
@@ -148,7 +148,7 @@ class CarListingView {
 
 // MAIN LOGIC
 $carListingModel = new CarListing();
-$controller = new CarListingController($carListingModel);
+$controller = new CreateCarListingController($carListingModel);
 
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
@@ -168,7 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$view = new CarListingView($message);
+$view = new CreateCarListingPage($message);
 $view->render();
 $database->closeConnection();
 ?>

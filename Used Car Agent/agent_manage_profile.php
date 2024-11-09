@@ -18,7 +18,7 @@ if (isset($_POST['profile_id'])) {
 $username = $_SESSION['username']; // Use the username from session
 
 // ENTITY LAYER: Represents and fetches user profile data from the database
-class UserProfile {
+class UserAccount {
     public $username;
     public $first_name;
     public $last_name;
@@ -63,21 +63,21 @@ class UserProfile {
 }
 
 // CONTROL LAYER: Handles business logic and manages the entity layer
-class ProfileController {
+class UserAccountController {
     private $pdo;
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
     }
 
-    // Fetches the profile as a UserProfile object
+    // Fetches the profile as a UserAccount object
     public function getProfile($username) {
-        return UserProfile::getProfileByUsername($this->pdo, $username);
+        return UserAccount::getProfileByUsername($this->pdo, $username);
     }
 }
 
 // BOUNDARY LAYER: Responsible for rendering the user interface
-class ProfileView {
+class UserAccountPage {
     private $profileData;
 
     public function __construct($profileData) {
@@ -114,11 +114,11 @@ class ProfileView {
             </style>
         </head>
         <body>
-            <h1 style="text-align: center">Profile Information</h1>
+            <h1 style="text-align: center">Account Information</h1>
             <table id="infoTable">
                 <?php if ($this->profileData): ?>
                     <tr>
-                        <td><strong>Profile Picture</strong></td>
+                        <td><strong>Account Picture</strong></td>
                         <td colspan="2">
                             <?php if (!empty($this->profileData->profile_image)): ?>
                                 <img src="data:image/jpeg;base64,<?php echo base64_encode($this->profileData->profile_image); ?>" class="profile-image" alt="Profile Picture">
@@ -183,14 +183,14 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Initialize controller
-    $profileController = new ProfileController($pdo);
+    $accountController = new UserAccountController($pdo);
 
     // Retrieve user profile data
-    $profileData = $profileController->getProfile($username);
+    $profileData = $accountController->getProfile($username);
 
     // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
-    $profileView->render();
+    $userAccount = new UserAccountPage($profileData);
+    $userAccount->render();
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
