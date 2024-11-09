@@ -2,12 +2,12 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: User class to handle user authentication with direct database interaction
+// Entity Layer: User class for user authentication with direct database interaction
 class User {
     public $username;
     public $password;
     public $role;
-    public $db;
+    private $db;
 
     public function __construct($db, $username, $password, $role) {
         $this->db = $db;
@@ -16,7 +16,7 @@ class User {
         $this->role = $role;
     }
 
-    // Handles database query to authenticate the user
+    // Retrieves user data from the database
     public function getUserData() {
         $roleMapping = [
             'user admin' => 1,
@@ -46,38 +46,43 @@ class User {
     }
 }
 
-// Controller Layer: AuthController class to handle user authentication and communication with the User entity
+// Controller Layer: AuthController class for handling user authentication logic
 class AuthController {
-
     private $user;
+    private $isSuspended = false;
 
     public function __construct($user) {
         $this->user = $user;
     }
 
-    // Authenticate the user by interacting with the User entity
+    // Attempts to authenticate the user, returns true if successful, false otherwise
     public function authenticateUser() {
         $userData = $this->user->getUserData();
 
         if ($userData === false) {
-            return "Invalid username, password, or role.";
+            return false;
         }
 
         // Check if the account is suspended
         if ($userData['status_id'] == 2) {
-            return "Account suspended. Please contact support.";
+            $this->isSuspended = true;
+            return false;
         }
 
-        // Authenticate password
-        if ($userData['password'] === $this->user->password) {
-            return ['authenticated' => true, 'user_id' => $userData['user_id']];
-        } else {
-            return "Invalid username, password, or role.";
-        }
+        // Verify the password
+        return $userData['password'] === $this->user->password;
+    }
+
+    public function isSuspended() {
+        return $this->isSuspended;
+    }
+
+    public function getUserId() {
+        return $this->user->getUserData()['user_id'];
     }
 }
 
-// Boundary Layer: LoginForm class to generate and display the login form HTML and handle user interaction
+// Boundary Layer: LoginForm class to handle form display and user interaction
 class LoginForm {
 
     public static function display($message = "") {
@@ -128,31 +133,26 @@ class LoginForm {
     public static function handleLogin() {
         // Only handle post if the form is submitted
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Get input from the form
             $username = htmlspecialchars($_POST['username']);
             $password = htmlspecialchars($_POST['password']);
             $role = htmlspecialchars($_POST['role']);
 
-            // Ensure all fields are filled
             if ($username && $password && $role) {
-                // Create a new User entity
                 $db = (new Database())->getConnection();
                 $user = new User($db, $username, $password, $role);
 
-                // Create AuthController and authenticate
                 $authController = new AuthController($user);
                 $authResult = $authController->authenticateUser();
 
-                // Check authentication result
-                if (is_array($authResult) && $authResult['authenticated'] === true) {
+                if ($authResult === true) {
                     $_SESSION['username'] = $username;
-                    $_SESSION['user_id'] = $authResult['user_id'];
-
-                    // Redirect based on the role
+                    $_SESSION['user_id'] = $authController->getUserId();
                     self::redirectToDashboard($role);
                 } else {
-                    // If authentication fails, display the error message
-                    self::display($authResult); // Error message handled by the Boundary
+                    $message = $authController->isSuspended()
+                        ? "Account suspended. Please contact support."
+                        : "Invalid username, password, or role.";
+                    self::display($message);
                 }
             } else {
                 self::display("Please fill in all fields.");
@@ -162,7 +162,6 @@ class LoginForm {
         }
     }
 
-    // Redirect the user based on their role
     public static function redirectToDashboard($role) {
         switch($role) {
             case 'user admin':

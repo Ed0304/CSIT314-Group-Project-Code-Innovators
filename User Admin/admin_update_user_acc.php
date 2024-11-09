@@ -1,8 +1,9 @@
 <?php
 require '../connectDatabase.php';
 
-// ENTITY LAYER: Represents data structure for User Account
+// ENTITY LAYER: Handles data structure and database interaction for User Account
 class UserAccount {
+    private $conn;
     public $user_id;
     public $username;
     public $password;
@@ -11,36 +12,46 @@ class UserAccount {
     public $phone_num;
     public $status_id;
 
-    public function __construct($userData) {
-        $this->user_id = $userData['user_id'];
-        $this->username = $userData['username'];
-        $this->password = $userData['password'];
-        $this->role_id = $userData['role_id'];
-        $this->email = $userData['email'];
-        $this->phone_num = $userData['phone_num'];
-        $this->status_id = $userData['status_id'];
-    }
-}
+    public function __construct($userData = null) {
+        // Initialize database connection
+        $database = new Database();
+        $this->conn = $database->getConnection();
 
-// CONTROL LAYER: Manages account updates and data retrieval
-class UserAccountController {
-    private $db;
-
-    public function __construct($db) {
-        $this->db = $db;
+        // If user data is provided, initialize properties
+        if ($userData) {
+            $this->user_id = $userData['user_id'];
+            $this->username = $userData['username'];
+            $this->password = $userData['password'];
+            $this->role_id = $userData['role_id'];
+            $this->email = $userData['email'];
+            $this->phone_num = $userData['phone_num'];
+            $this->status_id = $userData['status_id'];
+        }
     }
 
     public function getUserDetails($username) {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         $userData = $result->fetch_assoc();
-        return $userData ? new UserAccount($userData) : null;
+        $stmt->close();
+
+        if ($userData) {
+            $this->user_id = $userData['user_id'];
+            $this->username = $userData['username'];
+            $this->password = $userData['password'];
+            $this->role_id = $userData['role_id'];
+            $this->email = $userData['email'];
+            $this->phone_num = $userData['phone_num'];
+            $this->status_id = $userData['status_id'];
+            return $this;
+        }
+        return null;
     }
 
     public function updateUser($data) {
-        $stmt = $this->db->prepare(
+        $stmt = $this->conn->prepare(
             "UPDATE users SET username = ?, password = ?, role_id = ?, email = ?, phone_num = ?, status_id = ? WHERE user_id = ?"
         );
         $stmt->bind_param(
@@ -53,25 +64,74 @@ class UserAccountController {
             $data['status_id'],
             $data['user_id']
         );
-        return $stmt->execute();
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
     }
 
-    public function handleRequest($username) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
-            $data['user_id'] = $_POST['user_id'];
-            $this->updateUser($data);
-            header("Location: admin_manage_user_acc.php");
-            exit();
-        }
-        $userAccount = $this->getUserDetails($username);
-        return $userAccount ? (array) $userAccount : null; // Convert to array
+    public function closeConnection() {
+        $this->conn->close();
     }
 }
 
-// BOUNDARY LAYER: Renders the form and accepts simple data
+// CONTROL LAYER: Manages account updates and data retrieval
+class UserAccountController {
+    private $entity;
+
+    public function __construct() {
+        $this->entity = new UserAccount();
+    }
+
+    public function getUserAccount($username) {
+        return $this->entity->getUserDetails($username);
+    }
+
+    public function handleAccountUpdate($data) {
+        return $this->entity->updateUser($data);
+    }
+
+    public function closeEntityConnection() {
+        $this->entity->closeConnection();
+    }
+}
+
+// BOUNDARY LAYER: Renders the form and handles form submission
 class UserAccountView {
-    public function render($userData) {
+    private $controller;
+
+    public function __construct() {
+        $this->controller = new UserAccountController();
+    }
+
+    public function handleFormSubmission() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = $_POST;
+            $updateSuccess = $this->controller->handleAccountUpdate($data);
+            $this->controller->closeEntityConnection();
+
+            if ($updateSuccess) {
+                header("Location: admin_manage_user_acc.php");
+                exit();
+            } else {
+                echo "Error updating user account.";
+            }
+        }
+    }
+
+    public function renderForm() {
+        if (!isset($_GET['username'])) {
+            header("Location: admin_manage_user_acc.php");
+            exit();
+        }
+
+        $username = $_GET['username'];
+        $userAccount = $this->controller->getUserAccount($username);
+        $this->controller->closeEntityConnection();
+
+        if (!$userAccount) {
+            die("User not found.");
+        }
+        
         ?>
         <html>
         <head>
@@ -85,41 +145,41 @@ class UserAccountView {
         <body>
         <h1>Update User Account</h1>
         <form method="POST">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userData['user_id']); ?>" />
+            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
             <table>
                 <tr>
                     <td><label for="username">Username:</label></td>
-                    <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userData['username']); ?>" required /></td>
+                    <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" required /></td>
                 </tr>
                 <tr>
                     <td><label for="password">Password:</label></td>
-                    <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userData['password']); ?>" required /></td>
+                    <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
                 </tr>
                 <tr>
                     <td><label for="role_id">Role:</label></td>
                     <td>
                         <select id="role_id" name="role_id">
-                            <option value="1" <?= $userData['role_id'] == 1 ? 'selected' : ''; ?>>Admin</option>
-                            <option value="2" <?= $userData['role_id'] == 2 ? 'selected' : ''; ?>>Used Car Agent</option>
-                            <option value="3" <?= $userData['role_id'] == 3 ? 'selected' : ''; ?>>Buyer</option>
-                            <option value="4" <?= $userData['role_id'] == 4 ? 'selected' : ''; ?>>Seller</option>
+                            <option value="1" <?= $userAccount->role_id == 1 ? 'selected' : ''; ?>>Admin</option>
+                            <option value="2" <?= $userAccount->role_id == 2 ? 'selected' : ''; ?>>Used Car Agent</option>
+                            <option value="3" <?= $userAccount->role_id == 3 ? 'selected' : ''; ?>>Buyer</option>
+                            <option value="4" <?= $userAccount->role_id == 4 ? 'selected' : ''; ?>>Seller</option>
                         </select>
                     </td>
                 </tr>
                 <tr>
                     <td><label for="email">Email:</label></td>
-                    <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userData['email']); ?>" required /></td>
+                    <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
                 </tr>
                 <tr>
                     <td><label for="phone_num">Phone:</label></td>
-                    <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userData['phone_num']); ?>" required /></td>
+                    <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
                 </tr>
                 <tr>
                     <td><label for="status_id">Status:</label></td>
                     <td>
                         <select id="status_id" name="status_id"> 
-                            <option value="1" <?= $userData['status_id'] == 1 ? 'selected' : ''; ?>>Active</option>
-                            <option value="2" <?= $userData['status_id'] == 2 ? 'selected' : ''; ?>>Suspended</option>
+                            <option value="1" <?= $userAccount->status_id == 1 ? 'selected' : ''; ?>>Active</option>
+                            <option value="2" <?= $userAccount->status_id == 2 ? 'selected' : ''; ?>>Suspended</option>
                         </select>
                     </td>
                 </tr>
@@ -135,18 +195,8 @@ class UserAccountView {
     }
 }
 
-if (!isset($_GET['username'])) {
-    header("Location: admin_manage_user_acc.php");
-    exit();
-}
-
-$username = $_GET['username'];
-$controller = new UserAccountController($conn);
-$userData = $controller->handleRequest($username);
-if (!$userData) {
-    die("User not found.");
-}
-
+// Instantiate the Boundary class and handle the form submission
 $view = new UserAccountView();
-$view->render($userData); // Now passing simple data
+$view->handleFormSubmission();
+$view->renderForm();
 ?>
