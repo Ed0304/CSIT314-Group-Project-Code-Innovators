@@ -31,7 +31,7 @@ class UserAccount {
     }
 }
 
-// CONTROL LAYER: Passes the connection to the entity layer and sets data to the boundary layer
+// CONTROL LAYER: Manages data flow between boundary and entity layers
 class ViewUserAccountController {
     private $userAccountModel;
 
@@ -42,17 +42,31 @@ class ViewUserAccountController {
     public function getProfile($username) {
         return $this->userAccountModel->getProfileByUsername($username);
     }
+}
 
-    public function handleBoundary($view) {
+// BOUNDARY LAYER: Handles user interactions and rendering user information
+class ViewUserAccountPage {
+    private $controller;
+
+    public function __construct($controller) {
+        $this->controller = $controller;
+    }
+
+    public function handleRequest() {
+        // Check if user is logged in
+        if (!isset($_SESSION['username'])) {
+            header("Location: ../login.php");
+            exit();
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePostRequest();
         } else {
             $username = $_GET['username'] ?? '';
             if ($username) {
-                $profileData = $this->getProfile($username);
-                $view->setProfileData($profileData);
+                $profileData = $this->controller->getProfile($username);
+                $this->render($profileData);
             }
-            $view->render();
         }
     }
 
@@ -72,17 +86,8 @@ class ViewUserAccountController {
             }
         }
     }
-}
 
-// BOUNDARY LAYER: Responsible for rendering user information
-class ViewUserAccountPage {
-    private $profileData = [];
-
-    public function setProfileData($data) {
-        $this->profileData = $data;
-    }
-
-    public function render() {
+    public function render($profileData) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -105,47 +110,47 @@ class ViewUserAccountPage {
             <table id="infoTable">
                 <tr>
                     <td><strong>Username</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['username'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Password</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['password'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['password'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Role</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['role_name'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['role_name'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Email</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['email'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['email'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Phone Number</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['phone_num'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['phone_num'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Status</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->profileData['status_name']); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['status_name']); ?></td>
                 </tr>
                 <tr>
                     <td><br/></td><td><br/></td>
                 </tr>
                 <tr>
                     <td>
-                        <form action="admin_manage_user_acc.php" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
+                        <form action="" method="post">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="return" style="font-size: 24px">Return to accounts list</button>
                         </form>
                     </td>
                     <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="update" style="font-size: 24px">Update account information</button>
                         </form>
                     </td>
                     <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="suspend" style="font-size: 24px">Suspend this account</button>
                         </form>
                     </td>
@@ -158,14 +163,8 @@ class ViewUserAccountPage {
 }
 
 // Main logic: Initialization and request handling
-if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Initialize classes and handle request
 $userAccountEntity = new UserAccount();
 $controller = new ViewUserAccountController($userAccountEntity);
-$view = new ViewUserAccountPage();
-$controller->handleBoundary($view);
+$view = new ViewUserAccountPage($controller);
+$view->handleRequest();
 ?>

@@ -1,7 +1,7 @@
 <?php
 require '../connectDatabase.php';
 
-// ENTITY LAYER: Represents user data without direct database interactions
+// ENTITY LAYER: Represents user data and interacts with the database
 class UserAccount
 {
     public $username;
@@ -14,24 +14,62 @@ class UserAccount
         $this->role_name = htmlspecialchars($role_name);
         $this->status_name = htmlspecialchars($status_name);
     }
+
+    public static function fetchUsers($mysqli)
+    {
+        $query = "SELECT u.username, r.role_name, s.status_name
+                  FROM users u
+                  JOIN role r ON u.role_id = r.role_id
+                  JOIN status s ON u.status_id = s.status_id";
+        $result = $mysqli->query($query);
+
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = new self($row['username'], $row['role_name'], $row['status_name']);
+        }
+        return $users;
+    }
+
+    public static function searchUserAccount($mysqli, $role, $username)
+    {
+        $query = "SELECT u.username, r.role_name, s.status_name
+                  FROM users u
+                  JOIN role r ON u.role_id = r.role_id
+                  JOIN status s ON u.status_id = s.status_id
+                  WHERE 1=1";
+
+        if (!empty($role)) {
+            $query .= " AND r.role_name = '" . $mysqli->real_escape_string($role) . "'";
+        }
+        if (!empty($username)) {
+            $query .= " AND u.username LIKE '%" . $mysqli->real_escape_string($username) . "%'";
+        }
+
+        $result = $mysqli->query($query);
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = new self($row['username'], $row['role_name'], $row['status_name']);
+        }
+        return $users;
+    }
 }
 
-// BOUNDARY LAYER: HTML View for managing user accounts
+// BOUNDARY LAYER: HTML View for managing user accounts and handling user interactions
 class SearchUserAccountPage
 {
-    private $users;
+    private $controller;
 
-    public function __construct($users)
+    public function __construct($controller)
     {
-        $this->users = $users;
+        $this->controller = $controller;
     }
 
     public function render()
     {
+        $users = $this->controller->getUsers();
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
-
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,37 +79,31 @@ class SearchUserAccountPage
                     border-collapse: collapse;
                     width: 100%;
                 }
-
-                #main-table,
-                #main-table th,
+                #main-table, 
+                #main-table th, 
                 #main-table td {
                     border: 1px solid black;
                 }
-
-                #main-table th,
+                #main-table th, 
                 #main-table td {
                     padding: 10px;
                     font-size: 20px;
                     text-align: center;
                 }
-
                 .select-label {
                     font-size: 24px;
                 }
-
                 #search {
                     font-size: 20px;
                 }
-
                 .button-font {
                     font-size: 18px;
                 }
             </style>
         </head>
-
         <body>
             <h1 style="text-align:center">Manage user accounts here...</h1>
-            <form method="POST" action="admin_manage_user_acc.php">
+            <form method="POST">
                 <label for="role" class="select-label">Filter based on:</label>
                 <select id="role" name="role" class="select-label">
                     <option value="">All roles</option>
@@ -84,7 +116,7 @@ class SearchUserAccountPage
                 <br /><br />
             </form>
 
-            <form method="post" action="">
+            <form method="post" action="accountCreation.php">
                 <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user account</button>
             </form>
             <br /><br />
@@ -96,8 +128,8 @@ class SearchUserAccountPage
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
-                <?php if (!empty($this->users)): ?>
-                    <?php foreach ($this->users as $user): ?>
+                <?php if (!empty($users)): ?>
+                    <?php foreach ($users as $user): ?>
                         <tr>
                             <td><?php echo $user->username; ?></td>
                             <td><?php echo $user->role_name; ?></td>
@@ -118,118 +150,73 @@ class SearchUserAccountPage
                     </tr>
                 <?php endif; ?>
             </table>
-
             <form method="post" action="admin_dashboard.php" style="text-align:center">
                 <br />
                 <input type="submit" value="Return" style="font-size: 24px">
             </form>
         </body>
-
         </html>
         <?php
     }
+
+    public function handleUserInteractions()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['searchButton'])) {
+                $role = $_POST['role'];
+                $username = $_POST['search'];
+                $this->controller->searchUsers($role, $username);
+            } elseif (isset($_POST['createAccount'])) {
+                header("Location: accountCreation.php");
+                exit();
+            } elseif (isset($_POST['viewAccount'])) {
+                $username = $_POST['username'];
+                header("Location: admin_view_account.php?username=" . urlencode($username));
+                exit();
+            } elseif (isset($_POST['updateAccount'])) {
+                $username = $_POST['username'];
+                header("Location: admin_update_user_acc.php?username=" . urlencode($username));
+                exit();
+            } elseif (isset($_POST['suspendAccount'])) {
+                $username = $_POST['username'];
+                header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
+                exit();
+            }
+        }
+    }
 }
 
-// CONTROL LAYER: Handle form submissions and orchestrate data flow
+// CONTROLLER LAYER: Manage data flow between Boundary and Entity layers
 class SearchUserAccountController
 {
     private $mysqli;
-    private $view;
+    private $users;
 
     public function __construct($mysqli)
     {
         $this->mysqli = $mysqli;
+        $this->users = [];
     }
 
-    // Fetch users from the database and create User objects
-    private function getUsers()
+    public function getUsers()
     {
-        $query = "SELECT u.username, r.role_name, s.status_name
-                  FROM users u
-                  JOIN role r ON u.role_id = r.role_id
-                  JOIN status s ON u.status_id = s.status_id";
-        $result = $this->mysqli->query($query);
-
-        $users = []; // Initialize an array to store User objects
-        while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = new UserAccount($row['username'], $row['role_name'], $row['status_name']); // Create User object
-        }
-        return $users; // Return the array of User objects
+        $this->users = UserAccount::fetchUsers($this->mysqli);
+        return $this->users;
     }
 
-    // SEARCH USER ACCOUNT: Search for users based on role and username
-    private function searchUserAccount($role, $username)
+    public function searchUsers($role, $username)
     {
-        $query = "SELECT u.username, r.role_name, s.status_name
-                  FROM users u
-                  JOIN role r ON u.role_id = r.role_id
-                  JOIN status s ON u.status_id = s.status_id
-                  WHERE 1=1";
-
-        if (!empty($role)) {
-            $query .= " AND r.role_name = '" . $this->mysqli->real_escape_string($role) . "'";
-        }
-
-        if (!empty($username)) {
-            $query .= " AND u.username LIKE '%" . $this->mysqli->real_escape_string($username) . "%'";
-        }
-
-        $result = $this->mysqli->query($query);
-
-        $users = []; // Initialize an array to store User objects
-        while ($row = $result->fetch_assoc()) { // Fetch rows one by one
-            $users[] = new UserAccount($row['username'], $row['role_name'], $row['status_name']); // Create User object
-        }
-        return $users; // Return the array of User objects
-    }
-
-    public function handleRequest()
-    {
-        $action = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : null;
-
-        // Check if search action is triggered
-        if (isset($action['searchButton'])) {
-            $role = $action['role'];
-            $username = $action['search'];
-            $users = $this->searchUserAccount($role, $username);
-        } else {
-            // Fetch users and initialize the view
-            $users = $this->getUsers();
-        }
-
-        $this->view = new SearchUserAccountPage($users); // Initialize the view with the UserAccount objects
-
-        if (isset($action['createAccount'])) {
-            header("Location: accountCreation.php");
-            exit();
-        }
-
-        if (isset($action['viewAccount'])) {
-            $username = $action['username'];
-            header("Location: admin_view_account.php?username=" . urlencode($username));
-            exit();
-        }
-
-        if (isset($action['updateAccount'])) {
-            $username = $action['username'];
-            header("Location: admin_update_user_acc.php?username=" . urlencode($username)); 
-            exit();
-        }
-
-        if (isset($action['suspendAccount'])) {
-            $username = $action['username'];
-            header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
-            exit();
-        }
-
-        // Render the view if no action is taken
-        $this->view->render();
+        $this->users = UserAccount::searchUserAccount($this->mysqli, $role, $username);
+        return $this->users;
     }
 }
 
-// MAIN LOGIC: Initialize components and handle the request
+// MAIN LOGIC: Initialize components
 $database = new Database();
-$mysqli = $database->getConnection(); // Get the database connection
+$mysqli = $database->getConnection();
 
-$userController = new SearchUserAccountController($mysqli); // Instantiate the controller
-$userController->handleRequest();
+$controller = new SearchUserAccountController($mysqli);
+$boundary = new SearchUserAccountPage($controller);
+
+$boundary->handleUserInteractions();
+$boundary->render();

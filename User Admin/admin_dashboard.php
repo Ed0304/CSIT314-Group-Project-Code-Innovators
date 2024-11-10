@@ -15,6 +15,13 @@ class User {
     }
 }
 
+// Control Layer
+class DashboardController {
+    public function getUsernameFromSession() {
+        return $_SESSION['username'] ?? null;
+    }
+}
+
 // Boundary Layer
 class DashboardView {
     private $controller;
@@ -25,20 +32,17 @@ class DashboardView {
         $this->username = ''; // Initial state; no user set until initialized
     }
 
-    public function setUsername($username) {
-        $this->username = htmlspecialchars($username); // Sanitize when setting username
-    }
-
     public function handleRequest() {
         // Ensure the user is logged in
-        if (!isset($_SESSION['username'])) {
+        $username = $this->controller->getUsernameFromSession();
+        if (!$username) {
             header("Location: login.php");
             exit();
         }
 
-        $username = $_SESSION['username']; // Retrieve the username from the session
-        $user = new User($username); // Create a User entity
-        $this->setUsername($user->getUsername()); // Set the username in the view
+        // Create a User entity and set the username in the view
+        $user = new User($username);
+        $this->setUsername($user->getUsername());
 
         // Process form submissions
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -47,6 +51,10 @@ class DashboardView {
 
         // Render the dashboard view
         $this->render();
+    }
+
+    public function setUsername($username) {
+        $this->username = htmlspecialchars($username); // Sanitize when setting username
     }
 
     private function handleFormSubmission() {
@@ -103,16 +111,7 @@ class DashboardView {
     }
 }
 
-// Control Layer
-class DashboardController {
-    public function initView() {
-        // Initialize the view and let the boundary handle the request
-        $view = new DashboardView($this);
-        $view->handleRequest(); // Boundary initiates the request handling
-    }
-}
-
-// Main logic: Instantiate the controller and initialize the view
+// Main logic: Instantiate the boundary and controller
 $controller = new DashboardController();
-$controller->initView();
-?>
+$dashboardView = new DashboardView($controller);
+$dashboardView->handleRequest();

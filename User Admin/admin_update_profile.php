@@ -55,37 +55,37 @@ class UserProfile {
 
 // Controller class: Calls methods in the UserProfile entity
 class UpdateUserProfileController {
-    private $role;
+    private $profile;
 
     public function __construct($connection, $role_id) {
-        $this->role = new UserProfile($connection, $role_id);
+        $this->profile = new UserProfile($connection, $role_id);
     }
 
     public function getRole() {
-        return $this->role;
+        return $this->profile;
     }
 
     public function updateRoleDescription($new_description) {
-        $this->role->setRoleDescription($new_description);
-        return $this->role->updateRoleDescription();
+        $this->profile->setRoleDescription($new_description);
+        return $this->profile->updateRoleDescription();
     }
 }
 
 // Boundary class: Handles display and form interactions
 class UpdateUserProfilePage {
-    private $roleController;
-    private $role;
+    private $profileController;
+    private $profile;
 
     public function __construct($connection, $role_id) {
-        $this->roleController = new UpdateUserProfileController($connection, $role_id);
-        $this->role = $this->roleController->getRole();
+        $this->profileController = new UpdateUserProfileController($connection, $role_id);
+        $this->profile = $this->profileController->getRole();
     }
 
     public function handleFormSubmission() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role_description'])) {
             $new_description = trim($_POST['role_description']);
 
-            if ($this->roleController->updateRoleDescription($new_description)) {
+            if ($this->profileController->updateRoleDescription($new_description)) {
                 echo "<p style='color: green;'>User Profile description updated successfully.</p>";
             } else {
                 echo "<p style='color: red;'>Error updating description.</p>";
@@ -173,7 +173,7 @@ class UpdateUserProfilePage {
             <h1>Update User Profile Description</h1>
             <form action="" method="post">
                 <label for="role_description">New Description:</label>
-                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($this->role->getRoleDescription()); ?></textarea>
+                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($this->profile->getRoleDescription()); ?></textarea>
                 <button type="submit">Update Description</button>
             </form>
             <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
