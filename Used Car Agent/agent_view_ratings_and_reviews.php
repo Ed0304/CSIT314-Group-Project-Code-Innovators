@@ -6,21 +6,22 @@ require '../connectDatabase.php';
 // Entity Class: Review
 class Reviews {
     private $mysqli;
-    private $details;
+
     private $stars;
     private $date;
     private $reviewerUsername;
+    private $review_id;
 
-    public function __construct($mysqli, $details = null, $stars = null, $date = null, $reviewerUsername = null) {
+    public function __construct($mysqli, $stars = null, $date = null, $reviewerUsername = null, $review_id = null) {
         $this->mysqli = $mysqli;
-        $this->details = $details;
         $this->stars = $stars;
         $this->date = $date;
         $this->reviewerUsername = $reviewerUsername;
+        $this->review_id = $review_id;
     }
 
-    public function getDetails() {
-        return $this->details;
+    public function getReviewId() {
+        return $this->review_id;
     }
 
     public function getStars() {
@@ -52,7 +53,7 @@ class Reviews {
 
     // Method to retrieve reviews for a specific agent
     public function getAgentRatingsAndReviews($agent_id) {
-        $query = "SELECT r.review_details, r.review_stars, r.review_date, u.username
+        $query = "SELECT r.review_id, r.review_stars, r.review_date, u.username
                   FROM review r
                   JOIN users u ON r.reviewer_id = u.user_id
                   WHERE r.agent_id = ?";
@@ -66,7 +67,7 @@ class Reviews {
 
         $reviews = [];
         while ($row = $result->fetch_assoc()) {
-            $reviews[] = new Reviews($this->mysqli, $row['review_details'], $row['review_stars'], $row['review_date'], $row['username']);
+            $reviews[] = new Reviews($this->mysqli, $row['review_stars'], $row['review_date'], $row['username'], $row['review_id']);
         }
         return $reviews;
     }
@@ -136,7 +137,7 @@ class ViewAllReviewsPage {
             <?php
             if (!empty($reviews)) {
                 echo "<table id='reviews-table'>";
-                echo "<tr><th>Stars</th><th>Review</th><th>Date</th><th>Rated By:</th></tr>";
+                echo "<tr><th>Rating</th><th>Date</th><th>Rated By:</th><th>Actions</th></tr>";
                 foreach ($reviews as $review) {
                     echo "<tr>";
                     echo "<td>";
@@ -148,9 +149,17 @@ class ViewAllReviewsPage {
                         }
                     }
                     echo "</td>";
-                    echo "<td>" . htmlspecialchars($review->getDetails()) . "</td>";
                     echo "<td>" . htmlspecialchars($review->getDate()) . "</td>";
                     echo "<td>" . htmlspecialchars($review->getReviewerUsername()) . "</td>";
+                    
+                    // Add button to pass review_id to another PHP file
+                    echo "<td>";
+                    echo "<form action='agent_view_single_review.php' method='get' style='display:inline;'>";
+                    echo "<input type='hidden' name='review_id' value='" . $review->getReviewId() . "'>";
+                    echo "<input type='submit' value='View Review' style='font-size: 18px'>";
+                    echo "</form>";
+                    echo "</td>";
+                    
                     echo "</tr>";
                 }
                 echo "</table>";
