@@ -117,6 +117,7 @@ class ViewListingBoundary {
                     echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
                     echo "<p>Price: {$formatted_price}</p>";
                     echo "<p>Description: {$listing->listing_description}</p>";
+                    echo "<p>Views: {$listing->views}</p>";
                     echo "<a href='listing-views.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
                     // Update the "See Shortlists" button to point to seller_count_shortlist.php
                     echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";

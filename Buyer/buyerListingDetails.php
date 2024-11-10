@@ -47,8 +47,17 @@ class ListingDetailsController
         $this->conn = $conn;
     }
 
+    public function incrementViews($listing_id) {
+        $query = "UPDATE listing SET views = views + 1 WHERE listing_id = ?";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     public function getListingDetails($listing_id)
     {
+        $this->incrementViews($listing_id);
         $stmt = $this->conn->prepare("
             SELECT 
                 l.manufacturer_name, 
