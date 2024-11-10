@@ -26,18 +26,22 @@ class ReviewBoundary {
                 .buttons { margin-top: 10px; }
                 .buttons button { padding: 10px 15px; margin-right: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
                 .buttons button:hover { background-color: #0056b3; }
+                .return-button { display: block; margin-top: 20px; text-align: center; }
+                .return-button button { padding: 10px 20px; background-color: #6c757d; color: white; border: none; cursor: pointer; }
+                .return-button button:hover { background-color: #5a6268; }
               </style>";
 
         echo "<h2>List of Agents and Their Cars</h2>";
 
         foreach ($agents as $agent) {
+            $gender = ($agent['gender'] === 'M') ? 'Male' : (($agent['gender'] === 'F') ? 'Female' : 'Other');
             echo "<div class='agent-card'>";
             echo "<h3>{$agent['first_name']} {$agent['last_name']} (Agent ID: {$agent['user_id']})</h3>";
             echo "<p><strong>Username:</strong> {$agent['username']}</p>";
             echo "<p><strong>Email:</strong> {$agent['email']}</p>";
             echo "<p><strong>Phone:</strong> {$agent['phone_num']}</p>";
             echo "<p><strong>About:</strong> {$agent['about']}</p>";
-            echo "<p><strong>Gender:</strong> {$agent['gender']}</p>";
+            echo "<p><strong>Gender:</strong> $gender</p>";
 
             // Display cars for each agent
             echo "<div class='car-list'><strong>Cars Selling:</strong>";
@@ -66,6 +70,13 @@ class ReviewBoundary {
 
             echo "</div>";
         }
+
+        // Return button
+        echo "<div class='return-button'>";
+        echo "<form method='get' action='seller_dashboard.php'>"; // Replace 'previous_page.php' with the actual return page
+        echo "<button type='submit'>Return</button>";
+        echo "</form>";
+        echo "</div>";
     }
 }
 
