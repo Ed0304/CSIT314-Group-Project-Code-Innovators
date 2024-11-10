@@ -2,7 +2,7 @@
 // Assuming you have a PDO connection in $pdo
 $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
 
-// Initial test data with images
+// Initial test data with images, excluding Muzan
 $testProfiles = [
     [
         'user_id' => 1,
@@ -39,15 +39,6 @@ $testProfiles = [
         'gender' => 'M',
         'profile_image' => loadImageAsBlob('profile_images/bunta.jpg'),
         'status_id' => 1,
-    ],
-    [
-        'user_id' => 5,
-        'first_name' => 'Muzan',
-        'last_name' => 'Kibutsuji',
-        'about' => 'Why I got suspended sia, is it because I am a demon?!',
-        'gender' => 'M',
-        'profile_image' => loadImageAsBlob('profile_images/muzan.jpg'),
-        'status_id' => 1,
     ]
 ];
 
@@ -57,7 +48,7 @@ function loadImageAsBlob($filePath) {
 }
 
 // Add 95 more profiles with NULL profile images
-for ($i = 6; $i <= 100; $i++) {
+for ($i = 5; $i <= 99; $i++) {
     $testProfiles[] = [
         'user_id' => $i,
         'first_name' => 'User' . $i,
@@ -68,6 +59,17 @@ for ($i = 6; $i <= 100; $i++) {
         'status_id' => 1,
     ];
 }
+
+// Append Muzan's profile as the last entry
+$testProfiles[] = [
+    'user_id' => 100,
+    'first_name' => 'Muzan',
+    'last_name' => 'Kibutsuji',
+    'about' => 'Why I got suspended sia, is it because I am a demon?!',
+    'gender' => 'M',
+    'profile_image' => loadImageAsBlob('profile_images/muzan.jpg'),
+    'status_id' => 1,
+];
 
 // Insert test data into the database
 $sql = "INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id)
