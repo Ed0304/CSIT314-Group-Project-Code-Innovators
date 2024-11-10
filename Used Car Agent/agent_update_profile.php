@@ -23,7 +23,7 @@ class UserAccount {
         if ($data['profile_image'] !== null) {
             // Bind parameters including the BLOB
             $stmt->bind_param(
-                "ssssbsii",
+                "sssssisi",
                 $data['first_name'],
                 $data['last_name'],
                 $data['gender'],

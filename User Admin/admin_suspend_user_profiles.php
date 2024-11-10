@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// BOUNDARY LAYER: Responsible for rendering user information
+// BOUNDARY LAYER: Responsible for rendering user information and handling requests
 class ProfileView {
     private $profileData;
 
@@ -14,7 +14,7 @@ class ProfileView {
         <!DOCTYPE HTML>
         <html lang="en">
         <style>
-            #infoTable th,td {
+            #infoTable th, td {
                 font-size: 24px;
                 text-align: center;
             }
@@ -28,7 +28,7 @@ class ProfileView {
             <title>Suspend Confirmation</title>
         </head>
         <body>
-            <h1 style="text-align: center">Suspend this r?</h1>
+            <h1 style="text-align: center">Suspend this role?</h1>
             <table id="infoTable">
                 <tr>
                     <td><strong>Profile</strong></td>
@@ -72,60 +72,56 @@ class ProfileView {
         </html>
         <?php
     }
-}
 
-// MAIN LOGIC: Coordinates the application
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
+    public function handleRequest() {
+        if (!isset($_SESSION['username'])) {
+            header("Location: login.php");
+            exit();
+        }
 
-// Use GET parameter to fetch the role_id
-$role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        // Use GET parameter to fetch the role_id
+        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'suspend') {
-    $role_id = $_POST['role_id'];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            $role_id = $_POST['role_id'] ?? '';
 
-    
-    // Create an instance of AccountController and suspend the user
-    $accountController = new AccountController();
-    $accountController->setSuspend($role_id);
+            if ($action === 'suspend') {
+                $accountController = new AccountController();
+                $accountController->setSuspend($role_id);
 
-    //prompt message before redirecting
-    $_SESSION['success_message'] = "User account suspended successfully.";
-    echo "<script>
-    alert('" . htmlspecialchars($_SESSION['success_message']) . "');
-    window.location.href = 'admin_manage_user_profiles.php';
-    </script>";
-    exit();
-}
+                // Prompt message before redirecting
+                $_SESSION['success_message'] = "Profile suspended successfully.";
+                echo "<script>
+                    alert('" . htmlspecialchars($_SESSION['success_message']) . "');
+                    window.location.href = 'admin_manage_user_profiles.php';
+                </script>";
+                exit();
+            }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'Remove') {
-    $role_id = $_POST['role_id'];
+            if ($action === 'Remove') {
+                $accountController = new AccountController();
+                $accountController->setRemoveSuspend($role_id);
 
-    // Create an instance of AccountController and suspend the user
-    $accountController = new AccountController();
-    $accountController->setRemoveSuspend($role_id);
-    
-    //Prompt message before redirecting
-    $_SESSION['removeSuspend_message'] = "User account suspension removed.";
-    echo "<script>
-    alert('" . htmlspecialchars($_SESSION['removeSuspend_message']) . "');
-    window.location.href = 'admin_manage_user_profiles.php';
-    </script>";
-    exit();
-}
+                // Prompt message before redirecting
+                $_SESSION['removeSuspend_message'] = "Profile suspension removed.";
+                echo "<script>
+                    alert('" . htmlspecialchars($_SESSION['removeSuspend_message']) . "');
+                    window.location.href = 'admin_manage_user_profiles.php';
+                </script>";
+                exit();
+            }
+        }
 
-if ($role_id) {
-    // Controller instance creation
-    $accountController = new AccountController();
-    $profileData = $accountController->getProfile($role_id);
-
-    // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
-    $profileView->render();
-} else {
-    echo "No profile provided.";
+        if ($role_id) {
+            $accountController = new AccountController();
+            $profileData = $accountController->getProfile($role_id);
+            $this->profileData = $profileData;
+            $this->render();
+        } else {
+            echo "No profile provided.";
+        }
+    }
 }
 
 // CONTROL LAYER: Serves as an intermediary between view and entity
@@ -144,7 +140,7 @@ class AccountController {
         return $this->userAccountModel->Suspend($role_id);
     }
 
-    public function setRemoveSuspend($role_id){
+    public function setRemoveSuspend($role_id) {
         return $this->userAccountModel->RemoveSuspend($role_id);
     }
 }
@@ -155,7 +151,6 @@ class UserAccount {
 
     public function __construct() {
         try {
-            // Establish database connection within the entity
             $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
@@ -177,23 +172,20 @@ class UserAccount {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    //suspend user function (status_id = 1 is active, status_id = 2 is suspended)
-    public function Suspend($role_id){
-        $stmt = $this -> pdo->prepare("UPDATE users  
-                                       SET status_id = 2
-                                       WHERE role_id = :role_id");
+    public function Suspend($role_id) {
+        $stmt = $this->pdo->prepare("UPDATE users SET status_id = 2 WHERE role_id = :role_id");
         $stmt->bindParam(':role_id', $role_id);
         $stmt->execute();
     }
 
-    
-    //remove suspend function
-    public function RemoveSuspend($role_id){
-        $stmt = $this -> pdo->prepare("UPDATE users  
-                                       SET status_id = 1
-                                       WHERE role_id = :role_id");
+    public function RemoveSuspend($role_id) {
+        $stmt = $this->pdo->prepare("UPDATE users SET status_id = 1 WHERE role_id = :role_id");
         $stmt->bindParam(':role_id', $role_id);
         $stmt->execute();
     }
 }
+
+// MAIN EXECUTION: Initialize and handle the request in the Boundary layer
+$profileView = new ProfileView([]);
+$profileView->handleRequest();
 ?>

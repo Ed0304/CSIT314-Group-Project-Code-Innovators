@@ -10,7 +10,7 @@ function loadImageAsBlob($filePath) {
 // Directory containing your images
 $imageDirectory = 'car_images';
 
-// Test data generation
+// Initial test listings
 $testListings = [
     [
         'manufacturer_name' => 'Toyota',
@@ -73,6 +73,25 @@ $testListings = [
         'shortlisted' => 0,
     ]   
 ];
+
+// Add 95 more listings with the condition for user_id
+for ($i = 6; $i <= 100; $i++) {
+    // Check if the user_id meets the condition (user_id % 2 == 0 and user_id % 4 != 0)
+    if ($i % 2 == 0 && $i % 4 != 0) {
+        $testListings[] = [
+            'manufacturer_name' => 'Manufacturer' . $i,
+            'model_name' => 'Model' . $i,
+            'model_year' => 2000 + ($i % 10),  // Just a dummy year for example
+            'listing_image' => loadImageAsBlob($imageDirectory . '\\car' . $i . '.jpg'),
+            'listing_color' => 'Color' . $i,
+            'listing_price' => rand(100000, 1000000),  // Random price for testing
+            'listing_description' => 'This is a description for car ' . $i . '.',
+            'user_id' => $i,
+            'views' => 0,
+            'shortlisted' => 0,
+        ];
+    }
+}
 
 // Insert test data into the database
 $sql = "INSERT INTO listing (manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description, user_id, views, shortlisted)

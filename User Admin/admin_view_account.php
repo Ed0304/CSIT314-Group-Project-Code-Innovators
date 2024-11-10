@@ -4,8 +4,23 @@ require '../connectDatabase.php';
 
 // ENTITY: Represents user data and database retrieval
 class UserAccount {
-    public function getProfileByUsername($pdo, $username) {
-        $stmt = $pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, s.status_name
+    private $pdo;
+
+    public function __construct() {
+        $this->connectDatabase();
+    }
+
+    private function connectDatabase() {
+        try {
+            $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("Database connection failed: " . $e->getMessage());
+        }
+    }
+
+    public function getProfileByUsername($username) {
+        $stmt = $this->pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, s.status_name
             FROM users u
             JOIN role r ON u.role_id = r.role_id
             JOIN status s ON s.status_id = u.status_id
@@ -16,27 +31,55 @@ class UserAccount {
     }
 }
 
-// CONTROL LAYER: Passes the connection to the entity layer when necessary
+// CONTROL LAYER: Passes the connection to the entity layer and sets data to the boundary layer
 class ViewUserAccountController {
     private $userAccountModel;
-    private $pdo;
 
-    public function __construct($pdo) {
-        $this->userAccountModel = new UserAccount();
-        $this->pdo = $pdo;
+    public function __construct($userAccountModel) {
+        $this->userAccountModel = $userAccountModel;
     }
 
     public function getProfile($username) {
-        return $this->userAccountModel->getProfileByUsername($this->pdo, $username);
+        return $this->userAccountModel->getProfileByUsername($username);
+    }
+
+    public function handleBoundary($view) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->handlePostRequest();
+        } else {
+            $username = $_GET['username'] ?? '';
+            if ($username) {
+                $profileData = $this->getProfile($username);
+                $view->setProfileData($profileData);
+            }
+            $view->render();
+        }
+    }
+
+    private function handlePostRequest() {
+        if (isset($_POST['action'])) {
+            $username = $_POST['username'];
+            switch ($_POST['action']) {
+                case 'return':
+                    header("Location: admin_manage_user_acc.php");
+                    exit();
+                case 'update':
+                    header("Location: admin_update_user_acc.php?username=" . urlencode($username));
+                    exit();
+                case 'suspend':
+                    header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
+                    exit();
+            }
+        }
     }
 }
 
 // BOUNDARY LAYER: Responsible for rendering user information
 class ViewUserAccountPage {
-    private $profileData;
+    private $profileData = [];
 
-    public function __construct($profileData) {
-        $this->profileData = $profileData;
+    public function setProfileData($data) {
+        $this->profileData = $data;
     }
 
     public function render() {
@@ -85,25 +128,23 @@ class ViewUserAccountPage {
                     <td colspan="2"><?php echo htmlspecialchars($this->profileData['status_name']); ?></td>
                 </tr>
                 <tr>
-                    <!-- Empty table row, just to give spacing with acc info and buttons -->
-                    <td><br/></td>
-                    <td><br/></td>
+                    <td><br/></td><td><br/></td>
                 </tr>
                 <tr>
                     <td>
-                        <form action="admin_manage_user_acc.php" class="form-body" method="post">
+                        <form action="admin_manage_user_acc.php" method="post">
                             <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="return" style="font-size: 24px">Return to accounts list</button>
                         </form>
                     </td>
                     <td>
-                        <form action="" class="form-body" method="post">
+                        <form action="" method="post">
                             <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="update" style="font-size: 24px">Update account information</button>
                         </form>
                     </td>
                     <td>
-                        <form action="" class="form-body" method="post">
+                        <form action="" method="post">
                             <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="suspend" style="font-size: 24px">Suspend this account</button>
                         </form>
@@ -116,53 +157,15 @@ class ViewUserAccountPage {
     }
 }
 
-// MAIN LOGIC: Coordinates the application
+// Main logic: Initialization and request handling
 if (!isset($_SESSION['username'])) {
     header("Location: ../login.php");
     exit();
 }
 
-// Handle POST actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        $username = $_POST['username']; // Get the username from the form
-
-        switch ($_POST['action']) {
-            case 'return':
-                header("Location: admin_manage_user_acc.php");
-                exit();
-
-            case 'update':
-                header("Location: admin_update_user_acc.php?username=" . urlencode($username)); 
-                exit();
-
-            case 'suspend':
-                header("Location: admin_suspend_user_acc.php?username=" . urlencode($username));
-                exit();
-        }
-    }
-}
-
-// Use GET parameter to fetch the username
-$username = isset($_GET['username']) ? $_GET['username'] : '';
-
-if ($username) {
-    try {
-        // Establish database connection
-        $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        // Controller instance creation
-        $ViewUserAccountController = new ViewUserAccountController($pdo);
-        $profileData = $ViewUserAccountController->getProfile($username);
-
-        // Render the view with retrieved profile data
-        $ViewUserAccountPage = new ViewUserAccountPage($profileData);
-        $ViewUserAccountPage->render();
-    } catch (PDOException $e) {
-        die("Database connection failed: " . $e->getMessage());
-    }
-} else {
-    echo "No username provided.";
-}
+// Initialize classes and handle request
+$userAccountEntity = new UserAccount();
+$controller = new ViewUserAccountController($userAccountEntity);
+$view = new ViewUserAccountPage();
+$controller->handleBoundary($view);
 ?>

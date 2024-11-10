@@ -2,7 +2,7 @@
 // Assuming you have a PDO connection in $pdo
 $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
 
-// Test data generation
+// Initial test data with images
 $testProfiles = [
     [
         'user_id' => 1,
@@ -28,7 +28,7 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I am looking for a replacement car for my AE86!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('profile_images\takumi.jpg'),
+        'profile_image' => loadImageAsBlob('profile_images/takumi.jpg'),
         'status_id' => 1,
     ],
     [
@@ -37,7 +37,7 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I want to sell my impreza, looking an agent that seriously values my car!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('profile_images\bunta.jpg'),
+        'profile_image' => loadImageAsBlob('profile_images/bunta.jpg'),
         'status_id' => 1,
     ],
     [
@@ -46,14 +46,27 @@ $testProfiles = [
         'last_name' => 'Kibutsuji',
         'about' => 'Why I got suspended sia, is it because I am a demon?!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('profile_images\muzan.jpg'),
+        'profile_image' => loadImageAsBlob('profile_images/muzan.jpg'),
         'status_id' => 1,
     ]
 ];
 
 // Function to load image as BLOB
 function loadImageAsBlob($filePath) {
-    return file_get_contents($filePath);
+    return file_exists($filePath) ? file_get_contents($filePath) : NULL;
+}
+
+// Add 95 more profiles with NULL profile images
+for ($i = 6; $i <= 100; $i++) {
+    $testProfiles[] = [
+        'user_id' => $i,
+        'first_name' => 'User' . $i,
+        'last_name' => 'Last' . $i,
+        'about' => 'This is user ' . $i . ' profile.',
+        'gender' => $i % 2 == 0 ? 'M' : 'F',
+        'profile_image' => NULL,
+        'status_id' => 1,
+    ];
 }
 
 // Insert test data into the database

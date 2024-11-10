@@ -107,53 +107,66 @@ class UpdateUserProfilePage {
                     margin: 0;
                     padding: 20px;
                 }
+
                 h1 {
                     color: #333;
+                    text-align: center;
                 }
+
                 form {
                     background: white;
                     padding: 20px;
-                    border-radius: 5px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    max-width: 500px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 600px;
                     margin: auto;
                 }
+
                 label {
                     display: block;
                     margin-bottom: 10px;
                     font-weight: bold;
                 }
+
                 textarea {
                     width: 100%;
-                    height: 100px;
-                    margin-bottom: 10px;
-                    padding: 10px;
+                    height: 120px;
+                    margin-bottom: 20px;
+                    padding: 12px;
                     border: 1px solid #ccc;
                     border-radius: 4px;
+                    box-sizing: border-box;
                 }
+
                 button {
                     background-color: #5cb85c;
                     color: white;
                     border: none;
-                    padding: 10px 15px;
+                    padding: 12px 20px;
                     border-radius: 5px;
                     cursor: pointer;
+                    font-size: 16px;
                 }
+
                 button:hover {
                     background-color: #4cae4c;
                 }
+
                 .return-button {
                     margin-top: 20px;
                     display: inline-block;
                     background-color: #007bff;
                     color: white;
                     text-decoration: none;
-                    padding: 10px 15px;
+                    padding: 12px 18px;
                     border-radius: 5px;
+                    font-size: 16px;
                 }
+
                 .return-button:hover {
                     background-color: #0056b3;
                 }
+
             </style>
         </head>
         <body>

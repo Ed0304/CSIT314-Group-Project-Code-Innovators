@@ -21,7 +21,7 @@ class Agent
     private $status_id;
     private $email;
     private $phone;
-    private $username; // Add username property
+    private $username;
 
     public function __construct($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username)
     {
@@ -33,42 +33,35 @@ class Agent
         $this->status_id = $status_id;
         $this->email = $email;
         $this->phone = $phone;
-        $this->username = $username; // Initialize username
+        $this->username = $username;
     }
 
-    // Getters for Agent properties
-    public function getUserID()
+    public static function fetchAgentDetails($mysqli, $user_id)
     {
-        return $this->user_id;
+        $query = "
+            SELECT p.user_id, p.first_name, p.last_name, p.about, p.profile_image, p.status_id, u.email, u.phone_num, u.username
+            FROM profile p
+            JOIN users u ON p.user_id = u.user_id
+            WHERE p.user_id = ?
+        ";
+        $stmt = $mysqli->prepare($query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->bind_result($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
+        if ($stmt->fetch()) {
+            return new self($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
+        }
+        return null; // No agent found
     }
-    public function getFirstName()
-    {
-        return $this->first_name;
-    }
-    public function getLastName()
-    {
-        return $this->last_name;
-    }
-    public function getAbout()
-    {
-        return $this->about;
-    }
-    public function getProfileImage()
-    {
-        return $this->profile_image;
-    }
-    public function getEmail()
-    {
-        return $this->email;
-    }
-    public function getPhone()
-    {
-        return $this->phone;
-    }
-    public function getUsername()
-    {
-        return $this->username;
-    } // Getter for username
+
+    public function getUserID() { return $this->user_id; }
+    public function getFirstName() { return $this->first_name; }
+    public function getLastName() { return $this->last_name; }
+    public function getAbout() { return $this->about; }
+    public function getProfileImage() { return $this->profile_image; }
+    public function getEmail() { return $this->email; }
+    public function getPhone() { return $this->phone; }
+    public function getUsername() { return $this->username; }
 }
 
 // Controller class to handle fetching agent details
@@ -79,22 +72,9 @@ class viewAgentController
     {
         $this->mysqli = $mysqli;
     }
-    public function getAgentDetails($user_id)
+    public function getAgent($user_id)
     {
-        $query = "
-            SELECT p.user_id, p.first_name, p.last_name, p.about, p.profile_image, p.status_id, u.email, u.phone_num, u.username
-            FROM profile p
-            JOIN users u ON p.user_id = u.user_id
-            WHERE p.user_id = ?
-        ";
-        $stmt = $this->mysqli->prepare($query);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $stmt->bind_result($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
-        if ($stmt->fetch()) {
-            return new Agent($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
-        }
-        return null; // No agent found
+        return Agent::fetchAgentDetails($this->mysqli, $user_id);
     }
 }
 
@@ -111,8 +91,7 @@ class viewAgentBoundary
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
             <title>Agent Details</title>
-            <style>
-                body {
+            <style>body {
                     font-family: Arial, sans-serif;
                     background-color: #f8f9fa;
                     margin: 0;
@@ -175,20 +154,17 @@ class viewAgentBoundary
                 }
                 .reviews-button {
                     background-color: #007bff;
-                }
-            </style>
+                }</style>
         </head>
         <body>
         <div class='container'>";
         if ($agent) {
             echo "<h2>Agent Details</h2>";
-            // Check if the agent has a profile image
             if ($agent->getProfileImage()) {
                 $imageData = base64_encode($agent->getProfileImage());
                 echo "<img src='data:image/jpeg;base64,$imageData' alt='Profile Image' class='profile-image' />";
             } else {
-                // Display a default profile image
-                echo "<img src='default-profile.jpg' alt='Default Profile Image' class='profile-image' />";
+                echo "<img src='../default-profile.jpg' alt='Default Profile Image' class='profile-image' />";
             }
             echo "<p><strong>Name:</strong> " . $agent->getFirstName() . " " . $agent->getLastName() . "</p>";
             echo "<p><strong>About:</strong> " . $agent->getAbout() . "</p>";
@@ -196,7 +172,6 @@ class viewAgentBoundary
             echo "<p><strong>Email:</strong> " . $agent->getEmail() . "</p>";
             echo "<p><strong>Phone:</strong> " . $agent->getPhone() . "</p>";
             echo "</div>";
-            // Buttons for navigating back and viewing reviews
             echo "<div class='buttons'>";
             echo "<a href='" . ($referrer === 'shortlist' ? 'buyer_view_shortlist.php' : 'buyer_dashboard.php') . "' class='back-button'>Return</a>";
             echo "<a href='buyerviewReviews.php?username=" . $agent->getUsername() . "' class='reviews-button'>View Reviews</a>";
@@ -211,7 +186,7 @@ class viewAgentBoundary
 // Main script logic
 $mysqli = new mysqli("localhost", "root", "", "csit314");
 $controller = new viewAgentController($mysqli);
-$agent = $controller->getAgentDetails($user_id);
+$agent = $controller->getAgent($user_id);
 $boundary = new viewAgentBoundary();
 $boundary->render($agent);
 $mysqli->close();
