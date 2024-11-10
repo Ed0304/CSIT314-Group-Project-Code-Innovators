@@ -14,7 +14,7 @@ if (!isset($_GET['listing_id'])) {
     exit();
 }
 
-// ENTITY LAYER: Represents the CarListing entity
+// ENTITY LAYER: Represents the CarListing entity and now also fetches data from the database
 class CarListing {
     public $listing_id;
     public $manufacturer_name;
@@ -25,29 +25,14 @@ class CarListing {
     public $listing_price;
     public $listing_description;
     public $mime_type; // Property for MIME type
-
-    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year, $listing_image, $listing_color, $listing_price, $listing_description, $mime_type) {
-        $this->listing_id = $listing_id;
-        $this->manufacturer_name = $manufacturer_name;
-        $this->model_name = $model_name;
-        $this->model_year = $model_year;
-        $this->listing_image = $listing_image; // Store image data (path or Base64)
-        $this->listing_color = $listing_color;
-        $this->listing_price = $listing_price;
-        $this->listing_description = $listing_description;
-        $this->mime_type = $mime_type; // Store the MIME type
-    }
-}
-
-// CONTROL LAYER: Responsible for data retrieval
-class CarListingController {
     private $db;
 
     public function __construct($db) {
-        $this->db = $db;
+        $this->db = $db; // Store database connection
     }
 
-    public function getListingDetails($listing_id) {
+    // Fetch listing details by listing_id from the database
+    public function fetchListingDetails($listing_id) {
         $stmt = $this->db->prepare("SELECT * FROM listing WHERE listing_id = ?");
         $stmt->bind_param("i", $listing_id);
         $stmt->execute();
@@ -75,18 +60,19 @@ class CarListingController {
                 $mimeType = $this->getMimeType($imageData); // Get the MIME type from the file path
             }
         }
-    
-        return new CarListing(
-            $row['listing_id'],
-            $row['manufacturer_name'],
-            $row['model_name'],
-            $row['model_year'],
-            $imageData, // Use the appropriate image data
-            $row['listing_color'],
-            $row['listing_price'],
-            $row['listing_description'],
-            $mimeType // Include the MIME type for later use
-        );
+
+        // Initialize and return the CarListing object
+        $this->listing_id = $row['listing_id'];
+        $this->manufacturer_name = $row['manufacturer_name'];
+        $this->model_name = $row['model_name'];
+        $this->model_year = $row['model_year'];
+        $this->listing_image = $imageData;
+        $this->listing_color = $row['listing_color'];
+        $this->listing_price = $row['listing_price'];
+        $this->listing_description = $row['listing_description'];
+        $this->mime_type = $mimeType;
+
+        return $this;
     }
 
     private function is_blob($image) {
@@ -118,6 +104,21 @@ class CarListingController {
         }
     }
 }
+
+// CONTROL LAYER: Responsible for interacting with the CarListing entity
+class CarListingController {
+    private $db;
+
+    public function __construct($db) {
+        $this->db = $db;
+    }
+
+    public function getListingDetails($listing_id) {
+        $carListing = new CarListing($this->db); // Instantiate CarListing with DB connection
+        return $carListing->fetchListingDetails($listing_id); // Fetch listing details
+    }
+}
+
 
 // BOUNDARY LAYER: Generates HTML for displaying the listing
 class CarListingPage {

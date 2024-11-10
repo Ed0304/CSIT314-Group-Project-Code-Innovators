@@ -1,61 +1,9 @@
 <?php
 session_start();
-
 require '../connectDatabase.php'; // Assuming you have a database connection class
 
-// Entity Class: Review
+// Entity Class: Review (Handles database queries)
 class Review
-{
-    private $review_id;
-    private $details;
-    private $stars;
-    private $date;
-    private $reviewerUsername;
-    private $agentUsername; // New property for agent username
-
-    public function __construct($review_id, $details, $stars, $date, $reviewerUsername, $agentUsername)
-    {
-        $this->review_id = $review_id;
-        $this->details = $details;
-        $this->stars = $stars;
-        $this->date = $date;
-        $this->reviewerUsername = $reviewerUsername;
-        $this->agentUsername = $agentUsername; // Initialize agent username
-    }
-
-    public function getReviewId()
-    {
-        return $this->review_id;
-    }
-
-    public function getDetails()
-    {
-        return $this->details;
-    }
-
-    public function getStars()
-    {
-        return $this->stars;
-    }
-
-    public function getDate()
-    {
-        return $this->date;
-    }
-
-    public function getReviewerUsername()
-    {
-        return $this->reviewerUsername;
-    }
-
-    public function getAgentUsername()
-    { // New method for agent username
-        return $this->agentUsername;
-    }
-}
-
-// Control Class: ViewReviewController
-class ViewReviewController
 {
     private $mysqli;
 
@@ -64,38 +12,57 @@ class ViewReviewController
         $this->mysqli = $mysqli;
     }
 
+    // Method to fetch review by ID, including the connection logic
     public function getReviewById($review_id)
     {
-        // Updated SQL query to include agent username
         $stmt = $this->mysqli->prepare("SELECT r.review_id, r.review_details, r.review_stars, r.review_date,
-                                        u.username AS reviewer_username, a.username AS agent_username
-                                 FROM review r
-                                 JOIN users u ON r.reviewer_id = u.user_id
-                                 JOIN users a ON r.agent_id = a.user_id
-                                 WHERE r.review_id = ?");
+                                       u.username AS reviewer_username, a.username AS agent_username
+                                FROM review r
+                                JOIN users u ON r.reviewer_id = u.user_id
+                                JOIN users a ON r.agent_id = a.user_id
+                                WHERE r.review_id = ?");
         $stmt->bind_param('i', $review_id);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
-            return new Review(
-                $row['review_id'],
-                $row['review_details'],
-                $row['review_stars'],
-                $row['review_date'],
-                $row['reviewer_username'],
-                $row['agent_username']
-            ); // Pass agent username
+            // Return review data as an associative array
+            return [
+                'review_id' => $row['review_id'],
+                'details' => $row['review_details'],
+                'stars' => $row['review_stars'],
+                'date' => $row['review_date'],
+                'reviewer_username' => $row['reviewer_username'],
+                'agent_username' => $row['agent_username']
+            ];
         }
         return null; // Return null if no review is found
     }
 }
 
-// Boundary Class: ViewReviewBoundary
-class ViewReviewBoundary
+// Controller Class: ViewReviewController (Fetches data and passes to Boundary)
+class ViewReviewController
 {
-    public function render(Review $review, $username)
+    private $reviewModel;
+
+    public function __construct($mysqli)
     {
-        if ($review) {
+        // Initialize the Review model
+        $this->reviewModel = new Review($mysqli);
+    }
+
+    // Method to fetch review data
+    public function getReviewData($review_id)
+    {
+        return $this->reviewModel->getReviewById($review_id);
+    }
+}
+
+// Boundary Class: ViewReviewPage (Renders HTML view)
+class ViewReviewPage
+{
+    public function render($reviewData)
+    {
+        if ($reviewData) {
             ?>
             <!DOCTYPE HTML>
             <html lang="en">
@@ -234,7 +201,7 @@ class ViewReviewBoundary
                             <div class="stars-container">
                                 <?php
                                 for ($i = 1; $i <= 5; $i++) {
-                                    if ($i <= $review->getStars()) {
+                                    if ($i <= $reviewData['stars']) {
                                         echo "<img src='../star.png' alt='Filled Star' class='star'>";
                                     } else {
                                         echo "<img src='../empty-star.png' alt='Empty Star' class='star'>";
@@ -242,30 +209,30 @@ class ViewReviewBoundary
                                 }
                                 ?>
                             </div>
-                            <span class="meta-value">Review #<?php echo htmlspecialchars($review->getReviewId()); ?></span>
+                            <span class="meta-value">Review #<?php echo htmlspecialchars($reviewData['review_id']); ?></span>
                         </div>
 
                         <div class="review-meta">
                             <div class="meta-item">
                                 <div class="meta-label">Reviewer</div>
-                                <div class="meta-value"><?php echo htmlspecialchars($review->getReviewerUsername()); ?></div>
+                                <div class="meta-value"><?php echo htmlspecialchars($reviewData['reviewer_username']); ?></div>
                             </div>
                             <div class="meta-item">
                                 <div class="meta-label">Agent</div>
-                                <div class="meta-value"><?php echo htmlspecialchars($review->getAgentUsername()); ?></div>
+                                <div class="meta-value"><?php echo htmlspecialchars($reviewData['agent_username']); ?></div>
                             </div>
                             <div class="meta-item">
                                 <div class="meta-label">Date</div>
-                                <div class="meta-value"><?php echo htmlspecialchars($review->getDate()); ?></div>
+                                <div class="meta-value"><?php echo htmlspecialchars($reviewData['date']); ?></div>
                             </div>
                         </div>
 
                         <div class="review-content">
-                            <p class="review-text"><?php echo htmlspecialchars($review->getDetails()); ?></p>
+                            <p class="review-text"><?php echo htmlspecialchars($reviewData['details']); ?></p>
                         </div>
 
                         <div class="button-container">
-                            <a href="buyerviewReviews.php?username=<?php echo urlencode($review->getAgentUsername()); ?>"
+                            <a href="buyerviewReviews.php?username=<?php echo urlencode($reviewData['agent_username']); ?>"
                                 class="button">
                                 Return to Reviews
                             </a>
@@ -280,26 +247,25 @@ class ViewReviewBoundary
             echo "<p>No review found.</p>";
         }
     }
+
+    // Handles the incoming HTTP request and manages the flow
+    public function handleRequest($review_id)
+    {
+        if ($review_id) {
+            $database = new Database();
+            $mysqli = $database->getConnection();
+            $controller = new ViewReviewController($mysqli);
+            $reviewData = $controller->getReviewData($review_id); // Fetch review data from Review model
+            $this->render($reviewData); // Render the review details in the boundary
+            $database->closeConnection();
+        } else {
+            echo "<p>Review ID is missing.</p>";
+        }
+    }
 }
-
-
 
 // Entry Point
-$database = new Database();
-$mysqli = $database->getConnection();
-
 $review_id = isset($_GET['review_id']) ? (int) $_GET['review_id'] : null;
-
-if ($review_id) {
-    $controller = new ViewReviewController($mysqli);
-    $review = $controller->getReviewById($review_id); // Get the review by ID
-    $username = isset($_GET['username']) ? $_GET['username'] : ''; // Get the username from the query string
-
-    $view = new ViewReviewBoundary();
-    $view->render($review, $username); // Render the review details, including the username
-} else {
-    echo "<p>Review ID is missing.</p>";
-}
-
-$database->closeConnection();
+$boundary = new ViewReviewPage();
+$boundary->handleRequest($review_id); // Handle the request and render the review
 ?>

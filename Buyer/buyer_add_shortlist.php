@@ -3,9 +3,11 @@ session_start();
 require_once "../connectDatabase.php";
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
-// Entity: Represents a listing
+// Entity: Represents a listing and manages listing-related queries
 class Listing
 {
+    private $conn;
+
     public $listing_id;
     public $manufacturer_name;
     public $model_name;
@@ -14,15 +16,48 @@ class Listing
     public $listing_price;
     public $listing_description;
 
-    public function __construct($data)
+    public function __construct($conn, $data = null)
     {
-        $this->listing_id = $data['listing_id'] ?? null;
-        $this->manufacturer_name = $data['manufacturer_name'] ?? null;
-        $this->model_name = $data['model_name'] ?? null;
-        $this->model_year = $data['model_year'] ?? null;
-        $this->listing_color = $data['listing_color'] ?? null;
-        $this->listing_price = $data['listing_price'] ?? null;
-        $this->listing_description = $data['listing_description'] ?? null;
+        $this->conn = $conn;
+        if ($data) {
+            $this->listing_id = $data['listing_id'] ?? null;
+            $this->manufacturer_name = $data['manufacturer_name'] ?? null;
+            $this->model_name = $data['model_name'] ?? null;
+            $this->model_year = $data['model_year'] ?? null;
+            $this->listing_color = $data['listing_color'] ?? null;
+            $this->listing_price = $data['listing_price'] ?? null;
+            $this->listing_description = $data['listing_description'] ?? null;
+        }
+    }
+
+    public function fetchById($listingId)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM listing WHERE listing_id = ?");
+        $stmt->bind_param("i", $listingId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            return new Listing($this->conn, $row);
+        }
+        return null;
+    }
+
+    public function isDuplicateShortlist($listingId, $buyerId)
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM shortlist WHERE listing_id = ? AND buyer_id = ?");
+        $stmt->bind_param("ii", $listingId, $buyerId);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        return $count > 0;
+    }
+
+    public function addToShortlist($listingId, $buyerId)
+    {
+        $stmt = $this->conn->prepare("INSERT INTO shortlist (listing_id, buyer_id, shortlist_date) VALUES (?, ?, NOW())");
+        $stmt->bind_param("ii", $listingId, $buyerId);
+        return $stmt->execute();
     }
 }
 
@@ -38,37 +73,17 @@ class AddToShortlistController
 
     public function getListingDetails($listingId)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM listing WHERE listing_id = ?");
-        $stmt->bind_param("i", $listingId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($row = $result->fetch_assoc()) {
-            return new Listing($row);
-        }
-        return null;
-    }
-
-    // Check if the listing is already in the shortlist
-    public function isDuplicateShortlist($listingId, $buyerId)
-    {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM shortlist WHERE listing_id = ? AND buyer_id = ?");
-        $stmt->bind_param("ii", $listingId, $buyerId);
-        $stmt->execute();
-        $stmt->bind_result($count);
-        $stmt->fetch();
-        return $count > 0; // Return true if a duplicate exists
+        $listing = new Listing($this->conn);
+        return $listing->fetchById($listingId);
     }
 
     public function addToShortlist($listingId, $buyerId)
     {
-        if ($this->isDuplicateShortlist($listingId, $buyerId)) {
+        $listing = new Listing($this->conn);
+        if ($listing->isDuplicateShortlist($listingId, $buyerId)) {
             return false; // Prevent addition if it's a duplicate
         }
-
-        $stmt = $this->conn->prepare("INSERT INTO shortlist (listing_id, buyer_id, shortlist_date) VALUES (?, ?, NOW())");
-        $stmt->bind_param("ii", $listingId, $buyerId);
-        return $stmt->execute();
+        return $listing->addToShortlist($listingId, $buyerId);
     }
 
     public function getBuyerID()
@@ -77,14 +92,33 @@ class AddToShortlistController
     }
 }
 
-// Boundary: Manages the display of the confirmation screen
-class AddToShortlistBoundary
+// Boundary: Manages the display and handling of the confirmation screen
+class AddToShortlistPage
 {
     private $controller;
 
     public function __construct($controller)
     {
         $this->controller = $controller;
+    }
+
+    public function handleRequest()
+    {
+        $listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0;
+        $buyerId = $this->controller->getBuyerID();
+
+        $added = false; // Flag for successful addition
+        $duplicate = false; // Flag for duplicate detection
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
+            if ($this->controller->addToShortlist($listingId, $buyerId)) {
+                $added = true; // Set flag to true if added successfully
+            } else {
+                $duplicate = true; // Set flag if a duplicate is detected
+            }
+        }
+
+        $this->render($listingId, $added, $duplicate);
     }
 
     public function render($listingId, $added = false, $duplicate = false)
@@ -186,24 +220,10 @@ $database = new Database();
 $conn = $database->getConnection();
 
 $controller = new AddToShortlistController($conn);
+$boundary = new AddToShortlistPage($controller);
 
-// Handle form submission to add to shortlist
-$added = false; // Flag for successful addition
-$duplicate = false; // Flag for duplicate detection
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
-    $listingId = $_POST['listing_id'];
-    $buyerId = $_POST['user_id'];
-    if ($controller->addToShortlist($listingId, $buyerId)) {
-        $added = true; // Set flag to true if added successfully
-    } else {
-        $duplicate = true; // Set flag if a duplicate is detected
-    }
-}
-
-// Render the confirmation screen with the provided listing ID and addition status
-$listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0; // Get listing ID from query parameter
-$boundary = new AddToShortlistBoundary($controller);
-$boundary->render($listingId, $added, $duplicate);
+// Process the request
+$boundary->handleRequest();
 
 $database->closeConnection();
 ?>

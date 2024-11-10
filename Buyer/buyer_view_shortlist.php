@@ -3,43 +3,92 @@ session_start();
 require_once "../connectDatabase.php";
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
-// Entity: Represents a shortlisted car
+// Entity: Represents a shortlisted car and handles database queries
 class Shortlist
 {
+    private $conn;
+
     public $shortlist_id;
     public $listing_id;
-    public $user_id; // Buyer ID
+    public $user_id;
     public $date_added;
-    public $manufacturer_name; // Added to store additional information
+    public $manufacturer_name;
     public $model_name;
     public $model_year;
     public $listing_color;
     public $listing_price;
     public $listing_description;
 
-    public function __construct($data)
+    public function __construct($conn, $data = [])
     {
-        $this->shortlist_id = $data['shortlist_id'] ?? null;
-        $this->listing_id = $data['listing_id'] ?? null;
-        $this->user_id = $data['user_id'] ?? null; // Buyer ID
-        $this->date_added = $data['date_added'] ?? null; // Date added
-        $this->manufacturer_name = $data['manufacturer_name'] ?? null; // Manufacturer name
-        $this->model_name = $data['model_name'] ?? null; // Model name
-        $this->model_year = $data['model_year'] ?? null; // Model year
-        $this->listing_color = $data['listing_color'] ?? null; // Color
-        $this->listing_price = $data['listing_price'] ?? null; // Price
-        $this->listing_description = $data['listing_description'] ?? null; // Description
+        $this->conn = $conn;
+
+        if ($data) {
+            $this->shortlist_id = $data['shortlist_id'] ?? null;
+            $this->listing_id = $data['listing_id'] ?? null;
+            $this->user_id = $data['user_id'] ?? null;
+            $this->date_added = $data['date_added'] ?? null;
+            $this->manufacturer_name = $data['manufacturer_name'] ?? null;
+            $this->model_name = $data['model_name'] ?? null;
+            $this->model_year = $data['model_year'] ?? null;
+            $this->listing_color = $data['listing_color'] ?? null;
+            $this->listing_price = $data['listing_price'] ?? null;
+            $this->listing_description = $data['listing_description'] ?? null;
+        }
+    }
+
+    // Fetch all shortlists for a given user
+    public function getShortlistsByUser($user_id)
+    {
+        $stmt = $this->conn->prepare("
+            SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
+                   l.manufacturer_name, l.model_name, l.model_year, l.listing_color, l.listing_price, l.listing_description
+            FROM shortlist s
+            JOIN listing l ON s.listing_id = l.listing_id
+            WHERE s.buyer_id = ?
+        ");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $shortlists = [];
+        while ($row = $result->fetch_assoc()) {
+            $shortlists[] = new Shortlist($this->conn, $row);
+        }
+        return $shortlists;
+    }
+
+    // Search shortlists based on certain criteria
+    public function searchShortlists($user_id, $criteria, $search)
+    {
+        $query = "
+            SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
+                   l.manufacturer_name, l.model_name, l.model_year, l.listing_color, l.listing_price, l.listing_description
+            FROM shortlist s
+            JOIN listing l ON s.listing_id = l.listing_id
+            WHERE s.buyer_id = ? AND l.$criteria LIKE ?
+            ORDER BY l.$criteria ASC
+        ";
+        $stmt = $this->conn->prepare($query);
+        $searchTerm = "%" . $search . "%";
+        $stmt->bind_param("is", $user_id, $searchTerm);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $shortlists = [];
+        while ($row = $result->fetch_assoc()) {
+            $shortlists[] = new Shortlist($this->conn, $row);
+        }
+        return $shortlists;
     }
 }
 
-// Controller: Manages the interaction with the database for shortlists
+// Controller: Manages the interaction with the Shortlist class
 class ViewShortlistsController
 {
-    private $conn;
+    private $shortlist;
 
     public function __construct($conn)
     {
-        $this->conn = $conn;
+        $this->shortlist = new Shortlist($conn);
     }
 
     // Method to get the buyer user ID from the session
@@ -48,83 +97,30 @@ class ViewShortlistsController
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
 
-    // Method to get all shortlists for the buyer
+    // Get all shortlists for the buyer
     public function getShortlists()
     {
         $buyerID = $this->getBuyerID();
         if ($buyerID === null) {
             return []; // Return an empty array if buyer ID is not set
         }
-        $stmt = $this->conn->prepare("
-            SELECT 
-                s.shortlist_id, 
-                s.listing_id, 
-                s.buyer_id AS user_id,
-                s.shortlist_date AS date_added, 
-                l.manufacturer_name, 
-                l.model_name, 
-                l.model_year, 
-                l.listing_color, 
-                l.listing_price, 
-                l.listing_description 
-            FROM 
-                shortlist s 
-            JOIN 
-                listing l ON s.listing_id = l.listing_id 
-            WHERE 
-                s.buyer_id = ?
-        ");
-        $stmt->bind_param("i", $buyerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $shortlists = [];
-        while ($row = $result->fetch_assoc()) {
-            $shortlists[] = new Shortlist($row); // Create Shortlist objects from the results
-        }
-        return $shortlists;
+        return $this->shortlist->getShortlistsByUser($buyerID);
     }
 
-    public function searchShortlist($userID, $criteria, $search)
+    // Search shortlists based on criteria
+    public function searchShortlist($criteria, $search)
     {
+        $userID = $this->getBuyerID();
         if ($userID === null) {
             return [];
         }
-        $query = "
-        SELECT 
-            s.shortlist_id, 
-            s.listing_id, 
-            s.buyer_id AS user_id,
-            s.shortlist_date AS date_added, 
-            l.manufacturer_name, 
-            l.model_name, 
-            l.model_year, 
-            l.listing_color, 
-            l.listing_price, 
-            l.listing_description 
-        FROM 
-            shortlist s 
-        JOIN 
-            listing l ON s.listing_id = l.listing_id 
-        WHERE 
-            s.buyer_id = ? AND l.$criteria LIKE ?
-        ORDER BY 
-            l.$criteria ASC
-    ";
-        $stmt = $this->conn->prepare($query);
-        $searchTerm = "%" . $search . "%";
-        $stmt->bind_param("is", $userID, $searchTerm);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $shortlists = [];
-        while ($row = $result->fetch_assoc()) {
-            $shortlists[] = new Shortlist($row);
-        }
-        return $shortlists;
+        return $this->shortlist->searchShortlists($userID, $criteria, $search);
     }
 }
 
+
 // Boundary: Manages the display of shortlisted cars
-class ViewShortlistsBoundary
+class ViewShortlistsPage
 {
     private $controller;
 
@@ -351,7 +347,7 @@ class ViewShortlistsBoundary
 $database = new Database();
 $conn = $database->getConnection();
 $viewShortlistsController = new ViewShortlistsController($conn);
-$viewShortlistsBoundary = new ViewShortlistsBoundary($viewShortlistsController);
-$viewShortlistsBoundary->render();
+$viewShortlistsPage = new ViewShortlistsPage($viewShortlistsController);
+$viewShortlistsPage->render();
 $database->closeConnection();
 ?>

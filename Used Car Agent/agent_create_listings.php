@@ -2,7 +2,7 @@
 session_start();
 require_once '../connectDatabase.php';
 
-// ENTITY LAYER
+//Entity layer
 class CarListing {
     public function getUserId($conn, $username) {
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
@@ -28,7 +28,8 @@ class CarListing {
     }
 }
 
-// CONTROL LAYER
+
+//Controller layer
 class CreateCarListingController {
     private $carListingModel;
 
@@ -43,33 +44,74 @@ class CreateCarListingController {
         $listing_price = $formData['listing_price'] ?? null;
         $listing_description = $formData['listing_description'] ?? null;
         $listing_color = $formData['listing_color'] ?? null;
-
+    
         // Retrieve user ID based on username
         $user_id = $this->carListingModel->getUserId($conn, $username);
         if (!$user_id) {
             return ["success" => false, "message" => "User not found or not a Used Car Agent."];
         }
-
+    
         // Attempt to create car listing
         $result = $this->carListingModel->createCarListing(
             $conn, $manufacturer_name, $model_name, $model_year, $user_id, 
             $listing_image, $listing_price, $listing_description, $listing_color
         );
-
+    
         return $result 
             ? ["success" => true, "message" => "New car listing created successfully."]
             : ["success" => false, "message" => "Failed to create car listing."];
     }
+    
+
+    public function createCarListing($formData, $user_id, $conn, $listing_image) {
+        // Extract data from form
+        $manufacturer_name = $formData['manufacturer_name'];
+        $model_name = $formData['model_name'];
+        $model_year = $formData['model_year'];
+        $listing_price = $formData['listing_price'];
+        $listing_description = $formData['listing_description'];
+        $listing_color = $formData['listing_color'];
+
+        // Create car listing in the database
+        return $this->carListingModel->createCarListing(
+            $conn, $manufacturer_name, $model_name, $model_year, $user_id, 
+            $listing_image, $listing_price, $listing_description, $listing_color
+        );
+    }
 }
+
 
 // BOUNDARY LAYER: Manages the user interface (display form and messages)
 class CreateCarListingPage {
     private $message;
+    private $controller;
 
-    // Constructor to initialize any message to display
-    public function __construct($message = "") {
+    // Constructor to initialize the message and controller
+    public function __construct($controller, $message = "") {
+        $this->controller = $controller;
         $this->message = $message;
     }
+
+    // Handle the form submission and validation
+    public function handleFormSubmission($formData, $conn) {
+        if (isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] == UPLOAD_ERR_OK) {
+            $listing_image = file_get_contents($_FILES['listing_image']['tmp_name']);
+            $username = $_SESSION['username'];
+    
+            // Call the controller to handle car listing creation
+            $response = $this->controller->handleCarListingCreation($formData, $username, $conn, $listing_image);
+            
+            // Check if $response is an array
+            if (is_array($response) && isset($response['message'])) {
+                $this->message = $response['message'];
+            } else {
+                $this->message = "Unexpected error occurred.";
+            }
+        } else {
+            $this->message = "A valid image file is required.";
+        }
+    }
+    
 
     // Render the car listing creation form
     public function render() {
@@ -95,8 +137,8 @@ class CreateCarListingPage {
                 <h3 style="text-align:center">All fields are mandatory</h3>
             </div>
 
-            <!-- Display success or error messages -->
-            <?php if ($this->message): ?>
+            <!-- Display success or error messages only after form submission -->
+            <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($this->message)): ?>
                 <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
             <?php endif; ?>
 
@@ -146,29 +188,26 @@ class CreateCarListingPage {
     }
 }
 
-// MAIN LOGIC
-$carListingModel = new CarListing();
-$controller = new CreateCarListingController($carListingModel);
 
+
+// MAIN LOGIC
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
 }
 
-$username = $_SESSION['username'];
-$message = "";  // Initialize message to be empty on first load
+// Initialize the controller and page
+$carListingModel = new CarListing();
+$controller = new CreateCarListingController($carListingModel);
+$page = new CreateCarListingPage($controller);
 
+// Check if the form was submitted and handle the submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] == UPLOAD_ERR_OK) {
-        $listing_image = file_get_contents($_FILES['listing_image']['tmp_name']);
-        $response = $controller->handleCarListingCreation($_POST, $username, $conn, $listing_image);
-        $message = $response['message'];
-    } else {
-        $message = "";
-    }
+    $page->handleFormSubmission($_POST, $conn);
 }
 
-$view = new CreateCarListingPage($message);
-$view->render();
+// Render the page
+$page->render();
+
 $database->closeConnection();
 ?>

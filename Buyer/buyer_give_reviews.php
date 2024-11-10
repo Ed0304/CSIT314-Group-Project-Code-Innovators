@@ -1,131 +1,50 @@
 <?php
 session_start();
 require_once "../connectDatabase.php";
-// Entity Layer
+
+// Entity Layer: Manages database connection and interactions
 class Review
 {
-    private $review_id;
+    private $db;
     private $details;
     private $stars;
     private $reviewer_id;
     private $agent_id;
     private $date;
 
-    // Constructor only accepts raw data
-    public function __construct($details, $stars, $reviewer_id, $agent_id)
+    // Constructor initializes the database connection
+    public function __construct()
+    {
+        $this->db = new mysqli("localhost", "root", "", "csit314");
+        if ($this->db->connect_error) {
+            die("Connection failed: " . $this->db->connect_error);
+        }
+        $this->date = date('Y-m-d H:i:s');
+    }
+
+    // Set review details
+    public function setReviewDetails($details, $stars, $reviewer_id, $agent_id)
     {
         $this->details = $details;
         $this->stars = $stars;
         $this->reviewer_id = $reviewer_id;
         $this->agent_id = $agent_id;
-        $this->date = date('Y-m-d H:i:s');
     }
 
-    // Getters - Entity only provides data access
-    public function getDetails()
+    // Persist review to the database
+    public function save()
     {
-        return $this->details;
-    }
-    public function getStars()
-    {
-        return $this->stars;
-    }
-    public function getReviewerId()
-    {
-        return $this->reviewer_id;
-    }
-    public function getAgentId()
-    {
-        return $this->agent_id;
-    }
-    public function getDate()
-    {
-        return $this->date;
-    }
-
-    // Entity-level validation
-    public function validate()
-    {
-        $errors = [];
-        if (empty($this->details)) {
-            $errors[] = "Review details cannot be empty";
-        }
-        if (strlen($this->details) > 1000) {
-            $errors[] = "Review details cannot exceed 1000 characters";
-        }
-        if (!is_numeric($this->stars) || $this->stars < 1 || $this->stars > 5) {
-            $errors[] = "Rating must be between 1 and 5 stars";
-        }
-        return $errors;
-    }
-}
-
-// Control Layer
-class CreateReviewController
-{
-    private $mysqli;
-
-    public function __construct($mysqli)
-    {
-        $this->mysqli = $mysqli;
-    }
-
-    // Main control method that orchestrates the review creation process
-    public function processCreateReview($post_data, $reviewer_id)
-    {
-        // Input validation
-        if (!$this->validateInput($post_data)) {
-            return ['success' => false, 'errors' => ['Invalid input data']];
-        }
-
-        // Create review entity
-        $review = new Review(
-            $post_data['details'],
-            $post_data['stars'],
-            $reviewer_id,
-            $post_data['agent_id']
-        );
-
-        // Entity validation
-        $errors = $review->validate();
-        if (!empty($errors)) {
-            return ['success' => false, 'errors' => $errors];
-        }
-
-        // Persist review
-        return $this->saveReview($review);
-    }
-
-    // Input validation
-    private function validateInput($post_data)
-    {
-        return isset($post_data['details']) &&
-            isset($post_data['stars']) &&
-            isset($post_data['agent_id']);
-    }
-
-    // Data persistence
-    private function saveReview(Review $review)
-    {
-        $stmt = $this->mysqli->prepare(
-            "INSERT INTO review (review_details, review_stars, reviewer_id, agent_id, review_date) 
-             VALUES (?, ?, ?, ?, ?)"
-        );
-
-        // Store return values in temporary variables
-        $details = $review->getDetails();
-        $stars = $review->getStars();
-        $reviewer_id = $review->getReviewerId();
-        $agent_id = $review->getAgentId();
-        $date = $review->getDate();
-
+        $stmt = $this->db->prepare("
+            INSERT INTO review (review_details, review_stars, reviewer_id, agent_id, review_date) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
         $stmt->bind_param(
             "siiss",
-            $details,
-            $stars,
-            $reviewer_id,
-            $agent_id,
-            $date
+            $this->details,
+            $this->stars,
+            $this->reviewer_id,
+            $this->agent_id,
+            $this->date
         );
 
         if ($stmt->execute()) {
@@ -134,21 +53,57 @@ class CreateReviewController
         return ['success' => false, 'errors' => ['Database error occurred']];
     }
 
-    // Agent data retrieval
+    // Retrieve agent details
     public function getAgentDetails($agent_id)
     {
-        $stmt = $this->mysqli->prepare(
-            "SELECT user_id, username 
-             FROM users 
-             WHERE user_id = ? AND role_id = 2"
-        );
+        $stmt = $this->db->prepare("
+            SELECT user_id, username 
+            FROM users 
+            WHERE user_id = ? AND role_id = 2
+        ");
         $stmt->bind_param("i", $agent_id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
+
+    // Close the database connection
+    public function closeConnection()
+    {
+        $this->db->close();
+    }
 }
 
-// Boundary Layer
+// Controller Layer: Interacts with the Entity layer
+class CreateReviewController
+{
+    private $review;
+
+    public function __construct($review)
+    {
+        $this->review = $review;
+    }
+
+    // Process review creation (delegates to entity layer for persistence)
+    public function processCreateReview($post_data, $reviewer_id)
+    {
+        $this->review->setReviewDetails(
+            $post_data['details'],
+            $post_data['stars'],
+            $reviewer_id,
+            $post_data['agent_id']
+        );
+
+        return $this->review->save();
+    }
+
+    // Retrieve agent details
+    public function getAgentDetails($agent_id)
+    {
+        return $this->review->getAgentDetails($agent_id);
+    }
+}
+
+//Boundary layer
 class CreateReviewBoundary
 {
     private $controller;
@@ -161,25 +116,28 @@ class CreateReviewBoundary
     // Main entry point for the boundary
     public function processRequest($request_method, $get_data, $post_data, $session_data)
     {
-        // Authentication check
         if (!isset($session_data['user_id'])) {
             return $this->render(null, ['Please log in to submit a review']);
         }
 
-        // Get agent_id from URL parameter
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             return $this->render(null, ['Invalid agent ID']);
         }
 
-        // Get agent details
         $agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$agent_details) {
             return $this->render(null, ['Agent not found']);
         }
 
-        // Handle form submission
         if ($request_method === 'POST') {
+            // Perform validation in the boundary layer
+            $validation_result = $this->validateInput($post_data);
+            if (!$validation_result['success']) {
+                return $this->render($agent_details, $validation_result['errors']);
+            }
+
+            // Process the review creation
             $result = $this->controller->processCreateReview($post_data, $session_data['user_id']);
             return $this->render(
                 $agent_details,
@@ -188,9 +146,35 @@ class CreateReviewBoundary
             );
         }
 
-        // Display initial form
         return $this->render($agent_details);
     }
+
+    // Input validation moved to boundary layer
+    private function validateInput($post_data)
+    {
+        $errors = [];
+
+        // Validate review details
+        if (empty($post_data['details'])) {
+            $errors[] = "Review details cannot be empty";
+        }
+        if (strlen($post_data['details']) > 1000) {
+            $errors[] = "Review details cannot exceed 1000 characters";
+        }
+
+        // Validate stars rating
+        if (!isset($post_data['stars']) || !is_numeric($post_data['stars']) || $post_data['stars'] < 1 || $post_data['stars'] > 5) {
+            $errors[] = "Rating must be between 1 and 5 stars";
+        }
+
+        // Check if agent ID is provided
+        if (empty($post_data['agent_id'])) {
+            $errors[] = "Agent ID is required";
+        }
+
+        return ['success' => empty($errors), 'errors' => $errors];
+    }
+
 
     // Render view
     public function render($agent_details = null, $errors = [], $success_message = '')
@@ -313,29 +297,24 @@ class CreateReviewBoundary
         <body>
             <div class="container">
                 <h1 class="form-title">Write a Review</h1>
-
-                <?php if (!empty($errors)): ?>
+                <?php if ($errors): ?>
                     <div class="error-message">
                         <?php foreach ($errors as $error): ?>
                             <p><?php echo htmlspecialchars($error); ?></p>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-
                 <?php if ($success_message): ?>
                     <div class="success-message">
                         <p><?php echo htmlspecialchars($success_message); ?></p>
                     </div>
                 <?php endif; ?>
-
                 <?php if ($agent_details): ?>
                     <div class="agent-info">
                         <h2>Reviewing Agent: <?php echo htmlspecialchars($agent_details['username']); ?></h2>
                     </div>
-
                     <form method="POST" action="">
                         <input type="hidden" name="agent_id" value="<?php echo htmlspecialchars($agent_details['user_id']); ?>">
-
                         <div class="form-group">
                             <label>Rating</label>
                             <div class="star-rating">
@@ -345,35 +324,25 @@ class CreateReviewBoundary
                                 <?php endfor; ?>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="details">Review Details</label>
                             <textarea id="details" name="details" class="form-control" rows="5" required></textarea>
                         </div>
-
                         <button type="submit" class="btn">Submit Review</button>
                     </form>
                 <?php endif; ?>
             </div>
         </body>
-
         </html>
         <?php
-        // End output buffering and flush output
         ob_end_flush();
     }
 }
 
-// Usage Example
-$mysqli = new mysqli("localhost", "root", "", "csit314");
-
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
-
-$controller = new CreateReviewController($mysqli);
+// Usage
+$review = new Review();
+$controller = new CreateReviewController($review);
 $boundary = new CreateReviewBoundary($controller);
 $boundary->processRequest($_SERVER['REQUEST_METHOD'], $_GET, $_POST, $_SESSION);
-
-$mysqli->close();
+$review->closeConnection();
 ?>

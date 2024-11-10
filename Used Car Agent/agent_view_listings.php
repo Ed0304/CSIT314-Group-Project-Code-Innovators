@@ -2,19 +2,7 @@
 require "../connectDatabase.php";
 // Start the session
 session_start();
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
-    exit();
-}
-if (isset($_POST['create'])) {
-    header("Location: agent_create_listings.php");
-    exit();
-}
-if (isset($_POST['view'])) {
-    $username = urlencode($this->view->listing_id); // Encode the username
-    header("Location: listing_details.php?listing_id=" . $listing_id);
-    exit();
-}
+
 // CarListing Entity
 class CarListing
 {
@@ -22,28 +10,20 @@ class CarListing
     public $manufacturer_name;
     public $model_name;
     public $model_year;
-    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year)
+    private $db;
+
+    // Constructor
+    public function __construct($dbConnection, $listing_id = null, $manufacturer_name = null, $model_name = null, $model_year = null)
     {
+        $this->db = $dbConnection;
         $this->listing_id = $listing_id;
         $this->manufacturer_name = $manufacturer_name;
         $this->model_name = $model_name;
         $this->model_year = $model_year;
     }
-}
 
-// Controller for retrieving listings
-class SearchCarListingController
-{
-    private $db;
-    private $username;
-    public $listings;
-    public function __construct($dbConnection)
-    {
-        $this->db = $dbConnection;
-        $this->username = $_SESSION['username'];
-        $this->listings = $this->getListingsByUsername($this->username);
-    }
-    private function getListingsByUsername($username)
+    // Method to get all listings for a user
+    public function getListingsByUsername($username)
     {
         $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing
                   WHERE user_id = (SELECT user_id FROM users WHERE username = ?)";
@@ -53,41 +33,107 @@ class SearchCarListingController
         $result = $stmt->get_result();
         $listings = [];
         while ($row = $result->fetch_assoc()) {
-            $listings[] = new CarListing($row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
+            $listings[] = new CarListing($this->db, $row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
         }
         $stmt->close();
         return $listings;
     }
 
-    public function getUsername()
-    {
-        return $this->username;
-    }
-    public function getListings()
-    {
-        return $this->listings;
-    }
-    public function searchCarListing($role, $search)
+    // Method to search listings based on a filter (manufacturer, model, year)
+    public function searchCarListing($username, $role, $search)
     {
         $query = "SELECT listing_id, manufacturer_name, model_name, model_year FROM listing
                   WHERE user_id = (SELECT user_id FROM users WHERE username = ?)
                   AND $role LIKE ?";
         $search = "%$search%";
         $stmt = $this->db->prepare($query);
-        $stmt->bind_param("ss", $this->username, $search);
+        $stmt->bind_param("ss", $username, $search);
         $stmt->execute();
         $result = $stmt->get_result();
         $listings = [];
         while ($row = $result->fetch_assoc()) {
-            $listings[] = new CarListing($row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
+            $listings[] = new CarListing($this->db, $row['listing_id'], $row['manufacturer_name'], $row['model_name'], $row['model_year']);
         }
         $stmt->close();
         return $listings;
     }
 }
+
+
+// Controller for retrieving listings
+class SearchCarListingController
+{
+    private $db;
+    private $username;
+    public $listings;
+
+    public function __construct($dbConnection)
+    {
+        $this->db = $dbConnection;
+        $this->username = $_SESSION['username'];
+        $carListing = new CarListing($this->db);  // Instantiate the CarListing class
+        $this->listings = $carListing->getListingsByUsername($this->username); // Use CarListing to fetch listings
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function getListings()
+    {
+        return $this->listings;
+    }
+
+    public function searchCarListing($role, $search)
+    {
+        $carListing = new CarListing($this->db);  // Instantiate the CarListing class
+        return $carListing->searchCarListing($this->username, $role, $search); // Use CarListing to search listings
+    }
+}
+
 // Boundary class for displaying listings
+// Boundary class for displaying listings and handling form logic
 class SearchCarListingPage
 {
+    public function handleFormSubmission()
+    {
+        // Handle search button submission
+        if (isset($_POST['searchButton'])) {
+            $role = strtolower($_POST['vehicle']);
+            $search = $_POST['search'];
+            return $this->searchCarListing($role, $search);
+        }
+
+        // Check if the user is logged in
+        if (!isset($_SESSION['username'])) {
+            header("Location: login.php");
+            exit();
+        }
+
+        // Handle create listing button submission
+        if (isset($_POST['create'])) {
+            header("Location: agent_create_listings.php");
+            exit();
+        }
+
+        // Handle view listing button submission
+        if (isset($_POST['view'])) {
+            $username = urlencode($this->view->listing_id); // Encode the listing ID
+            header("Location: listing_details.php?listing_id=" . $listing_id);
+            exit();
+        }
+
+        return null;
+    }
+
+    // Method for performing the search
+    private function searchCarListing($role, $search)
+    {
+        global $controller;
+        $controller->listings = $controller->searchCarListing($role, $search);
+    }
+
     public function displayListings(SearchCarListingController $controller)
     {
         $username = $controller->getUsername();
@@ -180,17 +226,14 @@ class SearchCarListingPage
         <?php
     }
 }
-// Main script logic
+
+//main script logic
 $db = new Database(); // Assuming connectDatabase.php defines Database class
 $controller = new SearchCarListingController($db->getConnection());
 
-if (isset($_POST['searchButton'])) {
-    $role = strtolower($_POST['vehicle']);
-    $search = $_POST['search'];
-    $controller->listings = $controller->searchCarListing($role, $search);
-}
+$page = new SearchCarListingPage();
+$page->handleFormSubmission(); // Handle form submissions (search, create, etc.)
 
-// Create a boundary instance and display the listings
 $boundary = new SearchCarListingPage();
 $boundary->displayListings($controller);
 ?>
