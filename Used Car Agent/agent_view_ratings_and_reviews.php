@@ -6,7 +6,6 @@ require '../connectDatabase.php';
 // Entity Class: Review
 class Reviews {
     private $mysqli;
-
     private $stars;
     private $date;
     private $reviewerUsername;

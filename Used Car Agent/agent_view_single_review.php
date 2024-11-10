@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 require '../connectDatabase.php';
 
 // Entity Class: Review
