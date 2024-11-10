@@ -37,7 +37,7 @@ CREATE TABLE profile (
 );
 
 
-CREATE TABLE listing(
+CREATE TABLE listing (
     listing_id INT AUTO_INCREMENT PRIMARY KEY,
     manufacturer_name VARCHAR(256) NOT NULL,
     model_name VARCHAR(256) NOT NULL,
@@ -51,8 +51,9 @@ CREATE TABLE listing(
     views INT DEFAULT 0,
     CONSTRAINT views CHECK (views >= 0),
     shortlisted INT DEFAULT 0,
-    CONSTRAINT shortlisted CHECK (shortlisted >= 0);
+    CONSTRAINT shortlisted CHECK (shortlisted >= 0)
 );
+
 
 CREATE TABLE review (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -193,9 +194,3 @@ INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUE
 ('user95', 'pass95', 3, 'user95@example.com', '5678901243', 1),
 ("MuzanKibutsuji", "demonSlayer", 4, "kibutsuji@kny.com", "+816666666666",1);
 
-
-INSERT INTO ownership(seller_id, listing_id) VALUES(4, 1);
-INSERT INTO ownership(seller_id, listing_id) VALUES(4, 2);
-INSERT INTO ownership(seller_id, listing_id) VALUES(4, 3);
-INSERT INTO ownership(seller_id, listing_id) VALUES(5, 4);
-INSERT INTO ownership(seller_id, listing_id) VALUES(100, 5);

@@ -78,18 +78,20 @@ $testListings = [
 for ($i = 6; $i <= 100; $i++) {
     // Check if the user_id meets the condition (user_id % 2 == 0 and user_id % 4 != 0)
     if ($i % 2 == 0 && $i % 4 != 0) {
-        $testListings[] = [
-            'manufacturer_name' => 'Manufacturer' . $i,
-            'model_name' => 'Model' . $i,
-            'model_year' => 2000 + ($i % 10),  // Just a dummy year for example
-            'listing_image' => loadImageAsBlob($imageDirectory . '\\car' . $i . '.jpg'),
-            'listing_color' => 'Color' . $i,
-            'listing_price' => rand(100000, 1000000),  // Random price for testing
-            'listing_description' => 'This is a description for car ' . $i . '.',
-            'user_id' => $i,
-            'views' => 0,
-            'shortlisted' => 0,
-        ];
+        for ($j = 0; $j < 4; $j++) {  // Each valid user_id gets exactly 4 listings
+            $testListings[] = [
+                'manufacturer_name' => 'Manufacturer' . $i,
+                'model_name' => 'Model' . ($i + $j),
+                'model_year' => 2000 + (($i + $j) % 10),  // Just a dummy year for example
+                'listing_image' => loadImageAsBlob($imageDirectory . '\\car' . ($i + $j) . '.jpg'),
+                'listing_color' => 'Color' . ($i * 4 + $j),
+                'listing_price' => rand(100000, 1000000),  // Random price for testing
+                'listing_description' => 'This is a description for car ' . ($i + $j) . '.',
+                'user_id' => $i,
+                'views' => 0,
+                'shortlisted' => 0,
+            ];
+        }
     }
 }
 

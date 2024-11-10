@@ -15,7 +15,7 @@ class UserAccount {
 }
 
 // Boundary Layer
-class LogoutInterface {
+class LogoutPage {
     public function initiateLogout() {
         // Check if the user is logged in before proceeding
         if (!isset($_SESSION['username'])) {
@@ -62,7 +62,7 @@ class LogoutController {
 
     public function __construct(UserAccount $user) {
         $this->user = $user;
-        $this->view = new LogoutInterface();
+        $this->view = new LogoutPage();
     }
 
     public function logout() {
@@ -76,6 +76,6 @@ class LogoutController {
 }
 
 // Main Logic
-$logoutInterface = new LogoutInterface();
-$logoutInterface->initiateLogout();
+$LogoutPage = new LogoutPage();
+$LogoutPage->initiateLogout();
 ?>

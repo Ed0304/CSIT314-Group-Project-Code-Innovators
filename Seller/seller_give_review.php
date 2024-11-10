@@ -61,6 +61,7 @@ class Review
 }
 
 // Control Layer
+// Control Layer
 class CreateReviewController
 {
     private $mysqli;
@@ -73,12 +74,10 @@ class CreateReviewController
     // Main control method that orchestrates the review creation process
     public function processCreateReview($post_data, $reviewer_id)
     {
-        // Input validation
         if (!$this->validateInput($post_data)) {
             return ['success' => false, 'errors' => ['Invalid input data']];
         }
 
-        // Create review entity
         $review = new Review(
             $post_data['details'],
             $post_data['stars'],
@@ -86,17 +85,14 @@ class CreateReviewController
             $post_data['agent_id']
         );
 
-        // Entity validation
         $errors = $review->validate();
         if (!empty($errors)) {
             return ['success' => false, 'errors' => $errors];
         }
 
-        // Persist review
         return $this->saveReview($review);
     }
 
-    // Input validation
     private function validateInput($post_data)
     {
         return isset($post_data['details']) &&
@@ -104,7 +100,6 @@ class CreateReviewController
             isset($post_data['agent_id']);
     }
 
-    // Data persistence
     private function saveReview(Review $review)
     {
         $stmt = $this->mysqli->prepare(
@@ -112,21 +107,13 @@ class CreateReviewController
              VALUES (?, ?, ?, ?, ?)"
         );
 
-        // Store return values in temporary variables
         $details = $review->getDetails();
         $stars = $review->getStars();
         $reviewer_id = $review->getReviewerId();
         $agent_id = $review->getAgentId();
         $date = $review->getDate();
 
-        $stmt->bind_param(
-            "siiss",
-            $details,
-            $stars,
-            $reviewer_id,
-            $agent_id,
-            $date
-        );
+        $stmt->bind_param("siiss", $details, $stars, $reviewer_id, $agent_id, $date);
 
         if ($stmt->execute()) {
             return ['success' => true, 'message' => 'Review submitted successfully'];
@@ -138,9 +125,10 @@ class CreateReviewController
     public function getAgentDetails($agent_id)
     {
         $stmt = $this->mysqli->prepare(
-            "SELECT user_id, username 
-             FROM users 
-             WHERE user_id = ? AND role_id = 2"
+            "SELECT u.user_id, p.first_name, p.last_name 
+             FROM users u
+             JOIN profile p ON u.user_id = p.user_id
+             WHERE u.user_id = ? AND u.role_id = 2"
         );
         $stmt->bind_param("i", $agent_id);
         $stmt->execute();
@@ -158,27 +146,22 @@ class CreateReviewBoundary
         $this->controller = $controller;
     }
 
-    // Main entry point for the boundary
     public function processRequest($request_method, $get_data, $post_data, $session_data)
     {
-        // Authentication check
         if (!isset($session_data['user_id'])) {
             return $this->render(null, ['Please log in to submit a review']);
         }
 
-        // Get agent_id from URL parameter
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             return $this->render(null, ['Invalid agent ID']);
         }
 
-        // Get agent details
         $agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$agent_details) {
             return $this->render(null, ['Agent not found']);
         }
 
-        // Handle form submission
         if ($request_method === 'POST') {
             $result = $this->controller->processCreateReview($post_data, $session_data['user_id']);
             return $this->render(
@@ -188,19 +171,15 @@ class CreateReviewBoundary
             );
         }
 
-        // Display initial form
         return $this->render($agent_details);
     }
 
-    // Render view
     public function render($agent_details = null, $errors = [], $success_message = '')
     {
-        // Start output buffering
         ob_start();
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
-
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -309,7 +288,6 @@ class CreateReviewBoundary
                 }
             </style>
         </head>
-
         <body>
             <div class="container">
                 <h1 class="form-title">Write a Review</h1>
@@ -330,7 +308,7 @@ class CreateReviewBoundary
 
                 <?php if ($agent_details): ?>
                     <div class="agent-info">
-                        <h2>Reviewing Agent: <?php echo htmlspecialchars($agent_details['username']); ?></h2>
+                        <h2>Reviewing Agent: <?php echo htmlspecialchars($agent_details['first_name'] . ' ' . $agent_details['last_name']); ?></h2>
                     </div>
 
                     <form method="POST" action="">
@@ -356,13 +334,12 @@ class CreateReviewBoundary
                 <?php endif; ?>
             </div>
         </body>
-
         </html>
         <?php
-        // End output buffering and flush output
         ob_end_flush();
     }
 }
+
 
 // Usage Example
 $mysqli = new mysqli("localhost", "root", "", "csit314");
