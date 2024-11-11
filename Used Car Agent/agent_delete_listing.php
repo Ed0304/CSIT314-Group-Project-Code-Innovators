@@ -32,6 +32,11 @@ class CarListing {
             $stmt->bind_param("i", $listing_id);
             $stmt->execute();
 
+            //Delete from all shortlist
+            $stmt = $this->db->prepare("DELETE FROM shortlist WHERE listing_id = ?");
+            $stmt->bind_param("i", $listing_id);
+            $stmt->execute();
+
             // Delete from listing table
             $stmt = $this->db->prepare("DELETE FROM listing WHERE listing_id = ?");
             $stmt->bind_param("i", $listing_id);

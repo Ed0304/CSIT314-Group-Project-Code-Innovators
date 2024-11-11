@@ -4,9 +4,10 @@ session_start();
 // BOUNDARY LAYER: Responsible for rendering user information and handling requests
 class SuspendUserAccountPage {
     private $accountController;
+    private $profileData;
 
     public function __construct() {
-        $this->accountController = new SuspendUserAccountController(); // Controller instance
+        $this->accountController = new SuspendUserAccountController();
     }
 
     public function handleRequest() {
@@ -15,41 +16,58 @@ class SuspendUserAccountPage {
             exit();
         }
 
-        // Handle the actions based on POST request
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $username = $_POST['username'];
+            $action = $_POST['action'];
 
-            if ($_POST['action'] === 'suspend') {
-                $this->accountController->setSuspend($username);
-                $_SESSION['success_message'] = "User account suspended successfully.";
-                echo "<script>
-                    alert('" . htmlspecialchars($_SESSION['success_message']) . "');
-                    window.location.href = 'admin_manage_user_acc.php';
-                </script>";
-                exit();
-            } elseif ($_POST['action'] === 'Remove') {
-                $this->accountController->setRemoveSuspend($username);
-                $_SESSION['removeSuspend_message'] = "User account suspension removed.";
-                echo "<script>
-                    alert('" . htmlspecialchars($_SESSION['removeSuspend_message']) . "');
-                    window.location.href = 'admin_manage_user_acc.php';
-                </script>";
-                exit();
+            if ($action === 'suspend') {
+                $success = $this->accountController->setSuspend($username);
+                $_SESSION['message'] = $success ? "User account suspended successfully." : "Failed to suspend user account.";
+            } elseif ($action === 'Remove') {
+                $success = $this->accountController->setRemoveSuspend($username);
+                $_SESSION['message'] = $success ? "User account suspension removed." : "Failed to remove suspension.";
             }
+
+            echo "<script>
+                alert('" . htmlspecialchars($_SESSION['message']) . "');
+                window.location.href = 'admin_manage_user_acc.php';
+            </script>";
+            exit();
         }
 
         $username = isset($_GET['username']) ? $_GET['username'] : '';
-
         if ($username) {
-            // Fetch profile data through the controller and render the page
-            $profileData = $this->accountController->getProfile($username);
-            $this->render($profileData);
+            $this->profileData = $this->accountController->getProfile($username);
         } else {
             echo "No username provided.";
         }
     }
 
-    public function render($profileData) {
+    private function getUsername() {
+        return $this->profileData['username'] ?? '';
+    }
+
+    private function getPassword() {
+        return $this->profileData['password'] ?? '';
+    }
+
+    private function getRoleName() {
+        return $this->profileData['role_name'] ?? '';
+    }
+
+    private function getEmail() {
+        return $this->profileData['email'] ?? '';
+    }
+
+    private function getPhoneNumber() {
+        return $this->profileData['phone_num'] ?? '';
+    }
+
+    private function getStatusName() {
+        return $this->profileData['status_name'] ?? '';
+    }
+
+    public function SuspendUserAccountUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -72,27 +90,27 @@ class SuspendUserAccountPage {
             <table id="infoTable">
                 <tr>
                     <td><strong>Username</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['username'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getUsername()); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Password</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['password'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getPassword()); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Role</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['role_name'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getRoleName()); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Email</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['email'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getEmail()); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Phone Number</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['phone_num'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getPhoneNumber()); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Status</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['status_name']); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($this->getStatusName()); ?></td>
                 </tr>
                 <tr>
                     <td><br/></td>
@@ -101,14 +119,14 @@ class SuspendUserAccountPage {
                 <tr>
                     <td>
                     <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username']); ?>">
+                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
                         <input type="hidden" name="action" value="suspend">
                         <button type="submit" style="font-size: 24px">Suspend</button>
                     </form>
                     </td>
                     <td>
                     <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username']); ?>">
+                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
                         <input type="hidden" name="action" value="Remove">
                         <button type="submit" style="font-size: 24px">Remove Suspension</button>
                     </form>
@@ -143,10 +161,11 @@ class SuspendUserAccountController {
         return $this->userAccountModel->Suspend($username);
     }
 
-    public function setRemoveSuspend($username){
+    public function setRemoveSuspend($username) {
         return $this->userAccountModel->RemoveSuspend($username);
     }
 }
+
 
 // ENTITY: Handles all logic for user data and database interactions
 class UserAccount {
@@ -154,7 +173,6 @@ class UserAccount {
 
     public function __construct() {
         try {
-            // Establish database connection within the entity
             $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
@@ -173,27 +191,22 @@ class UserAccount {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // suspend user function (status_id = 1 is active, status_id = 2 is suspended)
-    public function Suspend($username){
-        $stmt = $this -> pdo->prepare("UPDATE users  
-                                       SET status_id = 2
-                                       WHERE username = :username");
+    public function Suspend($username) {
+        $stmt = $this->pdo->prepare("UPDATE users SET status_id = 2 WHERE username = :username");
         $stmt->bindParam(':username', $username);
-        $stmt->execute();
+        return $stmt->execute(); //return true after successfully updated database
     }
 
-    
-    // remove suspend function
-    public function RemoveSuspend($username){
-        $stmt = $this -> pdo->prepare("UPDATE users  
-                                       SET status_id = 1
-                                       WHERE username = :username");
+    public function RemoveSuspend($username) {
+        $stmt = $this->pdo->prepare("UPDATE users SET status_id = 1 WHERE username = :username");
         $stmt->bindParam(':username', $username);
-        $stmt->execute();
+        return $stmt->execute(); //return true after successfully updated database
     }
 }
+
 
 // Now instantiate and handle the request in the Boundary layer
 $page = new SuspendUserAccountPage();
 $page->handleRequest();
+$page->SuspendUserAccountUI();
 ?>
