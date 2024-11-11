@@ -2,7 +2,7 @@
 require '../connectDatabase.php';
 session_start();
 
-// BOUNDARY LAYER: HTML View for managing user accounts
+// Boundary Layer: SearchUserProfilePage class for handling form display and user interaction
 class SearchUserProfilePage
 {
     private $controller;
@@ -100,7 +100,7 @@ class SearchUserProfilePage
     }
 }
 
-// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
+// Control Layer: SearchUserProfileController class for managing data flow between boundary and entity layers
 class SearchUserProfileController
 {
     private $userProfile;
@@ -121,7 +121,7 @@ class SearchUserProfileController
     }
 }
 
-// ENTITY LAYER: UserProfile handles all database interactions and data logic
+// Entity Layer: UserProfile class for interacting with the database
 class UserProfile {
     private $mysqli;
 
@@ -177,7 +177,7 @@ class UserProfile {
     }
 }
 
-// MAIN LOGIC: Initialize components and delegate request handling to the view
+// Global Layer: Initializing the components
 $userProfile = new UserProfile();
 $userController = new SearchUserProfileController($userProfile); 
 $userView = new SearchUserProfilePage($userController);

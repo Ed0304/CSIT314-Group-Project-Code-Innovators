@@ -2,7 +2,7 @@
 session_start();
 require '../connectDatabase.php';
 
-// ENTITY: Represents user data and database retrieval
+// Entity Layer: UserAccount class for interacting with the database
 class UserAccount {
     private $pdo;
 
@@ -33,8 +33,7 @@ class UserAccount {
     }
 }
 
-
-// CONTROL LAYER: Manages data flow between boundary and entity layers
+// Control Layer: ViewUserAccountController class for managing data flow between boundary and entity layers
 class ViewUserAccountController {
     private $userAccountModel;
 
@@ -47,7 +46,7 @@ class ViewUserAccountController {
     }
 }
 
-// BOUNDARY LAYER: Handles user interactions and rendering user information
+// Boundary Layer: ViewUserAccountPage class for handling form display and user interaction
 class ViewUserAccountPage {
     private $controller;
 
@@ -188,7 +187,7 @@ class ViewUserAccountPage {
     
 }
 
-// Main logic: Initialization and request handling
+// Global Layer: Initializing the components
 $userAccountEntity = new UserAccount();
 $controller = new ViewUserAccountController($userAccountEntity);
 $view = new ViewUserAccountPage($controller);

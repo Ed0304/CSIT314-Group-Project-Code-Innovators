@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// BOUNDARY LAYER: Responsible for rendering user information and handling requests
+// Boundary Layer: SuspendUserAccountPage class for handling form display and user interaction
 class SuspendUserAccountPage {
     private $accountController;
     private $profileData;
@@ -144,8 +144,7 @@ class SuspendUserAccountPage {
     }
 }
 
-
-// CONTROL LAYER: Serves as an intermediary between view and entity
+// Control Layer: SuspendUserAccountController class for managing data flow between boundary and entity layers
 class SuspendUserAccountController {
     private $userAccountModel;
 
@@ -166,8 +165,7 @@ class SuspendUserAccountController {
     }
 }
 
-
-// ENTITY: Handles all logic for user data and database interactions
+// Entity Layer: UserAccount class for interacting with the database
 class UserAccount {
     private $pdo;
 
@@ -204,8 +202,7 @@ class UserAccount {
     }
 }
 
-
-// Now instantiate and handle the request in the Boundary layer
+// Global Layer: Initializing the components
 $page = new SuspendUserAccountPage();
 $page->handleRequest();
 $page->SuspendUserAccountUI();

@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// ENTITY LAYER
+// Entity Layer: UserProfile class for interacting with the database
 class UserProfile {
     private $pdo;
 
@@ -43,7 +43,7 @@ class UserProfile {
     }
 }
 
-// CONTROL LAYER: Interacts with the Entity and passes data to the Boundary
+// Control Layer: ViewProfileController class for managing data flow between boundary and entity layers
 class ViewProfileController {
     private $userProfileModel;
 
@@ -62,7 +62,7 @@ class ViewProfileController {
     }
 }
 
-// BOUNDARY LAYER: Responsible for rendering user information
+// Boundary Layer: ViewProfileBoundary class for handling form display and user interaction
 class ViewProfileBoundary {
     private $profileController;
 
@@ -148,7 +148,7 @@ class ViewProfileBoundary {
     }
 }
 
-// MAIN EXECUTION: Initialize the classes and display content
+// Global Layer: Initializing the components
 $profileEntity = new UserProfile();
 $profileController = new ViewProfileController($profileEntity);
 $profileView = new ViewProfileBoundary($profileController);

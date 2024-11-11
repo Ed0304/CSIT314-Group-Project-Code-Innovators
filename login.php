@@ -2,7 +2,7 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: UserAccount class for UserAccount authentication with direct database interaction
+// Entity Layer: UserAccount class for interacting with the database 
 class UserAccount {
     public $username;
     public $password;
@@ -46,7 +46,7 @@ class UserAccount {
     }
 }
 
-// Controller Layer: LoginPageController class for handling user authentication logic
+// Control Layer: LoginPageController class for handling user authentication logic
 class LoginPageController {
     private $isSuspended = false;
 
@@ -82,7 +82,7 @@ class LoginPageController {
     }
 }
 
-// Boundary Layer: LoginPage class to handle form display and user interaction
+// Boundary Layer: LoginPage class for handling form display and user interaction
 class LoginPage {
 
     public static function LoginUI() {
@@ -192,6 +192,6 @@ class LoginPage {
     }
 }
 
-// Handle login request
+// Global Layer: Handle login request
 LoginPage::handleLogin();
 ?>
