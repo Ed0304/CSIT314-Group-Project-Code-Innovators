@@ -2,14 +2,15 @@
 session_start();
 
 // BOUNDARY LAYER: Responsible for rendering user information and handling requests
-class ProfileView {
-    private $profileData;
+class SuspendUserProfilePage {
+    private $controller;
+    private $profileData; // Store profile data internally
 
-    public function __construct($profileData) {
-        $this->profileData = $profileData;
+    public function __construct($controller) {
+        $this->controller = $controller;
     }
 
-    public function render() {
+    public function SuspendUserProfileUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -48,18 +49,18 @@ class ProfileView {
                 </tr>
                 <tr>
                     <td>
-                    <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
-                        <input type="hidden" name="action" value="suspend">
-                        <button type="submit" style="font-size: 24px">Suspend</button>
-                    </form>
+                        <form action="" method="POST" class="form-body"> 
+                            <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
+                            <input type="hidden" name="action" value="suspend">
+                            <button type="submit" style="font-size: 24px">Suspend</button>
+                        </form>
                     </td>
                     <td>
-                    <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
-                        <input type="hidden" name="action" value="Remove">
-                        <button type="submit" style="font-size: 24px">Remove Suspension</button>
-                    </form>
+                        <form action="" method="POST" class="form-body"> 
+                            <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
+                            <input type="hidden" name="action" value="Remove">
+                            <button type="submit" style="font-size: 24px">Remove Suspension</button>
+                        </form>
                     </td>
                     <td>
                         <form action="admin_manage_user_profiles.php" class="form-body">
@@ -80,17 +81,14 @@ class ProfileView {
         }
 
         // Use GET parameter to fetch the role_id
-        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        $role_id = $_GET['role_id'] ?? '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
             $role_id = $_POST['role_id'] ?? '';
 
             if ($action === 'suspend') {
-                $accountController = new AccountController();
-                $accountController->setSuspend($role_id);
-
-                // Prompt message before redirecting
+                $this->controller->setSuspend($role_id);
                 $_SESSION['success_message'] = "Profile suspended successfully.";
                 echo "<script>
                     alert('" . htmlspecialchars($_SESSION['success_message']) . "');
@@ -100,10 +98,7 @@ class ProfileView {
             }
 
             if ($action === 'Remove') {
-                $accountController = new AccountController();
-                $accountController->setRemoveSuspend($role_id);
-
-                // Prompt message before redirecting
+                $this->controller->setRemoveSuspend($role_id);
                 $_SESSION['removeSuspend_message'] = "Profile suspension removed.";
                 echo "<script>
                     alert('" . htmlspecialchars($_SESSION['removeSuspend_message']) . "');
@@ -114,10 +109,9 @@ class ProfileView {
         }
 
         if ($role_id) {
-            $accountController = new AccountController();
-            $profileData = $accountController->getProfile($role_id);
-            $this->profileData = $profileData;
-            $this->render();
+            // Retrieve profile data and store it in the property
+            $this->profileData = $this->controller->getProfile($role_id);
+            $this->SuspendUserProfileUI();
         } else {
             echo "No profile provided.";
         }
@@ -125,11 +119,11 @@ class ProfileView {
 }
 
 // CONTROL LAYER: Serves as an intermediary between view and entity
-class AccountController {
+class SuspendUserProfileController {
     private $userAccountModel;
 
     public function __construct() {
-        $this->userAccountModel = new UserAccount();
+        $this->userAccountModel = new UserProfile();
     }
 
     public function getProfile($role_id) {
@@ -137,16 +131,16 @@ class AccountController {
     }
 
     public function setSuspend($role_id) {
-        return $this->userAccountModel->Suspend($role_id);
+        return $this->userAccountModel->suspend($role_id);
     }
 
     public function setRemoveSuspend($role_id) {
-        return $this->userAccountModel->RemoveSuspend($role_id);
+        return $this->userAccountModel->removeSuspend($role_id);
     }
 }
 
 // ENTITY: Handles all logic for user data and database interactions
-class UserAccount {
+class UserProfile {
     private $pdo;
 
     public function __construct() {
@@ -172,13 +166,13 @@ class UserAccount {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function Suspend($role_id) {
+    public function suspend($role_id) {
         $stmt = $this->pdo->prepare("UPDATE users SET status_id = 2 WHERE role_id = :role_id");
         $stmt->bindParam(':role_id', $role_id);
         $stmt->execute();
     }
 
-    public function RemoveSuspend($role_id) {
+    public function removeSuspend($role_id) {
         $stmt = $this->pdo->prepare("UPDATE users SET status_id = 1 WHERE role_id = :role_id");
         $stmt->bindParam(':role_id', $role_id);
         $stmt->execute();
@@ -186,6 +180,7 @@ class UserAccount {
 }
 
 // MAIN EXECUTION: Initialize and handle the request in the Boundary layer
-$profileView = new ProfileView([]);
+$accountController = new SuspendUserProfileController();
+$profileView = new SuspendUserProfilePage($accountController);
 $profileView->handleRequest();
 ?>

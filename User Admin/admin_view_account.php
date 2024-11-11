@@ -20,16 +20,19 @@ class UserAccount {
     }
 
     public function getProfileByUsername($username) {
-        $stmt = $this->pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, s.status_name
+        $stmt = $this->pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, 
+            s.status_name, p.first_name, p.last_name, p.about, p.profile_image
             FROM users u
             JOIN role r ON u.role_id = r.role_id
             JOIN status s ON s.status_id = u.status_id
+            LEFT JOIN profile p ON u.user_id = p.user_id
             WHERE u.username = :username");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
+
 
 // CONTROL LAYER: Manages data flow between boundary and entity layers
 class ViewUserAccountController {
@@ -65,7 +68,7 @@ class ViewUserAccountPage {
             $username = $_GET['username'] ?? '';
             if ($username) {
                 $profileData = $this->controller->getProfile($username);
-                $this->render($profileData);
+                $this->ViewUserAccountUI($profileData);
             }
         }
     }
@@ -87,7 +90,7 @@ class ViewUserAccountPage {
         }
     }
 
-    public function render($profileData) {
+    public function ViewUserAccountUI($profileData) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -108,6 +111,28 @@ class ViewUserAccountPage {
         <body>
             <h1 style="text-align: center">Account Information</h1>
             <table id="infoTable">
+                <tr>
+                    <td><strong>Profile Image</strong></td>
+                    <td colspan="2">
+                        <?php
+                        if (!empty($profileData['profile_image'])) {
+                            // Assuming profile_image is stored as a BLOB, display it as base64
+                            echo '<img src="data:image/jpeg;base64,' . base64_encode($profileData['profile_image']) . '" alt="Profile Image" style="max-width: 200px; max-height: 200px;" />';
+                        } else {
+                            echo 'No profile image available.';
+                        }
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Full Name</strong></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['first_name'] .' '.htmlspecialchars($profileData['last_name'] ?? '')); ?></td>
+                </tr>
+                <tr>
+                <tr>
+                    <td><strong>About</strong></td>
+                    <td colspan="2"><?php echo htmlspecialchars($profileData['about'] ?? ''); ?></td>
+                </tr>
                 <tr>
                     <td><strong>Username</strong></td>
                     <td colspan="2"><?php echo htmlspecialchars($profileData['username'] ?? ''); ?></td>
@@ -131,7 +156,7 @@ class ViewUserAccountPage {
                 <tr>
                     <td><strong>Status</strong></td>
                     <td colspan="2"><?php echo htmlspecialchars($profileData['status_name']); ?></td>
-                </tr>
+                </tr>                
                 <tr>
                     <td><br/></td><td><br/></td>
                 </tr>
@@ -160,6 +185,7 @@ class ViewUserAccountPage {
         </html>
         <?php
     }
+    
 }
 
 // Main logic: Initialization and request handling

@@ -1,7 +1,7 @@
 <?php
 require "../connectDatabase.php"; // Ensure this file contains your Database class
 
-// ENTITY LAYER: Represents the UserProfile data structure and handles DB interactions
+// ENTITY LAYER: Handles DB interactions
 class UserProfile {
     private $conn;
 
@@ -10,21 +10,22 @@ class UserProfile {
         $this->conn = $database->getConnection();
     }
 
+    public function createUserProfile($role_name, $role_description) {
+        $stmt = $this->conn->prepare("INSERT INTO role (role_name, role_description) VALUES (?, ?)");
+        $stmt->bind_param("ss", $role_name, $role_description);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
+    }
+    
     public function checkRoleExists($role_name) {
         $stmt = $this->conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
         $stmt->bind_param("s", $role_name);
         $stmt->execute();
         $result = $stmt->get_result();
-        $role = $result->fetch_assoc();
+        $roleExists = $result->num_rows > 0;
         $stmt->close();
-        return $role ? $role['role_id'] : null;
-    }
-
-    public function createProfile($role_name, $role_description) {
-        $stmt = $this->conn->prepare("INSERT INTO role (role_name, role_description) VALUES (?, ?)");
-        $stmt->bind_param("ss", $role_name, $role_description);
-        $stmt->execute();
-        $stmt->close();
+        return $roleExists;
     }
 
     public function closeConnection() {
@@ -32,7 +33,7 @@ class UserProfile {
     }
 }
 
-// CONTROLLER LAYER: Manages data flow between Boundary and Entity, handles business logic
+// CONTROLLER LAYER: Manages data flow between Boundary and Entity
 class CreateUserProfileController {
     private $entity;
 
@@ -40,24 +41,16 @@ class CreateUserProfileController {
         $this->entity = $entity;
     }
 
-    public function processProfileCreation($formData) {
-        $role_name = $formData['role_name'] ?? null;
-        $role_description = $formData['role_description'] ?? null;
+    public function createUserProfile($role_name, $role_description) {
+        return $this->entity->createUserProfile($role_name, $role_description);
+    }
 
-        if (!$role_name || !$role_description) {
-            return "error_missing_fields"; // Flag to indicate missing fields
-        }
-
-        if ($this->entity->checkRoleExists($role_name)) {
-            return "error_role_exists"; // Flag to indicate role name conflict
-        }
-
-        $this->entity->createProfile($role_name, $role_description);
-        return "success"; // Flag to indicate successful creation
+    public function checkRoleExists($role_name) {
+        return $this->entity->checkRoleExists($role_name);
     }
 }
 
-// BOUNDARY LAYER: Handles user interface tasks for profile creation, display, validation
+// BOUNDARY LAYER: Handles user interface tasks for profile creation and validation
 class CreateUserProfilePage {
     private $controller;
     private $message;
@@ -68,7 +61,7 @@ class CreateUserProfilePage {
     }
 
     // Display function
-    public function render() {
+    public function CreateUserProfileUI() {
         ?>
         <html>
         <head>
@@ -118,22 +111,36 @@ class CreateUserProfilePage {
         <?php
     }
 
-    // Handle user input and delegate to the controller
+    // Handle user input and validate before passing to the controller
     public function handleFormSubmission() {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $result = $this->controller->processProfileCreation($_POST);
+            $role_name = trim($_POST['role_name'] ?? "");
+            $role_description = trim($_POST['role_description'] ?? "");
 
-            // Boundary interprets the result and sets appropriate message
-            if ($result === "success") {
+            if (empty($role_name) || empty($role_description)) {
+                $this->message = "All fields are required.";
+                return;
+            }
+
+            // Check for role existence before passing data to the controller
+            $exists = $this->controller->checkRoleExists($role_name);
+            if ($exists) {
+                $this->message = "Profile name already exists. Please choose a different name.";
+                return;
+            }
+
+            // Send validated data to controller
+            $isProfileCreated = $this->controller->createUserProfile($role_name, $role_description);
+
+            if ($isProfileCreated) {
                 header("Location: admin_manage_user_profiles.php");
                 exit();
-            } elseif ($result === "error_missing_fields") {
-                $this->message = "All fields are required.";
-            } elseif ($result === "error_role_exists") {
-                $this->message = "Profile name already exists. Please choose a different name.";
+            } else {
+                $this->message = "Error creating profile. Please try again.";
             }
         }
     }
+
 }
 
 // MAIN APPLICATION LOGIC
@@ -143,7 +150,7 @@ $view = new CreateUserProfilePage($controller);
 
 // Process form and render the page
 $view->handleFormSubmission();
-$view->render();
+$view->CreateUserProfileUI();
 
 // Close the database connection
 $userProfileEntity->closeConnection();

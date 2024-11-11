@@ -3,7 +3,7 @@ require '../connectDatabase.php';
 session_start();
 
 // BOUNDARY LAYER: HTML View for managing user accounts
-class UserAccountView
+class ViewUserProfilePage
 {
     private $controller;
 
@@ -41,10 +41,10 @@ class UserAccountView
         }
 
         $about = $this->controller->getAbout();
-        $this->render($users, $about, $role_id);
+        $this->ViewUserProfileUI($users, $about, $role_id);
     }
 
-    public function render($users, $about, $role_id)
+    public function ViewUserProfileUI($users, $about, $role_id)
     {
         ?>
         <!DOCTYPE HTML>
@@ -111,7 +111,7 @@ class UserAccountView
 }
 
 // CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
-class UserAccountController
+class ViewUserProfileController
 {
     private $userProfile;
 
@@ -177,7 +177,7 @@ class UserProfile {
 
 // MAIN LOGIC: Initialize components and delegate request handling to the view
 $userProfile = new UserProfile();
-$userController = new UserAccountController($userProfile); 
-$userView = new UserAccountView($userController);
+$userController = new ViewUserProfileController($userProfile); 
+$userView = new ViewUserProfilePage($userController);
 $userView->handleRequest();
 ?>

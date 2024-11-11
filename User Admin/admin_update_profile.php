@@ -13,12 +13,18 @@ class UserProfile {
     private $role_id;
     private $role_description;
 
-    public function __construct($connection, $role_id = null) {
-        $this->conn = $connection;
+    public function __construct($role_id = null) {
+        $this->conn = $this->getConnection();
         if ($role_id) {
             $this->role_id = $role_id;
             $this->loadRole();
         }
+    }
+
+    private function getConnection() {
+        // Assuming connectDatabase.php sets up $conn globally
+        global $conn;
+        return $conn;
     }
 
     public function getRoleId() {
@@ -42,7 +48,7 @@ class UserProfile {
         if ($row = $result->fetch_assoc()) {
             $this->role_description = $row['role_description'];
         } else {
-            throw new Exception("UserProfile not found");
+            throw new Exception("User Profile not found");
         }
     }
 
@@ -57,8 +63,8 @@ class UserProfile {
 class UpdateUserProfileController {
     private $profile;
 
-    public function __construct($connection, $role_id) {
-        $this->profile = new UserProfile($connection, $role_id);
+    public function __construct($role_id) {
+        $this->profile = new UserProfile($role_id);
     }
 
     public function getRole() {
@@ -74,11 +80,9 @@ class UpdateUserProfileController {
 // Boundary class: Handles display and form interactions
 class UpdateUserProfilePage {
     private $profileController;
-    private $profile;
 
-    public function __construct($connection, $role_id) {
-        $this->profileController = new UpdateUserProfileController($connection, $role_id);
-        $this->profile = $this->profileController->getRole();
+    public function __construct($profileController) {
+        $this->profileController = $profileController;
     }
 
     public function handleFormSubmission() {
@@ -93,7 +97,8 @@ class UpdateUserProfilePage {
         }
     }
 
-    public function renderForm() {
+    public function UpdateUserProfileUI() {
+        $profile = $this->profileController->getRole();
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -161,19 +166,19 @@ class UpdateUserProfilePage {
                     padding: 12px 18px;
                     border-radius: 5px;
                     font-size: 16px;
+                    text-align: center;
                 }
 
                 .return-button:hover {
                     background-color: #0056b3;
                 }
-
             </style>
         </head>
         <body>
             <h1>Update User Profile Description</h1>
             <form action="" method="post">
                 <label for="role_description">New Description:</label>
-                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($this->profile->getRoleDescription()); ?></textarea>
+                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getRoleDescription()); ?></textarea>
                 <button type="submit">Update Description</button>
             </form>
             <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
@@ -183,7 +188,9 @@ class UpdateUserProfilePage {
     }
 }
 
-$roleBoundary = new UpdateUserProfilePage($conn, $role_id);
+// Main script to initialize the Controller and Boundary
+$profileController = new UpdateUserProfileController($role_id);
+$roleBoundary = new UpdateUserProfilePage($profileController);
 $roleBoundary->handleFormSubmission();
-$roleBoundary->renderForm();
+$roleBoundary->UpdateUserProfileUI();
 ?>

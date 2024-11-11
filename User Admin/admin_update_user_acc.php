@@ -76,22 +76,22 @@ class UserAccount {
 
 // CONTROL LAYER: Manages account updates and data retrieval
 class UpdateUserAccountController {
-    private $entity;
+    private $useraccount;
 
     public function __construct() {
-        $this->entity = new UserAccount();
+        $this->useraccount = new UserAccount();
     }
 
     public function getUserAccount($username) {
-        return $this->entity->getUserDetails($username);
+        return $this->useraccount->getUserDetails($username);
     }
 
     public function handleAccountUpdate($data) {
-        return $this->entity->updateUser($data);
+        return $this->useraccount->updateUser($data);
     }
 
     public function closeEntityConnection() {
-        $this->entity->closeConnection();
+        $this->useraccount->closeConnection();
     }
 }
 
@@ -118,7 +118,7 @@ class UpdateUserAccountPage {
         }
     }
 
-    public function renderForm() {
+    public function UpdateUserAccountUI() {
         if (!isset($_GET['username'])) {
             header("Location: admin_manage_user_acc.php");
             exit();
@@ -198,5 +198,5 @@ class UpdateUserAccountPage {
 // Instantiate the Boundary class and handle the form submission
 $view = new UpdateUserAccountPage();
 $view->handleFormSubmission();
-$view->renderForm();
+$view->UpdateUserAccountUI();
 ?>
