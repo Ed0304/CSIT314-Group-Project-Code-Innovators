@@ -59,6 +59,19 @@ class DashboardView {
         </html>
         <?php
     }
+}
+
+// Control layer
+class DashboardController {
+    private $view;
+    private $agent;
+
+    public function __construct(Agent $agent) {
+        $this->agent = $agent;
+        $this->view = new DashboardView();
+        $this->view->setUsername($this->agent->getUsername()); // Set the username in the view
+    }
+
     public function handleRequest() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['manageProfile'])) {
@@ -87,20 +100,6 @@ class DashboardView {
         // Render the view without parameters
         $this->view->render();
     }
-}
-
-// Control layer
-class DashboardController {
-    private $view;
-    private $agent;
-
-    public function __construct(Agent $agent) {
-        $this->agent = $agent;
-        $this->view = new DashboardView();
-        $this->view->setUsername($this->agent->getUsername()); // Set the username in the view
-    }
-
-    
 }
 
 // Main logic
