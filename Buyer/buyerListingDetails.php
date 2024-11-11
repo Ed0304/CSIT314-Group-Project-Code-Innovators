@@ -1,36 +1,31 @@
 <?php
-// Start session and include the database connection
 session_start();
 require_once "../connectDatabase.php";
 
-// Entity: CarListing
-class CarListing
-{
-    private $conn;
+
+// Listing Entity: Handles all operations related to a single listing
+class Listing {
+    private $database;
 
     public $manufacturerName;
     public $modelName;
     public $modelYear;
-    public $listingColor;
-    public $listingPrice;
-    public $listingDescription;
+    public $color;
+    public $price;
+    public $description;
     public $agentFirstName;
     public $agentLastName;
-    public $listingImage;
+    public $image;
 
-    public function __construct($conn, $listing_id)
-    {
-        $this->conn = $conn;
-        $this->loadListing($listing_id);
+    public function __construct($database) {
+        $this->database = $database;
     }
 
-    // Fetch listing details from the database
-    private function loadListing($listing_id)
-    {
-        // Increment the views when the listing is accessed
-        $this->incrementViews($listing_id);
+    public function load($id) {
+        $conn = $this->database->getConnection();
+        $this->incrementViews($id, $conn);
 
-        $stmt = $this->conn->prepare("
+        $stmt = $conn->prepare("
             SELECT 
                 l.manufacturer_name, 
                 l.model_name, 
@@ -48,73 +43,61 @@ class CarListing
             WHERE 
                 l.listing_id = ?
         ");
-        $stmt->bind_param("i", $listing_id);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $data = $result->fetch_assoc();
+        $data = $stmt->get_result()->fetch_assoc();
 
         if ($data) {
             $this->manufacturerName = $data['manufacturer_name'];
             $this->modelName = $data['model_name'];
             $this->modelYear = $data['model_year'];
-            $this->listingColor = $data['listing_color'];
-            $this->listingPrice = $data['listing_price'];
-            $this->listingDescription = $data['listing_description'];
+            $this->color = $data['listing_color'];
+            $this->price = $data['listing_price'];
+            $this->description = $data['listing_description'];
             $this->agentFirstName = $data['first_name'];
             $this->agentLastName = $data['last_name'];
-            $this->listingImage = $data['listing_image'];
+            $this->image = $data['listing_image'];
         }
+        $stmt->close();
     }
 
-    // Increment view count for the listing
-    private function incrementViews($listing_id)
-    {
+    private function incrementViews($id, $conn) {
         $query = "UPDATE listing SET views = views + 1 WHERE listing_id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $listing_id);
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->close();
     }
 }
 
+// ListingController: Coordinates actions for a Listing
+class ListingController {
+    private $listing;
 
-// Control: ListingDetailsController
-class ListingDetailsController
-{
-    private $conn;
-
-    public function __construct($conn)
-    {
-        $this->conn = $conn;
+    public function __construct($listing) {
+        $this->listing = $listing;
     }
 
-    // Fetch the listing details by calling the CarListing class
-    public function getListing($listing_id)
-    {
-        $carListing = new CarListing($this->conn, $listing_id);
-        return $carListing;
+    public function getListingDetails($id) {
+        $this->listing->load($id);
+        return $this->listing;
     }
 }
 
-// Boundary: ListingDetailsView
-class ListingDetailsView
-{
-    public function handleRequest()
-    {
+// ListingView: Renders the listing details
+class ListingView {
+    public function handleRequest() {
         if (!isset($_POST['listing_id'])) {
-            header("Location: buyerDashboard.php");
+            header("Location: buyer_dashboard.php");
             exit();
         }
-
         return $_POST['listing_id'];
     }
 
-    public function render($listing)
-    {
+    public function render($listing) {
         ?>
         <!DOCTYPE html>
         <html lang="en">
-
         <head>
             <meta charset="UTF-8">
             <title>Listing Details</title>
@@ -188,51 +171,40 @@ class ListingDetailsView
                 <h1>Listing Details</h1>
                 <?php if ($listing): ?>
                     <div class="details">
-                        <?php if ($listing->listingImage): ?>
-                            <img src="data:image/jpeg;base64,<?php echo base64_encode($listing->listingImage); ?>" class="listing-image"
-                                alt="Listing Image">
+                        <?php if ($listing->image): ?>
+                            <img src="data:image/jpeg;base64,<?php echo base64_encode($listing->image); ?>" class="listing-image" alt="Listing Image">
                         <?php endif; ?>
                         <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($listing->manufacturerName); ?></p>
                         <p><strong>Model:</strong> <?php echo htmlspecialchars($listing->modelName); ?></p>
                         <p><strong>Year:</strong> <?php echo htmlspecialchars($listing->modelYear); ?></p>
-                        <p><strong>Color:</strong> <?php echo htmlspecialchars($listing->listingColor); ?></p>
-                        <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->listingPrice); ?></p>
-                        <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->listingDescription); ?></p>
-                        <p><strong>Agent:</strong>
-                            <?php echo htmlspecialchars($listing->agentFirstName . " " . $listing->agentLastName); ?></p>
-                        <br />
-                        <br />
+                        <p><strong>Color:</strong> <?php echo htmlspecialchars($listing->color); ?></p>
+                        <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->price); ?></p>
+                        <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->description); ?></p>
+                        <p><strong>Agent:</strong> <?php echo htmlspecialchars($listing->agentFirstName . " " . $listing->agentLastName); ?></p>
                         <?php
-                        $referrer = isset($_GET['referrer']) ? $_GET['referrer'] : (isset($_POST['referrer']) ? $_POST['referrer'] : 'dashboard');
+                        $referrer = $_GET['referrer'] ?? $_POST['referrer'] ?? 'dashboard';
                         ?>
-                        <a href="<?php echo $referrer === 'shortlist' ? 'buyer_view_shortlist.php' : 'buyer_dashboard.php'; ?>"
-                            class="back-link">Back to <?php echo ucfirst($referrer); ?></a>
+                        <a href="<?php echo $referrer === 'shortlist' ? 'buyer_view_shortlist.php' : 'buyer_dashboard.php'; ?>" class="back-link">Back to <?php echo ucfirst($referrer); ?></a>
                     </div>
                 <?php else: ?>
                     <p>Listing not found.</p>
                 <?php endif; ?>
             </div>
         </body>
-
         </html>
         <?php
     }
 }
 
-// Initialize the database connection and retrieve listing details
+// Initialize and use the classes
 $database = new Database();
-$conn = $database->getConnection();
+$listing = new Listing($database);
+$controller = new ListingController($listing);
+$view = new ListingView();
 
-// Create the view and handle the request
-$view = new ListingDetailsView();
-$listing_id = $view->handleRequest();  // This now handles the redirection if necessary
+$listing_id = $view->handleRequest();
+$listingDetails = $controller->getListingDetails($listing_id);
 
-// Create the controller and fetch the listing details
-$controller = new ListingDetailsController($conn);
-$listing = $controller->getListing($listing_id);
-
-// Close the database connection
+$view->render($listingDetails);
 $database->closeConnection();
-
-// Render the view
-$view->render($listing);
+?>

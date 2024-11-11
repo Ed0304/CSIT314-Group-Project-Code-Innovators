@@ -60,7 +60,7 @@ class ViewReviewController
 // Boundary Class: ViewReviewPage (Renders HTML view)
 class ViewReviewPage
 {
-    public function render($reviewData)
+    public function BuyerViewReviewDetailsUI($reviewData)
     {
         if ($reviewData) {
             ?>
@@ -256,7 +256,7 @@ class ViewReviewPage
             $mysqli = $database->getConnection();
             $controller = new ViewReviewController($mysqli);
             $reviewData = $controller->getReviewData($review_id); // Fetch review data from Review model
-            $this->render($reviewData); // Render the review details in the boundary
+            $this->BuyerViewReviewDetailsUI($reviewData); // Render the review details in the boundary
             $database->closeConnection();
         } else {
             echo "<p>Review ID is missing.</p>";

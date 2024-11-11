@@ -46,38 +46,39 @@ class UserAccount {
     }
 
     // Fetches profile data directly from the database
-    public static function getProfileByUsername($pdo, $username) {
-        $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 
-                  FROM profile p 
-                  JOIN users u ON p.user_id = u.user_id 
-                  JOIN role r ON r.role_id = u.role_id 
-                  WHERE u.username = :username";
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
-        
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $data ? new self($data) : null;
+    public static function getProfileByUsername($username) {
+        try {
+            $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 
+                      FROM profile p 
+                      JOIN users u ON p.user_id = u.user_id 
+                      JOIN role r ON r.role_id = u.role_id 
+                      WHERE u.username = :username";
+            
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+            
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $data ? new self($data) : null;
+        } catch (PDOException $e) {
+            die("Database connection failed: " . $e->getMessage());
+        }
     }
 }
 
 // CONTROL LAYER: Handles business logic and manages the entity layer
-class UserAccountController {
-    private $pdo;
-
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
-    }
-
+class ViewAgentAccountController {
     // Fetches the profile as a UserAccount object
     public function getProfile($username) {
-        return UserAccount::getProfileByUsername($this->pdo, $username);
+        return UserAccount::getProfileByUsername($username);
     }
 }
 
 // BOUNDARY LAYER: Responsible for rendering the user interface
-class UserAccountPage {
+class ViewAgentAccountPage {
     private $profileData;
 
     public function __construct($profileData) {
@@ -177,21 +178,10 @@ class UserAccountPage {
 }
 
 // MAIN LOGIC: Sets up components and renders the view
-try {
-    // Establish database connection
-    $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$accountController = new ViewAgentAccountController();
+$profileData = $accountController->getProfile($username);
 
-    // Initialize controller
-    $accountController = new UserAccountController($pdo);
-
-    // Retrieve user profile data
-    $profileData = $accountController->getProfile($username);
-
-    // Render the view with retrieved profile data
-    $userAccount = new UserAccountPage($profileData);
-    $userAccount->render();
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+// Render the view with retrieved profile data
+$userAccount = new ViewAgentAccountPage($profileData);
+$userAccount->render();
 ?>

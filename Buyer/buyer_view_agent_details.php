@@ -13,6 +13,7 @@ $user_id = $_GET['user_id'];
 // Entity class representing the Agent
 class Agent
 {
+    private $mysqli;
     private $user_id;
     private $first_name;
     private $last_name;
@@ -36,21 +37,28 @@ class Agent
         $this->username = $username;
     }
 
-    public static function fetchAgentDetails($mysqli, $user_id)
+    public static function fetchAgentDetails($user_id)
     {
+        $mysqli = new mysqli("localhost", "root", "", "csit314");
+        
         $query = "
             SELECT p.user_id, p.first_name, p.last_name, p.about, p.profile_image, p.status_id, u.email, u.phone_num, u.username
             FROM profile p
             JOIN users u ON p.user_id = u.user_id
             WHERE p.user_id = ?
         ";
+        
         $stmt = $mysqli->prepare($query);
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $stmt->bind_result($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
+        
         if ($stmt->fetch()) {
+            $mysqli->close();
             return new self($user_id, $first_name, $last_name, $about, $profile_image, $status_id, $email, $phone, $username);
         }
+        
+        $mysqli->close();
         return null; // No agent found
     }
 
@@ -67,21 +75,30 @@ class Agent
 // Controller class to handle fetching agent details
 class viewAgentController
 {
-    private $mysqli;
-    public function __construct($mysqli)
+    private $user_id;
+
+    public function getAgentDetails($user_id)
     {
-        $this->mysqli = $mysqli;
+        $this->agent = Agent::fetchAgentDetails($user_id);
     }
-    public function getAgent($user_id)
+
+    public function getAgent()
     {
-        return Agent::fetchAgentDetails($this->mysqli, $user_id);
+        return $this->agent;
     }
 }
 
 // Boundary class to present agent details to the buyer
 class viewAgentBoundary
 {
-    public function render($agent)
+    private $viewAgentController;
+
+    public function __construct($viewAgentController)
+    {
+        $this->viewAgentController = $viewAgentController;
+    }
+
+    public function render()
     {
         $referrer = isset($_GET['referrer']) ? $_GET['referrer'] : (isset($_POST['referrer']) ? $_POST['referrer'] : 'dashboard');
 
@@ -158,23 +175,23 @@ class viewAgentBoundary
         </head>
         <body>
         <div class='container'>";
-        if ($agent) {
+        if ($this->viewAgentController) {
             echo "<h2>Agent Details</h2>";
-            if ($agent->getProfileImage()) {
-                $imageData = base64_encode($agent->getProfileImage());
+            if ($this->viewAgentController->getProfileImage()) {
+                $imageData = base64_encode($this->viewAgentController->getProfileImage());
                 echo "<img src='data:image/jpeg;base64,$imageData' alt='Profile Image' class='profile-image' />";
             } else {
                 echo "<img src='../default-profile.jpg' alt='Default Profile Image' class='profile-image' />";
             }
-            echo "<p><strong>Name:</strong> " . $agent->getFirstName() . " " . $agent->getLastName() . "</p>";
-            echo "<p><strong>About:</strong> " . $agent->getAbout() . "</p>";
+            echo "<p><strong>Name:</strong> " . $this->viewAgentController->getFirstName() . " " . $this->viewAgentController->getLastName() . "</p>";
+            echo "<p><strong>About:</strong> " . $this->viewAgentController->getAbout() . "</p>";
             echo "<div class='contact-info'>";
-            echo "<p><strong>Email:</strong> " . $agent->getEmail() . "</p>";
-            echo "<p><strong>Phone:</strong> " . $agent->getPhone() . "</p>";
+            echo "<p><strong>Email:</strong> " . $this->viewAgentController->getEmail() . "</p>";
+            echo "<p><strong>Phone:</strong> " . $this->viewAgentController->getPhone() . "</p>";
             echo "</div>";
             echo "<div class='buttons'>";
             echo "<a href='" . ($referrer === 'shortlist' ? 'buyer_view_shortlist.php' : 'buyer_dashboard.php') . "' class='back-button'>Return</a>";
-            echo "<a href='buyerviewReviews.php?username=" . $agent->getUsername() . "' class='reviews-button'>View Reviews</a>";
+            echo "<a href='buyerviewReviews.php?username=" . $this->viewAgentController->getUsername() . "' class='reviews-button'>View Reviews</a>";
             echo "</div>";
         } else {
             echo "<p>Agent details not found.</p>";
@@ -184,10 +201,9 @@ class viewAgentBoundary
 }
 
 // Main script logic
-$mysqli = new mysqli("localhost", "root", "", "csit314");
-$controller = new viewAgentController($mysqli);
-$agent = $controller->getAgent($user_id);
-$boundary = new viewAgentBoundary();
-$boundary->render($agent);
-$mysqli->close();
+$controller = new viewAgentController();
+$controller->getAgentDetails($user_id);
+
+$boundary = new viewAgentBoundary($controller->getAgent());
+$boundary->render();
 ?>

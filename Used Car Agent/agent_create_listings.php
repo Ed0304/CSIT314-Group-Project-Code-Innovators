@@ -90,7 +90,7 @@ class CreateCarListingPage {
         }
     }
 
-    public function render() {
+    public function CreateCarListingUI() {
         ?>
         <html>
         <head>
@@ -148,5 +148,5 @@ $createCarListingPage = new CreateCarListingPage($carListingController);
 
 // Process the form submission within the boundary class
 $createCarListingPage->processRequest();
-$createCarListingPage->render();
+$createCarListingPage->CreateCarListingUI();
 ?>

@@ -5,11 +5,11 @@ require '../connectDatabase.php';
 
 // Entity Class: Review
 class Reviews {
-    private $mysqli;
-    private $stars;
-    private $date;
-    private $reviewerUsername;
-    private $review_id;
+    public $mysqli;
+    public $stars;
+    public $date;
+    public $reviewerUsername;
+    public $review_id;
 
     public function __construct($mysqli, $stars = null, $date = null, $reviewerUsername = null, $review_id = null) {
         $this->mysqli = $mysqli;
@@ -35,7 +35,6 @@ class Reviews {
         return $this->reviewerUsername;
     }
 
-    // Method to retrieve user ID by username
     public function getUserIdByUsername($username) {
         $stmt = $this->mysqli->prepare("SELECT user_id FROM users WHERE username = ?");
         if (!$stmt) {
@@ -50,7 +49,6 @@ class Reviews {
         return null;
     }
 
-    // Method to retrieve reviews for a specific agent
     public function getAgentRatingsAndReviews($agent_id) {
         $query = "SELECT r.review_id, r.review_stars, r.review_date, u.username
                   FROM review r
@@ -74,31 +72,35 @@ class Reviews {
 
 // Control Class: ViewAllReviewsController
 class ViewAllReviewsController {
-    private $mysqli;
+    public $reviewEntity;
 
-    public function __construct($mysqli) {
-        $this->mysqli = $mysqli;
+    public function __construct($reviewEntity) {
+        $this->reviewEntity = $reviewEntity;
     }
 
-    public function handleRequest() {
-        $reviews = [];
-        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
-            $username = trim($_GET['username']);
-            if (!empty($username)) {
-                $reviewEntity = new Reviews($this->mysqli);
-                $userId = $reviewEntity->getUserIdByUsername($username);
-                if ($userId) {
-                    $reviews = $reviewEntity->getAgentRatingsAndReviews($userId);
-                }
-            }
-        }
-        return $reviews;
+    public function getAgentReviewsByUserId($userId) {
+        return $this->reviewEntity->getAgentRatingsAndReviews($userId);
     }
 }
 
 // Boundary Class: ViewAllReviewsPage
 class ViewAllReviewsPage {
-    public function render($reviews = [], $message = "") {
+    public function handleRequest($controller) {
+        $reviews = [];
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['username'])) {
+            $username = trim($_GET['username']);
+            if (!empty($username)) {
+                $userId = $controller->reviewEntity->getUserIdByUsername($username);
+                if ($userId) {
+                    $reviews = $controller->getAgentReviewsByUserId($userId);
+                }
+            }
+        }
+        return $reviews;
+    }
+
+    public function render($controller, $message = "") {
+        $reviews = $this->handleRequest($controller);
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -180,11 +182,10 @@ class ViewAllReviewsPage {
 $database = new Database();
 $mysqli = $database->getConnection();
 
-$ratingsReviewsController = new ViewAllReviewsController($mysqli);
-$reviews = $ratingsReviewsController->handleRequest();
-
+$reviewEntity = new Reviews($mysqli);
+$ratingsReviewsController = new ViewAllReviewsController($reviewEntity);
 $view = new ViewAllReviewsPage();
-$view->render($reviews);
+$view->render($ratingsReviewsController);
 
 $database->closeConnection();
 ?>

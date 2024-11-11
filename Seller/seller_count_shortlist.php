@@ -29,6 +29,9 @@ class SellerCountShortlistPage {
             echo "<p style='text-align: center;'>Listing not found.</p>";
         }
     }
+    public function handleRequest(){
+        
+    }
 }
 
 class SellerCountShortlistController {

@@ -65,11 +65,15 @@ class DeleteCarListingController {
         $this->carListing = $carListing;
     }
 
-    public function getListingDetails($listing_id) {
-        return $this->carListing->findById($listing_id);
+    public function getListingDetails() {
+        $listing_id = $_GET['listing_id'] ?? null;
+        if ($listing_id) {
+            return $this->carListing->findById($listing_id);
+        }
+        return null;
     }
 
-    public function deleteListing($listing_id) {
+    public function deleteCarListing($listing_id) {
         return $this->carListing->deleteById($listing_id);
     }
 }
@@ -86,17 +90,17 @@ class DeleteCarListingPage {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
             $this->processDeleteRequest($_POST['listing_id']);
         } else {
-            $listing_id = $_GET['listing_id'] ?? null;
-            if ($listing_id) {
-                $this->renderConfirmation($listing_id);
+            $listing = $this->controller->getListingDetails();
+            if ($listing) {
+                $this->DeleteCarListingUI($listing);
             } else {
-                echo "Listing ID not provided!";
+                echo "Listing not found or ID not provided!";
             }
         }
     }
 
     private function processDeleteRequest($listing_id) {
-        if ($this->controller->deleteListing($listing_id)) {
+        if ($this->controller->deleteCarListing($listing_id)) {
             header("Location: agent_view_listings.php?message=Listing deleted successfully");
             exit();
         } else {
@@ -104,14 +108,7 @@ class DeleteCarListingPage {
         }
     }
 
-    public function renderConfirmation($listing_id) {
-        $listing = $this->controller->getListingDetails($listing_id);
-
-        if (!$listing) {
-            echo "Listing not found.";
-            return;
-        }
-
+    public function DeleteCarListingUI($listing) {
         // Render HTML with listing details
         ?>
         <!DOCTYPE HTML>
@@ -172,5 +169,6 @@ $carListingEntity = new CarListing($db->getConnection());
 $controller = new DeleteCarListingController($carListingEntity);
 $view = new DeleteCarListingPage($controller);
 $view->handleRequest();
+
 
 ?>
