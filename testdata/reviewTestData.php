@@ -38,6 +38,15 @@ try {
         return date("Y-m-d", $timestamp);
     }
 
+    // Define review descriptions based on star rating
+    $reviewDescriptions = [
+        1 => "Very disappointing service.",
+        2 => "Could be better.",
+        3 => "Average service.",
+        4 => "Good experience.",
+        5 => "Excellent service."
+    ];
+
     // Prepare the SQL statement
     $stmt = $pdo->prepare("INSERT INTO review (review_id, review_details, review_stars, reviewer_id, agent_id, review_date) 
                            VALUES (:review_id, :review_details, :review_stars, :reviewer_id, :agent_id, :review_date)");
@@ -45,13 +54,8 @@ try {
     // Insert 100 reviews
     for ($i = 1; $i <= $reviewCount; $i++) {
         $reviewId = $i;
-        $reviewDetails = [
-            "Excellent service.", "Good experience.", "Very professional.",
-            "Average service.", "Could be better.", "Friendly and prompt.",
-            "Knowledgeable agent.", "Satisfactory experience."
-        ];
-        $details = $reviewDetails[array_rand($reviewDetails)];
-        $stars = rand(1, $maxStars);
+        $stars = rand(1, $maxStars);  // Random stars between 1 and maxStars
+        $reviewDetails = $reviewDescriptions[$stars]; // Get review details based on the stars
         $reviewerId = $reviewerIds[array_rand($reviewerIds)];
         $agentId = $agentIds[array_rand($agentIds)];
         $date = randomDate($startDate, $endDate);
@@ -59,7 +63,7 @@ try {
         // Bind parameters and execute
         $stmt->execute([
             ':review_id' => $reviewId,
-            ':review_details' => $details,
+            ':review_details' => $reviewDetails,
             ':review_stars' => $stars,
             ':reviewer_id' => $reviewerId,
             ':agent_id' => $agentId,

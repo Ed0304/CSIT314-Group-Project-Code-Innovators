@@ -3,14 +3,6 @@
 session_start();
 require_once "../connectDatabase.php";
 
-if (!isset($_POST['listing_id'])) {
-    header("Location: buyerDashboard.php");
-    exit();
-}
-
-$listing_id = $_POST['listing_id'];
-
-// Entity: CarListing
 // Entity: CarListing
 class CarListing
 {
