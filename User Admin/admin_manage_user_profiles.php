@@ -1,8 +1,9 @@
 <?php
 require '../connectDatabase.php';
+session_start();
 
-// BOUNDARY LAYER: HTML View for managing user Profiles
-class UserProfileView {
+// BOUNDARY LAYER: HTML View for managing user accounts
+class UserProfilePage {
     private $controller;
 
     public function __construct($controller) {
@@ -38,10 +39,10 @@ class UserProfileView {
         }
 
         // Render the profile management view
-        $this->render();
+        $this->ManageUserProfileUI();
     }
     
-    public function render() {
+    public function ManageUserProfileUI() {
         $profiles = $this->controller->getProfiles();
         $roles = $this->controller->getRoles();
         ?>
@@ -50,7 +51,7 @@ class UserProfileView {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Manage UserProfile Profiles</title>
+            <title>Manage User Profiles</title>
             <style>
                 #main-table {
                     border-collapse: collapse;
@@ -148,24 +149,29 @@ class UserProfileView {
     }
 }
 
-// CONTROL LAYER: Handle profile data management and pass data to the Boundary layer
-class UserProfileController {
-    private $userModel;
 
-    public function __construct($mysqli) {
-        $this->userModel = new UserProfile($mysqli);
+// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
+class UserProfileDashboardController {
+    private $userProfile;
+
+    // Controller constructor takes the UserProfile model as a dependency
+    public function __construct($userProfile) {
+        $this->userProfile = $userProfile;
     }
 
+    // Get all profiles, passing optional role name
     public function getProfiles($role_name = '') {
-        return $this->userModel->getAllProfiles($role_name);
+        return $this->userProfile->getAllProfiles($role_name);
     }
 
+    // Get all roles
     public function getRoles() {
-        return $this->userModel->getAllRoles();
+        return $this->userProfile->getAllRoles();
     }
 }
 
-// ENTITY LAYER: Handles all database interactions for user data
+
+// ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
     private $mysqli;
 
@@ -173,6 +179,7 @@ class UserProfile {
         $this->mysqli = $mysqli;
     }
 
+    // Fetch all profiles, optionally filtered by role name
     public function getAllProfiles($role_name = '') {
         $query = "SELECT u.username, r.role_id, r.role_name, 
                          IFNULL(s.status_name, 'No Status') AS status_name, 
@@ -205,6 +212,7 @@ class UserProfile {
         return $profiles;
     }
 
+    // Fetch all roles
     public function getAllRoles() {
         $query = "SELECT role_id, role_name FROM role";
         $result = $this->mysqli->query($query);
@@ -217,13 +225,16 @@ class UserProfile {
     }
 }
 
+
 // MAIN LOGIC: Initialize components and handle the request
 $database = new Database();
 $mysqli = $database->getConnection();
 
-$userController = new UserProfileController($mysqli);
-$userProfileView = new UserProfileView($userController);
+$userProfileEntity = new UserProfile($mysqli);
+$userController = new UserProfileDashboardController($userProfileEntity);
+$userProfileView = new UserProfilePage($userController);
 $userProfileView->handleRequest();
 
 $database->closeConnection();
+
 ?>

@@ -33,7 +33,7 @@ class LogoutPage {
         $controller->logout();
     }
 
-    public function render() {
+    public function LogoutUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -66,8 +66,8 @@ class LogoutController {
     }
 
     public function logout() {
-        // Render the logout view
-        $this->view->render();
+        // render the logout view
+        $this->view->LogoutUI();
 
         // Clear user-related session data to avoid undefined key issues
         session_unset(); // Unset all session variables

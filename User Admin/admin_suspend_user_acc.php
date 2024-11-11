@@ -3,11 +3,9 @@ session_start();
 
 // BOUNDARY LAYER: Responsible for rendering user information and handling requests
 class SuspendUserAccountPage {
-    private $profileData;
     private $accountController;
 
-    public function __construct($profileData) {
-        $this->profileData = $profileData;
+    public function __construct() {
         $this->accountController = new SuspendUserAccountController(); // Controller instance
     }
 
@@ -41,8 +39,9 @@ class SuspendUserAccountPage {
         }
 
         $username = isset($_GET['username']) ? $_GET['username'] : '';
+
         if ($username) {
-            // Fetch profile data using the controller
+            // Fetch profile data through the controller and render the page
             $profileData = $this->accountController->getProfile($username);
             $this->render($profileData);
         } else {
@@ -195,6 +194,6 @@ class UserAccount {
 }
 
 // Now instantiate and handle the request in the Boundary layer
-$profilePage = new SuspendUserAccountPage([]);
-$profilePage->handleRequest();
+$page = new SuspendUserAccountPage();
+$page->handleRequest();
 ?>

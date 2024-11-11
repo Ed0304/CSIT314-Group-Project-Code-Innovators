@@ -2,7 +2,7 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: UserAccountAccount class for UserAccount authentication with direct database interaction
+// Entity Layer: UserAccount class for UserAccount authentication with direct database interaction
 class UserAccount {
     public $username;
     public $password;
@@ -48,16 +48,15 @@ class UserAccount {
 
 // Controller Layer: LoginPageController class for handling user authentication logic
 class LoginPageController {
-    private $user;
     private $isSuspended = false;
 
-    public function __construct($user) {
-        $this->user = $user;
+    // Now accepts UserAccount object as a parameter
+    public function __construct() {
     }
 
     // Attempts to authenticate the user, returns true if successful, false otherwise
-    public function authenticateUser() {
-        $userData = $this->user->getUserAccountData();
+    public function verifyCredentials($userAccount) {
+        $userData = $userAccount->getUserAccountData();
 
         if ($userData === false) {
             return false;
@@ -70,22 +69,23 @@ class LoginPageController {
         }
 
         // Verify the password
-        return $userData['password'] === $this->user->password;
+        return $userData['password'] === $userAccount->password;
     }
 
     public function isSuspended() {
         return $this->isSuspended;
     }
 
-    public function getUserId() {
-        return $this->user->getUserAccountData()['user_id'];
+    public function getUserId($userAccount) {
+        $userData = $userAccount->getUserAccountData();
+        return $userData['user_id'];
     }
 }
 
 // Boundary Layer: LoginPage class to handle form display and user interaction
 class LoginPage {
 
-    public static function display($message = "") {
+    public static function LoginUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -99,11 +99,15 @@ class LoginPage {
                 <h2>Made by: Code Innovators!</h2>
             </div>
 
-            <?php if ($message): ?>
-                <div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">
-                    <p><?php echo $message; ?></p>
-                </div>
-            <?php endif; ?>
+            <?php
+            // Display message if set
+            if (isset($_SESSION['message'])) {
+                echo '<div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">';
+                echo '<p>' . $_SESSION['message'] . '</p>';
+                echo '</div>';
+                unset($_SESSION['message']);
+            }
+            ?>
 
             <form action="" method="POST">
                 <div class="form-body">
@@ -137,32 +141,34 @@ class LoginPage {
             $username = htmlspecialchars($_POST['username'] ?? '');
             $password = htmlspecialchars($_POST['password'] ?? '');
             $role = htmlspecialchars($_POST['role'] ?? '');
-    
+
             if ($username && $password && $role) {
                 $db = (new Database())->getConnection();
                 $user = new UserAccount($db, $username, $password, $role);
-    
-                $authController = new LoginPageController($user);
-                $authResult = $authController->authenticateUser();
-    
+
+                $authController = new LoginPageController();
+                $authResult = $authController->verifyCredentials($user);
+
                 if ($authResult === true) {
                     $_SESSION['username'] = $username;
-                    $_SESSION['user_id'] = $authController->getUserId();
+                    $_SESSION['user_id'] = $authController->getUserId($user);
                     self::redirectToDashboard($role);
                 } else {
-                    $message = $authController->isSuspended()
+                    // Set session message for UI
+                    $_SESSION['message'] = $authController->isSuspended()
                         ? "Account suspended. Please contact support."
                         : "Invalid username, password, or role.";
-                    self::display($message);
+                    self::LoginUI();
                 }
             } else {
-                self::display("Please fill in all fields.");
+                // Set session message for UI
+                $_SESSION['message'] = "Please fill in all fields.";
+                self::LoginUI();
             }
         } else {
-            self::display();
+            self::LoginUI();
         }
     }
-    
 
     public static function redirectToDashboard($role) {
         switch($role) {

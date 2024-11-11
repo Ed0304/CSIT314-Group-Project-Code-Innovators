@@ -7,21 +7,28 @@ class SearchUserProfilePage
 {
     private $controller;
 
+    // Just for displaying purposes, no direct call to/from the database
+    private $users = []; 
+    private $about = ''; 
+    private $role_id = ''; 
+
+    private $searchTerm = '';
+
     public function __construct($controller)
     {
         $this->controller = $controller;
     }
 
-    public function handleRequest()
+    public function handleSearchUserProfileRequest()
     {
-        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
-        $searchTerm = isset($_POST['searchTerm']) ? $_POST['searchTerm'] : ''; // Get search term from POST
-        $users = $this->controller->getUsersByRole($role_id, $searchTerm);
-        $about = $this->controller->getAbout();
-        $this->render($users, $about, $role_id, $searchTerm);
+        $this->role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        $this->searchTerm = isset($_POST['searchTerm']) ? $_POST['searchTerm'] : ''; // Get search term from POST
+        $this->users = $this->controller->SearchUserProfiles($this->role_id, $this->searchTerm);
+        $this->about = $this->controller->getAbout();
+        $this->SearchUserProfileUI();  
     }
 
-    public function render($users, $about, $role_id, $searchTerm)
+    public function SearchUserProfileUI()
     {
         ?>
         <!DOCTYPE HTML>
@@ -52,8 +59,8 @@ class SearchUserProfilePage
             <h1 style="text-align:center">Users in this role</h1>
             <!-- Added search bar and hidden field to pass role_id -->
             <form method="post" action="" style="text-align:center">
-                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($role_id); ?>">
-                <input type="text" name="searchTerm" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search by username" style="font-size: 24px">
+                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
+                <input type="text" name="searchTerm" value="<?php echo htmlspecialchars($this->searchTerm); ?>" placeholder="Search by username" style="font-size: 24px">
                 <input type="submit" name="searchUser" value="Search" style="font-size: 24px">
             </form>
             <br/>
@@ -65,8 +72,8 @@ class SearchUserProfilePage
                     <th>Role</th>
                     <th>Role description</th>
                 </tr>
-                <?php if (!empty($users)): ?>
-                    <?php foreach ($users as $user): ?>
+                <?php if (!empty($this->users)): ?>
+                    <?php foreach ($this->users as $user): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($user['user_id'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
@@ -83,7 +90,7 @@ class SearchUserProfilePage
             </table>
             <br/>
             <form method="post" action="admin_manage_user_profiles.php" style="text-align:center">
-                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($role_id); ?>">
+                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
                 <input type="submit" value="Return" style="font-size: 24px">
             </form>
 
@@ -103,9 +110,9 @@ class SearchUserProfileController
         $this->userProfile = $userProfile;
     }
 
-    public function getUsersByRole($role_id, $searchTerm)
+    public function SearchUserProfiles($role_id, $searchTerm)
     {
-        return $this->userProfile->getUsersByRole($role_id, $searchTerm);
+        return $this->userProfile->SearchUserProfiles($role_id, $searchTerm);
     }
 
     public function getAbout()
@@ -125,7 +132,7 @@ class UserProfile {
         }
     }
 
-    public function getUsersByRole($role_id = '', $searchTerm = '') {
+    public function SearchUserProfiles($role_id = '', $searchTerm = '') {
         $query = "
             SELECT u.user_id, u.username, s.status_name, r.role_name, r.role_description
             FROM users u
@@ -174,5 +181,5 @@ class UserProfile {
 $userProfile = new UserProfile();
 $userController = new SearchUserProfileController($userProfile); 
 $userView = new SearchUserProfilePage($userController);
-$userView->handleRequest();
+$userView->handleSearchUserProfileRequest();
 ?>

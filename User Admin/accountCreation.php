@@ -2,13 +2,34 @@
 require '../connectDatabase.php';
 
 class UserAccount {
-    public function __construct() {
-        // Empty constructor
+    public $conn;
+    public $username;
+    public $password;
+    public $role_id;
+    public $email;
+    public $phone_num;
+    public $first_name;
+    public $last_name;
+    public $about;
+    public $gender;
+    public $profile_image;
+
+    public function __construct($conn, $username = "", $password = "", $role_id = 0, $email = "", $phone_num = "", $first_name = "", $last_name = "", $about = "", $gender = "", $profile_image = null) {
+        $this->conn = $conn;
+        $this->username = $username;
+        $this->password = $password;
+        $this->role_id = $role_id;
+        $this->email = $email;
+        $this->phone_num = $phone_num;
+        $this->first_name = $first_name;
+        $this->last_name = $last_name;
+        $this->about = $about;
+        $this->gender = $gender;
+        $this->profile_image = $profile_image;
     }
 
-    // Fetch the role ID based on role name
-    public function getRoleId($conn, $role_name) {
-        $stmt = $conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
+    public function getRoleId($role_name) {
+        $stmt = $this->conn->prepare("SELECT role_id FROM role WHERE role_name = ?");
         $stmt->bind_param("s", $role_name);
         $stmt->execute();
         $stmt->bind_result($role_id);
@@ -17,81 +38,56 @@ class UserAccount {
         return $role_id;
     }
 
-    // Insert a new user and profile into the respective tables
-    public function createUser($conn, $username, $password, $role_id, $email, $phone_num, $first_name, $last_name, $about, $gender, $profile_image) {
-        // Begin transaction
-        $conn->begin_transaction();
+    public function createUserAccount() {
+        $this->conn->begin_transaction();
 
         try {
-            // Insert the new user into users table
-            $stmt = $conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num, status_id) VALUES (?, ?, ?, ?, ?, 1)");
-            $stmt->bind_param("ssiss", $username, $password, $role_id, $email, $phone_num);
+            $stmt = $this->conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num, status_id) VALUES (?, ?, ?, ?, ?, 1)");
+            $stmt->bind_param("ssiss", $this->username, $this->password, $this->role_id, $this->email, $this->phone_num);
             $stmt->execute();
-            $user_id = $conn->insert_id; // Get the last inserted user_id
+            $user_id = $this->conn->insert_id;
             $stmt->close();
 
-            // Insert profile data into the profile table with raw binary image data
-            $stmt = $conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
-            $stmt->bind_param("issssb", $user_id, $first_name, $last_name, $about, $gender, $null);
-
-            // Bind and send raw binary data
-            $stmt->send_long_data(5, file_get_contents($profile_image['tmp_name']));
-
+            $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
+            $stmt->bind_param("issssb", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender, $null);
+            $stmt->send_long_data(5, file_get_contents($this->profile_image['tmp_name']));
             $stmt->execute();
             $stmt->close();
 
-            // Commit transaction
-            $conn->commit();
+            $this->conn->commit();
             return true;
         } catch (Exception $e) {
-            $conn->rollback();
+            $this->conn->rollback();
             return false;
         }
     }
 }
 
-class CreateAccountController {
-    private $userAccountModel;
+class CreateUserAccountController {
+    public $userAccount;
 
-    public function __construct($userAccountModel) {
-        $this->userAccountModel = $userAccountModel;
+    public function __construct($userAccount) {
+        $this->userAccountModel = $userAccount;
     }
 
-    public function handleAccountCreation($formData, $fileData, $conn) {
-        $username = $formData['username'];
-        $password = $formData['password'];
-        $email = $formData['email'];
-        $phone_num = $formData['phone_num'];
-        $role_name = $formData['role'];
-        $first_name = $formData['first_name'];
-        $last_name = $formData['last_name'];
-        $about = $formData['about'];
-        $gender = $formData['gender'];
+    public function getRoleId($role_name) {
+        return $this->userAccountModel->getRoleId($role_name);
+    }
 
-        // Handle profile image file upload
-        $profile_image = $fileData['profile_image'];
-
-        // Get the role ID based on the role name
-        $role_id = $this->userAccountModel->getRoleId($conn, $role_name);
-        if (!$role_id) {
-            return "Error: Role not found.";
-        }
-
-        // Insert the new account into the users table and profile into profile table
-        $result = $this->userAccountModel->createUser($conn, $username, $password, $role_id, $email, $phone_num, $first_name, $last_name, $about, $gender, $profile_image);
-
-        return $result ? "New account created successfully." : "Error: Failed to create account.";
+    public function createUserAccount($userAccount) {
+        $this->userAccountModel = $userAccount;
+        return $this->userAccountModel->createUserAccount();
     }
 }
 
-class CreateAccountBoundary {
+class CreateUserAccountPage {
     private $message;
 
     public function __construct($message = "") {
         $this->message = $message;
     }
 
-    public function render() {
+    public function CreateUserAccountUI() {
         ?>
         <html>
         <head>
@@ -137,7 +133,7 @@ class CreateAccountBoundary {
                     </select></td></tr>
                     <tr><td><label style="font-size: 24px">Email:</label></td><td><input type="text" name="email" style="font-size: 24px" required/></td></tr>
                     <tr><td><label style="font-size: 24px">Phone Number:</label></td><td><input type="text" name="phone_num" style="font-size: 24px" required/></td></tr>
-                    <tr><td><label style="font-size: 24px">Profile Image:</label></td><td><input type="file" name="profile_image" style="font-size: 24px" required/></td></tr>
+                    <tr><td><label style="font-size: 24px">Profile Image:</label></td><td><input type="file" name="profile_image" style="font-size: 24px" /></td></tr>
                 </table>
                 <br/>
                 <button type="submit" style="font-size: 24px">Create New Account</button>
@@ -151,19 +147,40 @@ class CreateAccountBoundary {
         </html>
         <?php
     }
+
+    public function handleAccountCreation($formData, $fileData, $controller) {
+        $userAccount = new UserAccount(
+            $controller->userAccountModel->conn, 
+            isset($formData['username']) ? $formData['username'] : '', 
+            isset($formData['password']) ? $formData['password'] : '', 
+            isset($formData['role']) ? $controller->getRoleId($formData['role']) : 0,
+            isset($formData['email']) ? $formData['email'] : '',
+            isset($formData['phone_num']) ? $formData['phone_num'] : '',
+            isset($formData['first_name']) ? $formData['first_name'] : '',
+            isset($formData['last_name']) ? $formData['last_name'] : '',
+            isset($formData['about']) ? $formData['about'] : '',
+            isset($formData['gender']) ? $formData['gender'] : '',
+            isset($fileData['profile_image']) ? $fileData['profile_image'] : null
+        );
+    
+        $result = $controller->createUserAccount($userAccount);
+    
+        return $result ? "New account created successfully." : "Please fill in all the fields";
+    }
+     
+
+    public function processFormSubmission($controller) {
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $this->message = $this->handleAccountCreation($_POST, $_FILES, $controller);
+        }
+    }
 }
 
-// MAIN LOGIC: Connect BCE components
-$message = "";
-$userAccountModel = new UserAccount();
-$controller = new CreateAccountController($userAccountModel);
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = $controller->handleAccountCreation($_POST, $_FILES, $conn);
-}
-
-$view = new CreateAccountBoundary($message);
-$view->render();
-
-$database->closeConnection();
+// MAIN LOGIC
+$database = new Database();
+$userAccount = new UserAccount($database->getConnection());
+$controller = new CreateUserAccountController($userAccount);
+$view = new CreateUserAccountPage();
+$view->processFormSubmission($controller);
+$view->CreateUserAccountUI();
 ?>
