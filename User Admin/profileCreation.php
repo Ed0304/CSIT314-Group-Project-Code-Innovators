@@ -1,7 +1,7 @@
 <?php
 require "../connectDatabase.php"; // Ensure this file contains your Database class
 
-// ENTITY LAYER: Handles DB interactions
+// Entity Layer: UserProfile class for interacting with the database
 class UserProfile {
     private $conn;
 
@@ -33,7 +33,7 @@ class UserProfile {
     }
 }
 
-// CONTROLLER LAYER: Manages data flow between Boundary and Entity
+// Control Layer: CreateUserProfileController class for managing data flow between boundary and entity layers
 class CreateUserProfileController {
     private $entity;
 
@@ -50,7 +50,7 @@ class CreateUserProfileController {
     }
 }
 
-// BOUNDARY LAYER: Handles user interface tasks for profile creation and validation
+// Boundary Layer: CreateUserProfilePage class for handling form display and user interaction
 class CreateUserProfilePage {
     private $controller;
     private $message;
@@ -143,7 +143,7 @@ class CreateUserProfilePage {
 
 }
 
-// MAIN APPLICATION LOGIC
+// Global Layer: Initializing the components
 $userProfileEntity = new UserProfile();
 $controller = new CreateUserProfileController($userProfileEntity);
 $view = new CreateUserProfilePage($controller);

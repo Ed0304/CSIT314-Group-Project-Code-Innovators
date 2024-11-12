@@ -7,7 +7,7 @@ if (!$role_id) {
     die("UserProfile ID not provided.");
 }
 
-// Entity class: Handles database operations and acts as the data structure for UserProfile
+// Entity Layer: UserProfile class for interacting with the database
 class UserProfile {
     private $conn;
     private $role_id;
@@ -59,7 +59,7 @@ class UserProfile {
     }
 }
 
-// Controller class: Calls methods in the UserProfile entity
+// Control Layer: UpdateUserProfileController class for managing data flow between boundary and entity layers
 class UpdateUserProfileController {
     private $profile;
 
@@ -77,7 +77,7 @@ class UpdateUserProfileController {
     }
 }
 
-// Boundary class: Handles display and form interactions
+// Boundary Layer: UpdateUserProfilePage class for handling form display and user interaction
 class UpdateUserProfilePage {
     private $profileController;
 
@@ -188,7 +188,7 @@ class UpdateUserProfilePage {
     }
 }
 
-// Main script to initialize the Controller and Boundary
+// Global Layer: Initializing the components
 $profileController = new UpdateUserProfileController($role_id);
 $roleBoundary = new UpdateUserProfilePage($profileController);
 $roleBoundary->handleFormSubmission();

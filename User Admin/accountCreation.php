@@ -1,6 +1,7 @@
 <?php
 require '../connectDatabase.php';
 
+// Entity Layer: UserAccount class for interacting with the database
 class UserAccount {
     public $conn;
     public $username;
@@ -98,6 +99,7 @@ class UserAccount {
     
 }
 
+// Control Layer: CreateUserAccountController class for managing data flow between boundary and entity layers
 class CreateUserAccountController {
     public $userAccount;
 
