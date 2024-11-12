@@ -76,28 +76,90 @@ class DashboardView {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Admin Dashboard</title>
             <style>
-                .header { text-align: center; }
-                .headDiv { text-align: center; background-color: green; border-bottom: 2px solid black; }
-                .formBody { text-align: center; }
-                #logout, #userAcc, #userProfile { font-size: 18px; }
-                .mainInterface { text-align: center; background-color: white; border: 1px solid black; padding: 10px; }
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                }
+
+                .header {
+                    text-align: center;
+                    color: white;
+                }
+
+                .headDiv {
+                    text-align: center;
+                    background-color: #28a745;
+                    border-bottom: 3px solid #003366;
+                    padding: 20px;
+                }
+
+                .formBody {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                button, input[type="submit"] {
+                    font-size: 18px;
+                    padding: 12px 20px;
+                    border: none;
+                    background-color: #28a745;
+                    color: white;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    margin: 10px 0;
+                    width: 100%; /* Makes the buttons span full width */
+                    transition: background-color 0.3s ease;
+                }
+
+                button:hover, input[type="submit"]:hover {
+                    background-color: #218838;
+                }
+
+                .mainInterface {
+                    text-align: center;
+                    background-color: white;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                    padding: 20px;
+                    margin: 20px auto;
+                    width: 50%;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .logout-button {
+                    background-color: #dc3545;
+                    border-radius: 5px;
+                    transition: background-color 0.3s ease;
+                }
+
+                .logout-button:hover {
+                    background-color: #c82333;
+                }
+
+                h1, h2 {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                p {
+                    font-size: 18px;
+                    color: #333;
+                }
             </style>
         </head>
         <body>
             <div class="headDiv">
-                <h1 class="header">Welcome to the Admin Dashboard, <?php echo $this->username; ?>!</h1>
-                <h2 class="header">What would you like to do for today?</h2>
+                <h1>Welcome to the Admin Dashboard, <?php echo $this->username; ?>!</h1>
+                <h2>What would you like to do for today?</h2>
             </div>
 
             <div class="mainInterface">
                 <form method="post" class="formBody">
-                    <br/><br/>
-                    <button type="submit" id="userAcc" name="userAcc">Manage user accounts</button>
-                    <br/><br/>
-                    <button type="submit" id="userProfile" name="userProfile">Manage user profiles</button>
-                    <br/><br/>
-                    <input type="submit" id="logout" value="Logout" name="logout">
-                    <br/><br/>
+                    <button type="submit" name="userAcc">Manage user accounts</button>
+                    <button type="submit" name="userProfile">Manage user profiles</button>
+                    <input type="submit" class="logout-button" value="Logout" name="logout">
                 </form>
             </div>
         </body>
@@ -115,3 +177,4 @@ class DashboardView {
 $controller = new DashboardController();
 $dashboardView = new DashboardView($controller);
 $dashboardView->handleRequest();
+?>

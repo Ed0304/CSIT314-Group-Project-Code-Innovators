@@ -33,61 +33,124 @@ class ViewUserProfilePage
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>User Profile</title>
             <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                h1 {
+                    text-align: center;
+                    margin-top: 30px;
+                    color: #2c3e50;
+                }
+
                 #main-table {
                     border-collapse: collapse;
-                    width: 100%;
+                    width: 80%;
+                    margin: 20px auto;
+                    background-color: #ffffff;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 }
+
                 #main-table, #main-table th, #main-table td {
-                    border: 1px solid black;
+                    border: 1px solid #ddd;
                 }
+
                 #main-table th, #main-table td {
-                    padding: 10px;
-                    font-size: 24px;
+                    padding: 15px;
                     text-align: center;
+                    font-size: 18px;
                 }
+
+                #main-table th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+
+                #main-table tr:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+
                 .button-font {
                     font-size: 24px;
+                    padding: 10px 20px;
+                    background-color: #3498db;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+
+                .button-font:hover {
+                    background-color: #2980b9;
+                }
+
+                form {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .return-button {
+                    background-color: #2ecc71;
+                }
+
+                .return-button:hover {
+                    background-color: #27ae60;
+                }
+
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+
+                .no-data {
+                    text-align: center;
+                    color: #e74c3c;
                 }
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">Users in this role</h1>
-            <br/>
-            <table id="main-table">
-                <tr>
-                    <th>UserID</th>
-                    <th>Username</th>
-                    <th>Status</th>
-                    <th>Role</th>
-                    <th>Role description</th>
-                </tr>
-                <?php if (!empty($this->users)): ?>
-                    <?php foreach ($this->users as $user): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($user['user_id'] ?? 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($user['status_name'] ?? 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></td>
-                            <td><?php echo htmlspecialchars($user['role_description'] ?? 'N/A'); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
+            <div class="container">
+                <h1>Users in this Role</h1>
+                <table id="main-table">
                     <tr>
-                        <td colspan="5">No users found.</td>
+                        <th>UserID</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Role Description</th>
                     </tr>
-                <?php endif; ?>
-            </table>
-            <br/>
-            <form method="post" action="admin_manage_user_profiles.php" style="text-align:center">
-                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
-                <input type="submit" value="Return" style="font-size: 24px">
-            </form>
+                    <?php if (!empty($this->users)): ?>
+                        <?php foreach ($this->users as $user): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($user['user_id'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($user['status_name'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($user['role_name'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($user['role_description'] ?? 'N/A'); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="no-data">No users found for this role.</td>
+                        </tr>
+                    <?php endif; ?>
+                </table>
+
+                <form method="post" action="admin_manage_user_profiles.php">
+                    <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
+                    <input type="submit" value="Return" class="button-font return-button">
+                </form>
+            </div>
         </body>
         </html>
         <?php
     }
 }
-
 
 // CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
 class ViewUserProfileController

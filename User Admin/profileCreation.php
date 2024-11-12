@@ -65,47 +65,141 @@ class CreateUserProfilePage {
         ?>
         <html>
         <head>
-            <title>Profile Creation Page</title>
+            <title>Profile Creation</title>
             <style>
-                .form-body { text-align: center; }
-                .invisible-table {
-                    border-collapse: collapse;
-                    width: 50%;
-                    margin: auto;
+                /* General Styling */
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f9f9f9;
+                    margin: 0;
+                    padding: 0;
                 }
-                .invisible-table td { border: none; padding: 10px; }
+
+                h1, h2, h3, h4 {
+                    font-weight: normal;
+                    color: #333;
+                }
+
+                .header {
+                
+                    color: white;
+                    text-align: center;
+                    padding: 15px;
+                }
+
+                .form-body {
+                    width: 50%;
+                    margin: 30px auto;
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+                    text-align: center; /* Add this to center the button */
+                }
+
+                .invisible-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+
+                .invisible-table td {
+                    padding: 15px;
+                    font-size: 18px;
+                    text-align: left;
+                }
+
+                .invisible-table input[type="text"] {
+                    width: 100%;
+                    padding: 10px;
+                    font-size: 18px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    margin-top: 5px;
+                }
+
+                .invisible-table input[type="text"]:focus {
+                    border-color: #007BFF;
+                    outline: none;
+                }
+
+                button[type="submit"] {
+                    background-color: #007bff; /* Primary color */
+                    color: white;
+                    font-size: 18px;
+                    padding: 12px 30px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    width: 50%; /* Optional: Control the button width if needed */
+                    margin-top: 20px;
+                    display: inline-block; /* Ensures the button is centered */
+                }
+
+                button[type="submit"]:hover {
+                    background-color: #0056b3; /* Darker on hover */
+                }
+
+                .message {
+                    font-size: 18px;
+                    color: #e74c3c;
+                    margin-top: 20px;
+                    text-align: center;
+                }
+
+                .form-footer {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .form-footer button {
+                    background-color: #5cb85c; /* Neutral color for non-primary actions */
+                    color: white;
+                    font-size: 18px;
+                    padding: 12px 30px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    width: 20%;
+                }
+
+                .form-footer button:hover {
+                    background-color:  #4cae4c;
+                }
             </style>
         </head>
         <body>
-            <div style="background-color: red" class="header">
-                <h1 style="text-align:center">Profile Creation</h1>
-                <h2 style="text-align:center">Please fill in the following details</h2>
-                <h3 style="text-align:center">All fields are mandatory</h3>
+
+            <div class="header">
+                <h1>Profile Creation</h1>
+                <h2>Please fill in the following details</h2>
+                <h3>All fields are mandatory</h3>
             </div>
 
             <?php if ($this->message): ?>
-                <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
+                <p class="message"><?php echo htmlspecialchars($this->message); ?></p>
             <?php endif; ?>
 
             <form class="form-body" method="POST" action="">
                 <h4>Note: Profile Name should not exist in the list!</h4>
                 <table class="invisible-table">
                     <tr>
-                        <td><label style="font-size: 24px">Profile Name:</label></td>
-                        <td><input type="text" name="role_name" style="font-size: 24px" required/></td>
+                        <td><label>Profile Name:</label></td>
+                        <td><input type="text" name="role_name" required/></td>
                     </tr>
                     <tr>
-                        <td><label style="font-size: 24px">Profile Description:</label></td>
-                        <td><input type="text" name="role_description" style="font-size: 24px" required/></td>
+                        <td><label>Profile Description:</label></td>
+                        <td><input type="text" name="role_description" required/></td>
                     </tr>
                 </table>
-                <br/>
-                <button type="submit" style="font-size: 24px">Create Profile</button>
+                <button type="submit">Create Profile</button>
             </form>
-            <br/>
-            <form action="admin_manage_user_profiles.php" class="form-body">
-                <button type="submit" value="Return" style="font-size: 24px">Return to profiles list</button>
-            </form>
+
+            <div class="form-footer">
+                <form action="admin_manage_user_profiles.php">
+                    <button type="submit">Return to Profiles List</button>
+                </form>
+            </div>
+
         </body>
         </html>
         <?php
@@ -140,7 +234,6 @@ class CreateUserProfilePage {
             }
         }
     }
-
 }
 
 // MAIN APPLICATION LOGIC

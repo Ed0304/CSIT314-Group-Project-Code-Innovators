@@ -53,36 +53,84 @@ class UserProfilePage {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Manage User Profiles</title>
             <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f9;
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                    margin-top: 30px;
+                }
                 #main-table {
                     border-collapse: collapse;
-                    width: 100%;
+                    width: 80%;
+                    margin: 20px auto;
+                    background-color: #fff;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 }
                 #main-table, 
                 #main-table th, 
                 #main-table td {
-                    border: 1px solid black;
+                    border: 1px solid #ddd;
                 }
                 #main-table th, 
                 #main-table td {
-                    padding: 10px;
-                    font-size: 20px;
+                    padding: 12px 15px;
+                    font-size: 18px;
                     text-align: center;
                 }
+                #main-table th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                #main-table tr:hover {
+                    background-color: #f1f1f1;
+                }
                 .select-label {
-                    font-size: 24px;
+                    font-size: 20px;
+                    margin-right: 10px;
+                    color: #333;
                 }
                 #search {
-                    font-size: 20px;
+                    font-size: 18px;
+                    padding: 8px;
                 }
                 .button-font {
-                    font-size: 18px;
+                    font-size: 16px;
+                    padding: 10px 20px;
+                    background-color: #2196F3; /* Blue button color */
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+                .button-font:hover {
+                    background-color: #1976D2;
+                }
+                form {
+                    display: inline-block;
+                    margin-bottom: 15px;
+                }
+                .return-button {
+                    font-size: 20px;
+                    padding: 10px 20px;
+                    background-color: #4CAF50; /* Green button color */
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                }
+                .return-button:hover {
+                    background-color: #45a049;
                 }
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">Manage user profiles here...</h1>
+            <h1>Manage User Profiles</h1>
 
-            <form method="get" action="admin_search_profile.php">
+            <form method="get" action="admin_search_profile.php" style="text-align:center">
                 <label for="role" class="select-label">Filter based on role:</label>
                 <select id="role_id" name="role_id" class="select-label">
                     <option value="">All profiles</option>
@@ -92,11 +140,11 @@ class UserProfilePage {
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit" class="select-label" id="filterProfile">Filter</button>
+                <button type="submit" class="button-font" id="filterProfile">Filter</button>
             </form>
 
             <br/><br/>
-            <form method="post" action="profileCreation.php" style="text-align:left">
+            <form method="post" action="profileCreation.php" style="text-align:center">
                 <button type="submit" class="button-font">Create Profile</button>
             </form>
 
@@ -139,16 +187,14 @@ class UserProfilePage {
                 <?php endif; ?>
             </table>
 
-            <form method="post" action="admin_dashboard.php" style="text-align:center">
-                <br/>
-                <input type="submit" value="Return" style="font-size: 24px">
+            <form method="post" action="admin_dashboard.php" style="text-align:center; display: flex; justify-content: center; margin-top: 20px;">
+                <input type="submit" value="Return" class="return-button">
             </form>
         </body>
         </html>
         <?php
     }
 }
-
 
 // CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
 class UserProfileDashboardController {
@@ -169,7 +215,6 @@ class UserProfileDashboardController {
         return $this->userProfile->getAllRoles();
     }
 }
-
 
 // ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
@@ -216,15 +261,15 @@ class UserProfile {
     public function getAllRoles() {
         $query = "SELECT role_id, role_name FROM role";
         $result = $this->mysqli->query($query);
-        
         $roles = [];
+    
         while ($row = $result->fetch_assoc()) {
             $roles[] = $row;
         }
+    
         return $roles;
     }
 }
-
 
 // MAIN LOGIC: Initialize components and handle the request
 $database = new Database();
@@ -236,5 +281,4 @@ $userProfileView = new UserProfilePage($userController);
 $userProfileView->handleRequest();
 
 $database->closeConnection();
-
 ?>

@@ -153,60 +153,132 @@ class UpdateUserAccountPage {
         <html>
         <head>
             <style>
-                .form-body { font-size: 24px; text-align: center; }
-                h1 { font-size: 48px; text-align: center; }
-                table { font-size: 24px; margin: 0 auto; border-collapse: collapse; }
-                td { padding: 10px; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 20px;
+                }
+
+                h1 {
+                    font-size: 36px;
+                    color: #333;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
+                .form-container {
+                    background-color: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+
+                .form-container table {
+                    width: 100%;
+                    margin-bottom: 20px;
+                }
+
+                .form-container td {
+                    padding: 10px;
+                    font-size: 18px;
+                }
+
+                .form-container label {
+                    display: block;
+                    font-weight: bold;
+                }
+
+                .form-container input, .form-container select {
+                    width: 100%;
+                    padding: 10px;
+                    margin: 5px 0 15px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                }
+
+                .form-container button {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                }
+
+                .form-container button:hover {
+                    background-color: #0056b3;
+                }
+
+                .return-button {
+                    display: inline-block;
+                    background-color: #5cb85c;
+                    color: white;
+                    text-decoration: none;
+                    padding: 12px 18px;
+                    border-radius: 5px;
+                    text-align: center;
+                    font-size: 16px;
+                }
+
+                .return-button:hover {
+                    background-color: #4cae4c;
+                }
             </style>
         </head>
         <body>
-        <h1>Update User Account</h1>
-        <form method="POST">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
-            <table>
-                <tr>
-                    <td><label for="username">Username:</label></td>
-                    <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="password">Password:</label></td>
-                    <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="role_id">Role:</label></td>
-                    <td>
-                        <select id="role_id" name="role_id">
-                            <?php foreach ($roles as $role): ?>
-                                <option value="<?= $role['role_id']; ?>" <?= $userAccount->role_id == $role['role_id'] ? 'selected' : ''; ?>>
-                                    <?= htmlspecialchars($role['role_name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="email">Email:</label></td>
-                    <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="phone_num">Phone:</label></td>
-                    <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="status_id">Status:</label></td>
-                    <td>
-                        <select id="status_id" name="status_id"> 
-                            <option value="1" <?= $userAccount->status_id == 1 ? 'selected' : ''; ?>>Active</option>
-                            <option value="2" <?= $userAccount->status_id == 2 ? 'selected' : ''; ?>>Suspended</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><button type="submit">Update Account</button></td>
-                    <td><button type="button" onclick="window.location.href='admin_manage_user_acc.php'">Return to dashboard</button></td>
-                </tr>
-            </table>
-        </form>
+            <h1>Update User Account</h1>
+            <div class="form-container">
+                <form method="POST">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
+                    <table>
+                        <tr>
+                            <td><label for="username">Username:</label></td>
+                            <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="password">Password:</label></td>
+                            <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="role_id">Role:</label></td>
+                            <td>
+                                <select id="role_id" name="role_id">
+                                    <?php foreach ($roles as $role): ?>
+                                        <option value="<?= $role['role_id']; ?>" <?= $userAccount->role_id == $role['role_id'] ? 'selected' : ''; ?>>
+                                            <?= htmlspecialchars($role['role_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="email">Email:</label></td>
+                            <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="phone_num">Phone:</label></td>
+                            <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="status_id">Status:</label></td>
+                            <td>
+                                <select id="status_id" name="status_id"> 
+                                    <option value="1" <?= $userAccount->status_id == 1 ? 'selected' : ''; ?>>Active</option>
+                                    <option value="2" <?= $userAccount->status_id == 2 ? 'selected' : ''; ?>>Suspended</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><button type="submit">Update Account</button></td>
+                            <td><a href="admin_manage_user_acc.php" class="return-button">Return to dashboard</a></td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
         </body>
         </html>
         <?php

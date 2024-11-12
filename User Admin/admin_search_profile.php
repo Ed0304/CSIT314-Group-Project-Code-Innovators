@@ -38,31 +38,104 @@ class SearchUserAccountsBasedOnProfilePage
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>User Profile</title>
             <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f9;
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                    margin-top: 30px;
+                }
                 #main-table {
                     border-collapse: collapse;
                     width: 100%;
+                    margin: 20px auto;
+                    background-color: #fff;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 }
                 #main-table, #main-table th, #main-table td {
-                    border: 1px solid black;
+                    border: 1px solid #ddd;
                 }
                 #main-table th, #main-table td {
-                    padding: 10px;
-                    font-size: 24px;
+                    padding: 12px 15px;
+                    font-size: 18px;
                     text-align: center;
                 }
+                #main-table th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                #main-table tr:hover {
+                    background-color: #f1f1f1;
+                }
                 .button-font {
+                    font-size: 20px;
+                    padding: 12px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: background-color 0.3s ease;
+                }
+                .button-blue {
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                }
+                .button-blue:hover {
+                    background-color: #0056b3;
+                }
+                .button-green {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                }
+                .button-green:hover {
+                    background-color: #45a049;
+                }
+                form {
+                    display: inline-block;
+                    margin-bottom: 15px;
+                }
+                .search-container {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+                input[type="text"] {
                     font-size: 24px;
+                    padding: 10px;
+                    width: 300px;
+                    margin-right: 10px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                }
+                input[type="submit"] {
+                    font-size: 24px;
+                    padding: 12px 20px;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    transition: background-color 0.3s ease;
+                }
+                input[type="submit"]:hover {
+                    background-color: #0056b3;
                 }
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">Users in this role</h1>
+            <h1>Users in this role</h1>
             <!-- Added search bar and hidden field to pass role_id -->
-            <form method="post" action="" style="text-align:center">
-                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
-                <input type="text" name="searchTerm" value="<?php echo htmlspecialchars($this->searchTerm); ?>" placeholder="Search by username" style="font-size: 24px">
-                <input type="submit" name="searchUser" value="Search" style="font-size: 24px">
-            </form>
+            <div class="search-container">
+                <form method="post" action="">
+                    <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
+                    <input type="text" name="searchTerm" value="<?php echo htmlspecialchars($this->searchTerm); ?>" placeholder="Search by username">
+                    <input type="submit" name="searchUser" value="Search" class="button-font button-blue">
+                </form>
+            </div>
             <br/>
             <table id="main-table">
                 <tr>
@@ -91,9 +164,8 @@ class SearchUserAccountsBasedOnProfilePage
             <br/>
             <form method="post" action="admin_manage_user_profiles.php" style="text-align:center">
                 <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
-                <input type="submit" value="Return" style="font-size: 24px">
+                <input type="submit" value="Return" class="button-font button-green">
             </form>
-
         </body>
         </html>
         <?php

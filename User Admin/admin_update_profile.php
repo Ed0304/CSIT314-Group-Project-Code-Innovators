@@ -90,9 +90,9 @@ class UpdateUserProfileDescriptionPage {
             $new_description = trim($_POST['role_description']);
 
             if ($this->profileController->updateUserProfileDescription($new_description)) {
-                echo "<p style='color: green;'>User Profile description updated successfully.</p>";
+                echo "<p class='success-message'>User Profile description updated successfully.</p>";
             } else {
-                echo "<p style='color: red;'>Error updating description.</p>";
+                echo "<p class='error-message'>Error updating description.</p>";
             }
         }
     }
@@ -105,24 +105,28 @@ class UpdateUserProfileDescriptionPage {
         <head>
             <meta charset="UTF-8">
             <title>Update User Profile Description</title>
+            <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
             <style>
                 body {
-                    font-family: Arial, sans-serif;
+                    font-family: 'Roboto', sans-serif;
                     background-color: #f4f4f4;
                     margin: 0;
                     padding: 20px;
+                    color: #333;
                 }
 
                 h1 {
                     color: #333;
                     text-align: center;
+                    margin-bottom: 20px;
+                    font-size: 24px;
                 }
 
-                form {
-                    background: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                .form-container {
+                    background: #fff;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
                     max-width: 600px;
                     margin: auto;
                 }
@@ -130,7 +134,8 @@ class UpdateUserProfileDescriptionPage {
                 label {
                     display: block;
                     margin-bottom: 10px;
-                    font-weight: bold;
+                    font-weight: 500;
+                    font-size: 16px;
                 }
 
                 textarea {
@@ -139,49 +144,76 @@ class UpdateUserProfileDescriptionPage {
                     margin-bottom: 20px;
                     padding: 12px;
                     border: 1px solid #ccc;
-                    border-radius: 4px;
-                    box-sizing: border-box;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    resize: vertical;
                 }
 
                 button {
-                    background-color: #5cb85c;
+                    background-color: #007bff;
                     color: white;
                     border: none;
-                    padding: 12px 20px;
-                    border-radius: 5px;
+                    padding: 14px 20px;
+                    border-radius: 6px;
                     cursor: pointer;
                     font-size: 16px;
+                    width: 100%;
+                    transition: background-color 0.3s ease;
                 }
 
                 button:hover {
-                    background-color: #4cae4c;
+                    background-color: #0056b3;
                 }
 
                 .return-button {
                     margin-top: 20px;
                     display: inline-block;
-                    background-color: #007bff;
+                    background-color: #5cb85c;
                     color: white;
                     text-decoration: none;
-                    padding: 12px 18px;
-                    border-radius: 5px;
+                    padding: 12px 1px;
+                    border-radius: 6px;
                     font-size: 16px;
                     text-align: center;
+                    transition: background-color 0.3s ease;
                 }
 
                 .return-button:hover {
-                    background-color: #0056b3;
+                    background-color: #4cae4c;
+                }
+
+                .success-message {
+                    color: #28a745;
+                    font-size: 16px;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .error-message {
+                    color: #dc3545;
+                    font-size: 16px;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .form-container a {
+                    display: inline-block;
+                    margin-top: 10px;
+                    text-align: center;
+                    width: 100%;
                 }
             </style>
         </head>
         <body>
             <h1>Update User Profile Description</h1>
-            <form action="" method="post">
-                <label for="role_description">New Description:</label>
-                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
-                <button type="submit">Update Description</button>
-            </form>
-            <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
+            <div class="form-container">
+                <form action="" method="post">
+                    <label for="role_description">New Description:</label>
+                    <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
+                    <button type="submit">Update Description</button>
+                </form>
+                <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
+            </div>
         </body>
         </html>
         <?php

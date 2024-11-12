@@ -10,26 +10,72 @@ class SuspendUserProfilePage {
         $this->controller = $controller;
     }
 
+    // This method will output the CSS styles for the page
+    private function renderStyles() {
+        ?>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+            #infoTable th, td {
+                font-size: 24px;
+                text-align: center;
+                padding: 10px;
+            }
+            #infoTable {
+                margin: auto;
+                border-collapse: collapse;
+            }
+            #infoTable th {
+                background-color: #f2f2f2;
+            }
+            button {
+                font-size: 24px;
+                padding: 10px 20px;
+                margin: 10px;
+                cursor: pointer;
+                border: none;
+                border-radius: 5px;
+            }
+            /* Style for the Suspend and Remove Suspension buttons (blue) */
+            .suspend-btn, .remove-suspend-btn {
+                background-color: #007bff;
+                color: white;
+            }
+            .suspend-btn:hover, .remove-suspend-btn:hover {
+                background-color: #0056b3;
+            }
+            /* Style for the Return button (green) */
+            .return-btn {
+                background-color: #28a745;
+                color: white;
+            }
+            .return-btn:hover {
+                background-color: #218838;
+            }
+            .form-body {
+                text-align: center;
+            }
+            h1 {
+                text-align: center;
+                color: #333;
+            }
+        </style>
+        <?php
+    }
+
     public function SuspendUserProfileUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
-        <style>
-            #infoTable th, td {
-                font-size: 24px;
-                text-align: center;
-            }
-            #infoTable {
-                margin: auto;
-            }
-        </style>
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Suspend Confirmation</title>
+            <?php $this->renderStyles(); ?> <!-- Call the renderStyles method to inject CSS -->
         </head>
         <body>
-            <h1 style="text-align: center">Suspend this role?</h1>
+            <h1>Suspend this role?</h1>
             <table id="infoTable">
                 <tr>
                     <td><strong>Profile</strong></td>
@@ -52,19 +98,19 @@ class SuspendUserProfilePage {
                         <form action="" method="POST" class="form-body"> 
                             <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
                             <input type="hidden" name="action" value="suspend">
-                            <button type="submit" style="font-size: 24px">Suspend</button>
+                            <button type="submit" class="suspend-btn">Suspend</button>
                         </form>
                     </td>
                     <td>
                         <form action="" method="POST" class="form-body"> 
                             <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->profileData['role_id']); ?>">
                             <input type="hidden" name="action" value="Remove">
-                            <button type="submit" style="font-size: 24px">Remove Suspension</button>
+                            <button type="submit" class="remove-suspend-btn">Remove Suspension</button>
                         </form>
                     </td>
                     <td>
                         <form action="admin_manage_user_profiles.php" class="form-body">
-                            <button type="submit" style="font-size: 24px; margin-left: 20px;">Return</button>
+                            <button type="submit" class="return-btn">Return</button>
                         </form>
                     </td>
                 </tr>

@@ -99,106 +99,171 @@ class SearchUserAccountPage
 
     public function SearchUserAccountUI() //Search functionality is implemented inside this function.
     {
-    // Fetch users based on search or default (all users)
-    $users = $this->controller->getUsers();  // Initially fetch all users
+        // Fetch users based on search or default (all users)
+        $users = $this->controller->getUsers();  // Initially fetch all users
 
-    // If the search button is clicked, fetch the filtered users
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['searchButton'])) {
-        $role = $_POST['role'];
-        $username = $_POST['search'];
-        $users = $this->controller->searchUserAccounts($role, $username);
-    }
+        // If the search button is clicked, fetch the filtered users
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['searchButton'])) {
+            $role = $_POST['role'];
+            $username = $_POST['search'];
+            $users = $this->controller->searchUserAccounts($role, $username);
+        }
 
-    ?>
-    <!DOCTYPE HTML>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Manage User Accounts</title>
-        <style>
-            #main-table {
-                border-collapse: collapse;
-                width: 100%;
-            }
-            #main-table, 
-            #main-table th, 
-            #main-table td {
-                border: 1px solid black;
-            }
-            #main-table th, 
-            #main-table td {
-                padding: 10px;
-                font-size: 20px;
-                text-align: center;
-            }
-            .select-label {
-                font-size: 24px;
-            }
-            #search {
-                font-size: 20px;
-            }
-            .button-font {
-                font-size: 18px;
-            }
-        </style>
-    </head>
-    <body>
-        <h1 style="text-align:center">Manage user accounts here...</h1>
-        <form method="POST">
-            <label for="role" class="select-label">Filter based on:</label>
-            <select id="role" name="role" class="select-label">
-                <option value="">All roles</option>
-                <option value="used car agent">Used Car Agent</option>
-                <option value="buyer">Buyer</option>
-                <option value="seller">Seller</option>
-            </select>
-            <input type="text" id="search" name="search" placeholder="Enter username" />
-            <button type="submit" name="searchButton" id="searchButton">Search</button>
-            <br /><br />
-        </form>
+        ?>
+        <!DOCTYPE HTML>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Manage User Accounts</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 {
+                    text-align: center;
+                    color: #333;
+                    padding: 20px;
+                }
 
-        <form method="post" action="accountCreation.php">
-            <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user account</button>
-        </form>
-        <br /><br />
+                table {
+                    border-collapse: collapse;
+                    width: 80%;
+                    margin: 20px auto;
+                    background-color: #fff;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 12px;
+                    text-align: center;
+                }
+                th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+                tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
 
-        <table id="main-table">
-            <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            <?php if (!empty($users)): ?>
-                <?php foreach ($users as $user): ?>
+                form {
+                    margin: 20px 0;
+                    text-align: center;
+                }
+
+                input[type="text"], select {
+                    padding: 10px;
+                    font-size: 18px;
+                    margin: 5px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    width: 250px;
+                }
+
+                button[type="submit"], input[type="submit"] {
+                    padding: 12px 20px;
+                    font-size: 18px;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                }
+
+                button[type="submit"]:hover, input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                .button-font {
+                    font-size: 16px;
+                    padding: 8px 16px;
+                }
+
+                .select-label {
+                    font-size: 20px;
+                    margin-right: 10px;
+                }
+
+                .return-btn {
+                    background-color: #4CAF50;
+                    color: white;
+                    font-size: 20px;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                    display: block;
+                    width: 200px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    text-align: center;
+                }
+
+                .return-btn:hover {
+                    background-color: #45a049;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Manage User Accounts</h1>
+            <form method="POST">
+                <label for="role" class="select-label">Filter by Role:</label>
+                <select id="role" name="role">
+                    <option value="">All roles</option>
+                    <option value="used car agent">Used Car Agent</option>
+                    <option value="buyer">Buyer</option>
+                    <option value="seller">Seller</option>
+                </select>
+                <input type="text" id="search" name="search" placeholder="Enter username" />
+                <button type="submit" name="searchButton">Search</button>
+            </form>
+
+            <form method="post" action="accountCreation.php" style="text-align:center;">
+                <button type="submit" name="createAccount">Create New User Account</button>
+            </form>
+
+            <table>
+                <thead>
                     <tr>
-                        <td><?php echo $user->username; ?></td>
-                        <td><?php echo $user->role_name; ?></td>
-                        <td><?php echo $user->status_name; ?></td>
-                        <td>
-                            <form method="post" action="">
-                                <input type="hidden" name="username" value="<?php echo $user->username; ?>">
-                                <button type="submit" class="button-font" name="viewAccount">View</button>
-                                <button type="submit" class="button-font" name="updateAccount">Update</button>
-                                <button type="submit" class="button-font" name="suspendAccount">Suspend</button>
-                            </form>
-                        </td>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="4">No users found.</td>
-                </tr>
-            <?php endif; ?>
-        </table>
-        <form method="post" action="admin_dashboard.php" style="text-align:center">
-            <br />
-            <input type="submit" value="Return" style="font-size: 24px">
-        </form>
-    </body>
-    </html>
-    <?php
+                </thead>
+                <tbody>
+                    <?php if (!empty($users)): ?>
+                        <?php foreach ($users as $user): ?>
+                            <tr>
+                                <td><?php echo $user->username; ?></td>
+                                <td><?php echo $user->role_name; ?></td>
+                                <td><?php echo $user->status_name; ?></td>
+                                <td>
+                                    <form method="post" action="">
+                                        <input type="hidden" name="username" value="<?php echo $user->username; ?>">
+                                        <button type="submit" name="viewAccount" class="button-font">View</button>
+                                        <button type="submit" name="updateAccount" class="button-font">Update</button>
+                                        <button type="submit" name="suspendAccount" class="button-font">Suspend</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4">No users found.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+
+            <a href="admin_dashboard.php" class="return-btn">Return</a>
+        </body>
+        </html>
+        <?php
     }
 
     public function handleUserInteractions()
@@ -222,25 +287,13 @@ class SearchUserAccountPage
             }
         }
     }
-    public function handleSearchUserAccountsRequest(){
-        if (isset($_POST['searchButton'])) {
-            $role = $_POST['role'];
-            $username = $_POST['search'];
-            $this->controller->searchUserAccounts($role, $username);
-        }
-    }
 }
 
-
-// MAIN LOGIC: Initialize components
+// Main execution
 $database = new Database();
-$mysqli = $database->getConnection();
-
-UserAccount::setDatabase($database);  // Set the database connection in the entity
-
+UserAccount::setDatabase($database);
 $controller = new SearchUserAccountController();
-$boundary = new SearchUserAccountPage($controller);
-$boundary->handleSearchUserAccountsRequest();
-$boundary->handleUserInteractions();
-$boundary->SearchUserAccountUI();
+$page = new SearchUserAccountPage($controller);
+$page->handleUserInteractions();
+$page->SearchUserAccountUI();
 ?>

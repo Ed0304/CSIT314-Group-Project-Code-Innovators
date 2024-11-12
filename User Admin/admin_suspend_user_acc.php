@@ -71,22 +71,85 @@ class SuspendUserAccountPage {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
-        <style>
-            #infoTable th, td {
-                font-size: 24px;
-                text-align: center;
-            }
-            #infoTable {
-                margin: auto;
-            }
-        </style>
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Suspend Confirmation</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                }
+
+                h1 {
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 36px;
+                }
+
+                #infoTable {
+                    margin: 50px auto;
+                    border-collapse: collapse;
+                    width: 80%;
+                    background-color: white;
+                    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                }
+
+                #infoTable th, td {
+                    font-size: 20px;
+                    text-align: left;
+                    padding: 12px;
+                    border: 1px solid #ddd;
+                }
+
+                #infoTable td {
+                    background-color: #f9f9f9;
+                }
+
+                #infoTable th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+
+                form {
+                    display: inline-block;
+                    margin: 20px 0;
+                }
+
+                button {
+                    font-size: 20px;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    border: none;
+                    cursor: pointer;
+                    margin: 0 10px;
+                    background-color: #007BFF;
+                    color: white;
+                }
+
+                button:hover {
+                    background-color: #0056b3;
+                }
+
+                .return-btn {
+                    background-color: #4CAF50;
+                }
+
+                .return-btn:hover {
+                    background-color: #45a049;
+                }
+
+                .form-body {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            </style>
         </head>
         <body>
-            <h1 style="text-align: center">Suspend this account?</h1>
+            <h1>Suspend this account?</h1>
             <table id="infoTable">
                 <tr>
                     <td><strong>Username</strong></td>
@@ -113,27 +176,26 @@ class SuspendUserAccountPage {
                     <td colspan="2"><?php echo htmlspecialchars($this->getStatusName()); ?></td>
                 </tr>
                 <tr>
-                    <td><br/></td>
-                    <td><br/></td>
+                    <td colspan="3" style="height: 20px;"></td>
                 </tr>
                 <tr>
                     <td>
-                    <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
-                        <input type="hidden" name="action" value="suspend">
-                        <button type="submit" style="font-size: 24px">Suspend</button>
-                    </form>
+                        <form action="" method="POST" class="form-body"> 
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
+                            <input type="hidden" name="action" value="suspend">
+                            <button type="submit">Suspend</button>
+                        </form>
                     </td>
                     <td>
-                    <form action="" method="POST" class="form-body"> 
-                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
-                        <input type="hidden" name="action" value="Remove">
-                        <button type="submit" style="font-size: 24px">Remove Suspension</button>
-                    </form>
+                        <form action="" method="POST" class="form-body"> 
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->getUsername()); ?>">
+                            <input type="hidden" name="action" value="Remove">
+                            <button type="submit">Remove Suspension</button>
+                        </form>
                     </td>
                     <td>
                         <form action="admin_manage_user_acc.php" class="form-body">
-                            <button type="submit" style="font-size: 24px; margin-left: 20px;">Return</button>
+                            <button type="submit" class="return-btn">Return</button>
                         </form>
                     </td>
                 </tr>
