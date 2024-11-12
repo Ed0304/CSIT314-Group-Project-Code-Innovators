@@ -214,6 +214,7 @@ class SearchUserAccountPage
                 <label for="role" class="select-label">Filter by Role:</label>
                 <select id="role" name="role">
                     <option value="">All roles</option>
+                    <option value="user admin">User Admin</option>
                     <option value="used car agent">Used Car Agent</option>
                     <option value="buyer">Buyer</option>
                     <option value="seller">Seller</option>
