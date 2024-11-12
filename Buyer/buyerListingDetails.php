@@ -2,9 +2,8 @@
 session_start();
 require_once "../connectDatabase.php";
 
-
-// Listing Entity: Handles all operations related to a single listing
-class Listing {
+// CarListing Entity: Handles all operations related to a single listing
+class CarListing {
     private $database;
 
     public $manufacturerName;
@@ -21,9 +20,9 @@ class Listing {
         $this->database = $database;
     }
 
-    public function load($id) {
+    public function viewUsedCarListing($listing_id) {
         $conn = $this->database->getConnection();
-        $this->incrementViews($id, $conn);
+        $this->incrementViews($listing_id, $conn);
 
         $stmt = $conn->prepare("
             SELECT 
@@ -43,7 +42,7 @@ class Listing {
             WHERE 
                 l.listing_id = ?
         ");
-        $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $listing_id);
         $stmt->execute();
         $data = $stmt->get_result()->fetch_assoc();
 
@@ -59,33 +58,40 @@ class Listing {
             $this->image = $data['listing_image'];
         }
         $stmt->close();
+
+        return $this; // Return the CarListing object
     }
 
-    private function incrementViews($id, $conn) {
+    private function incrementViews($listing_id, $conn) {
         $query = "UPDATE listing SET views = views + 1 WHERE listing_id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $id);
+        $stmt->bind_param("i", $listing_id);
         $stmt->execute();
         $stmt->close();
     }
 }
 
-// ListingController: Coordinates actions for a Listing
-class ListingController {
+// ViewUsedCarListingController: Coordinates actions for a Listing
+class ViewUsedCarListingController {
     private $listing;
 
     public function __construct($listing) {
         $this->listing = $listing;
     }
 
-    public function getListingDetails($id) {
-        $this->listing->load($id);
-        return $this->listing;
+    public function viewUsedCarListing($listing_id) {
+        return $this->listing->viewUsedCarListing($listing_id); // Get the populated Listing object
     }
 }
 
-// ListingView: Renders the listing details
-class ListingView {
+// ViewUsedCarListingPage: Renders the listing details
+class ViewUsedCarListingPage {
+    private $controller;
+
+    public function __construct($controller) {
+        $this->controller = $controller;
+    }
+
     public function handleRequest() {
         if (!isset($_POST['listing_id'])) {
             header("Location: buyer_dashboard.php");
@@ -94,13 +100,18 @@ class ListingView {
         return $_POST['listing_id'];
     }
 
-    public function render($listing) {
+    public function render() {
+        // Handle request and get listing id
+        $listing_id = $_POST['listing_id'] ?? $_GET['listing_id'] ?? null; //retrieves listing_id from previous screen
+        $listingDetails = $this->controller->viewUsedCarListing($listing_id);
+
+        // Render the listing details view
         ?>
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>Listing Details</title>
+            <title>CarListing Details</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -169,18 +180,18 @@ class ListingView {
         <body>
             <div class="container">
                 <h1>Listing Details</h1>
-                <?php if ($listing): ?>
+                <?php if ($listingDetails): ?>
                     <div class="details">
-                        <?php if ($listing->image): ?>
-                            <img src="data:image/jpeg;base64,<?php echo base64_encode($listing->image); ?>" class="listing-image" alt="Listing Image">
+                        <?php if ($listingDetails->image): ?>
+                            <img src="data:image/jpeg;base64,<?php echo base64_encode($listingDetails->image); ?>" class="listing-image" alt="Listing Image">
                         <?php endif; ?>
-                        <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($listing->manufacturerName); ?></p>
-                        <p><strong>Model:</strong> <?php echo htmlspecialchars($listing->modelName); ?></p>
-                        <p><strong>Year:</strong> <?php echo htmlspecialchars($listing->modelYear); ?></p>
-                        <p><strong>Color:</strong> <?php echo htmlspecialchars($listing->color); ?></p>
-                        <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->price); ?></p>
-                        <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->description); ?></p>
-                        <p><strong>Agent:</strong> <?php echo htmlspecialchars($listing->agentFirstName . " " . $listing->agentLastName); ?></p>
+                        <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($listingDetails->manufacturerName); ?></p>
+                        <p><strong>Model:</strong> <?php echo htmlspecialchars($listingDetails->modelName); ?></p>
+                        <p><strong>Year:</strong> <?php echo htmlspecialchars($listingDetails->modelYear); ?></p>
+                        <p><strong>Color:</strong> <?php echo htmlspecialchars($listingDetails->color); ?></p>
+                        <p><strong>Price:</strong> <?php echo htmlspecialchars($listingDetails->price); ?></p>
+                        <p><strong>Description:</strong> <?php echo htmlspecialchars($listingDetails->description); ?></p>
+                        <p><strong>Agent:</strong> <?php echo htmlspecialchars($listingDetails->agentFirstName . " " . $listingDetails->agentLastName); ?></p>
                         <?php
                         $referrer = $_GET['referrer'] ?? $_POST['referrer'] ?? 'dashboard';
                         ?>
@@ -198,13 +209,12 @@ class ListingView {
 
 // Initialize and use the classes
 $database = new Database();
-$listing = new Listing($database);
-$controller = new ListingController($listing);
-$view = new ListingView();
+$listing = new CarListing($database);
+$controller = new ViewUsedCarListingController($listing);
+$view = new ViewUsedCarListingPage($controller);
 
-$listing_id = $view->handleRequest();
-$listingDetails = $controller->getListingDetails($listing_id);
+// Render the listing details
+$view->render();
 
-$view->render($listingDetails);
 $database->closeConnection();
 ?>

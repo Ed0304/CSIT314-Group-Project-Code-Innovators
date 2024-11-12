@@ -244,12 +244,9 @@ class UserBoundary
                         <td><?php echo htmlspecialchars($listing->listing_description); ?></td>
                         <td><?php echo htmlspecialchars($listing->first_name . " " . $listing->last_name); ?></td>
                         <td>
-                            <form action="buyerListingDetails.php" method="post">
-                                <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
-                                <input type="hidden" name="referrer" value="dashboard">
-                                <button class="listing-button" id="listing-button" type="submit">View Listing Details</button>
-                            </form>
-
+                            <a href="buyerListingDetails.php?listing_id=<?php echo $listing->listing_id; ?>">
+                                <button class="agent-button" id="agent-button" type="button">View Listing Details</button>
+                            </a>
                             <a href="buyer_view_agent_details.php?user_id=<?php echo $listing->user_id; ?>&referrer=dashboard">
                                 <button class="agent-button" id="agent-button" type="button">View Agent Details</button>
                             </a>

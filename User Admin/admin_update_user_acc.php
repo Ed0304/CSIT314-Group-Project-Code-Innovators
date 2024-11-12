@@ -69,6 +69,18 @@ class UserAccount {
         return $success;
     }
 
+    public function getRoles() {
+        $roles = [];
+        $stmt = $this->conn->prepare("SELECT role_id, role_name FROM role");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $roles[] = $row;
+        }
+        $stmt->close();
+        return $roles;
+    }
+
     public function closeConnection() {
         $this->conn->close();
     }
@@ -84,6 +96,10 @@ class UpdateUserAccountController {
 
     public function getUserAccount($username) {
         return $this->useraccount->getUserDetails($username);
+    }
+
+    public function getRoles() {
+        return $this->useraccount->getRoles();
     }
 
     public function handleAccountUpdate($userAccount) {
@@ -126,6 +142,7 @@ class UpdateUserAccountPage {
 
         $username = $_GET['username'];
         $userAccount = $this->controller->getUserAccount($username);
+        $roles = $this->controller->getRoles();
         $this->controller->closeEntityConnection();
 
         if (!$userAccount) {
@@ -159,10 +176,11 @@ class UpdateUserAccountPage {
                     <td><label for="role_id">Role:</label></td>
                     <td>
                         <select id="role_id" name="role_id">
-                            <option value="1" <?= $userAccount->role_id == 1 ? 'selected' : ''; ?>>Admin</option>
-                            <option value="2" <?= $userAccount->role_id == 2 ? 'selected' : ''; ?>>Used Car Agent</option>
-                            <option value="3" <?= $userAccount->role_id == 3 ? 'selected' : ''; ?>>Buyer</option>
-                            <option value="4" <?= $userAccount->role_id == 4 ? 'selected' : ''; ?>>Seller</option>
+                            <?php foreach ($roles as $role): ?>
+                                <option value="<?= $role['role_id']; ?>" <?= $userAccount->role_id == $role['role_id'] ? 'selected' : ''; ?>>
+                                    <?= htmlspecialchars($role['role_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </td>
                 </tr>
