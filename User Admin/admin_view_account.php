@@ -19,7 +19,7 @@ class UserAccount {
         }
     }
 
-    public function getProfileByUsername($username) {
+    public function viewUserAccountByUsername($username) {
         $stmt = $this->pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, 
             s.status_name, p.first_name, p.last_name, p.about, p.profile_image
             FROM users u
@@ -42,8 +42,8 @@ class ViewUserAccountController {
         $this->userAccountModel = $userAccountModel;
     }
 
-    public function getProfile($username) {
-        return $this->userAccountModel->getProfileByUsername($username);
+    public function viewUserAccount($username) {
+        return $this->userAccountModel->viewUserAccountByUsername($username);
     }
 }
 
@@ -67,8 +67,8 @@ class ViewUserAccountPage {
         } else {
             $username = $_GET['username'] ?? '';
             if ($username) {
-                $profileData = $this->controller->getProfile($username);
-                $this->ViewUserAccountUI($profileData);
+                $accountData = $this->controller->viewUserAccount($username);
+                $this->ViewUserAccountUI($accountData);
             }
         }
     }
@@ -90,7 +90,7 @@ class ViewUserAccountPage {
         }
     }
 
-    public function ViewUserAccountUI($profileData) {
+    public function ViewUserAccountUI($accountData) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -115,9 +115,9 @@ class ViewUserAccountPage {
                     <td><strong>Profile Image</strong></td>
                     <td colspan="2">
                         <?php
-                        if (!empty($profileData['profile_image'])) {
+                        if (!empty($accountData['profile_image'])) {
                             // Assuming profile_image is stored as a BLOB, display it as base64
-                            echo '<img src="data:image/jpeg;base64,' . base64_encode($profileData['profile_image']) . '" alt="Profile Image" style="max-width: 200px; max-height: 200px;" />';
+                            echo '<img src="data:image/jpeg;base64,' . base64_encode($accountData['profile_image']) . '" alt="Profile Image" style="max-width: 200px; max-height: 200px;" />';
                         } else {
                             echo 'No profile image available.';
                         }
@@ -126,36 +126,36 @@ class ViewUserAccountPage {
                 </tr>
                 <tr>
                     <td><strong>Full Name</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['first_name'] .' '.htmlspecialchars($profileData['last_name'] ?? '')); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['first_name'] .' '.htmlspecialchars($accountData['last_name'] ?? '')); ?></td>
                 </tr>
                 <tr>
                 <tr>
                     <td><strong>About</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['about'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['about'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Username</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['username'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['username'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Password</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['password'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['password'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Role</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['role_name'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['role_name'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Email</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['email'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['email'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Phone Number</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['phone_num'] ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['phone_num'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Status</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($profileData['status_name']); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['status_name']); ?></td>
                 </tr>                
                 <tr>
                     <td><br/></td><td><br/></td>
@@ -163,19 +163,19 @@ class ViewUserAccountPage {
                 <tr>
                     <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="return" style="font-size: 24px">Return to accounts list</button>
                         </form>
                     </td>
                     <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="update" style="font-size: 24px">Update account information</button>
                         </form>
                     </td>
                     <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($profileData['username'] ?? ''); ?>">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
                             <button type="submit" name="action" value="suspend" style="font-size: 24px">Suspend this account</button>
                         </form>
                     </td>

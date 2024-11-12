@@ -15,7 +15,7 @@ class UserProfile {
         $stmt->bind_param("ss", $role_name, $role_description);
         $success = $stmt->execute();
         $stmt->close();
-        return $success;
+        return $success; //return true/false
     }
     
     public function checkRoleExists($role_name) {
@@ -42,7 +42,7 @@ class CreateUserProfileController {
     }
 
     public function createUserProfile($role_name, $role_description) {
-        return $this->entity->createUserProfile($role_name, $role_description);
+        return $this->entity->createUserProfile($role_name, $role_description); //return true/false
     }
 
     public function checkRoleExists($role_name) {

@@ -40,20 +40,52 @@ class UserAccount {
 
     public function createUserAccount() {
         $this->conn->begin_transaction();
-
+    
         try {
+            // Insert into the users table
             $stmt = $this->conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num, status_id) VALUES (?, ?, ?, ?, ?, 1)");
+            if (!$stmt) {
+                throw new Exception("Failed to prepare 'users' insert statement: " . $this->conn->error);
+            }
             $stmt->bind_param("ssiss", $this->username, $this->password, $this->role_id, $this->email, $this->phone_num);
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute 'users' insert statement: " . $stmt->error);
+            }
+            
             $user_id = $this->conn->insert_id;
             $stmt->close();
-
-            $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
-            $stmt->bind_param("issssb", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender, $null);
-            $stmt->send_long_data(5, file_get_contents($this->profile_image['tmp_name']));
-            $stmt->execute();
+    
+            // Prepare profile image data if available
+            $profile_image_data = null;
+            if ($this->profile_image && is_uploaded_file($this->profile_image['tmp_name'])) {
+                $profile_image_data = file_get_contents($this->profile_image['tmp_name']);
+            }
+    
+            // Insert into the profile table
+            if ($profile_image_data) {
+                // Profile with image
+                $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
+                if (!$stmt) {
+                    throw new Exception("Failed to prepare 'profile' insert statement with image: " . $this->conn->error);
+                }
+                $stmt->bind_param("issssb", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender, $null);
+                $stmt->send_long_data(5, $profile_image_data);
+            } else {
+                // Profile without image
+                $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, status_id) VALUES (?, ?, ?, ?, ?, 1)");
+                if (!$stmt) {
+                    throw new Exception("Failed to prepare 'profile' insert statement without image: " . $this->conn->error);
+                }
+                $stmt->bind_param("issss", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender);
+            }
+    
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to execute 'profile' insert statement: " . $stmt->error);
+            }
+            
             $stmt->close();
-
+    
             $this->conn->commit();
             return true;
         } catch (Exception $e) {
@@ -61,6 +93,9 @@ class UserAccount {
             return false;
         }
     }
+    
+    
+    
 }
 
 class CreateUserAccountController {
@@ -78,6 +113,16 @@ class CreateUserAccountController {
         $this->userAccountModel = $userAccount;
         return $this->userAccountModel->createUserAccount();
     }
+
+    public function getAllRoles() {
+        $query = "SELECT role_id, role_name FROM role";
+        $result = $this->userAccountModel->conn->query($query);
+        $roles = [];
+        while ($row = $result->fetch_assoc()) {
+            $roles[] = $row;
+        }
+        return $roles;
+    }
 }
 
 class CreateUserAccountPage {
@@ -87,7 +132,7 @@ class CreateUserAccountPage {
         $this->message = $message;
     }
 
-    public function CreateUserAccountUI() {
+    public function CreateUserAccountUI($roles = []) {
         ?>
         <html>
         <head>
@@ -126,11 +171,15 @@ class CreateUserAccountPage {
                             </select>
                         </td>
                     </tr>
-                    <tr><td><label for="role" class="select-label">Role:</label></td><td><select id="role" name="role" class="select-label" required>
-                        <option value="used car agent">Used Car Agent</option>
-                        <option value="buyer">Buyer</option>
-                        <option value="seller">Seller</option>
-                    </select></td></tr>
+                    <tr><td><label for="role" class="select-label">Role:</label></td>
+                        <td><select id="role" name="role" class="select-label" required>
+                            <?php foreach ($roles as $role): ?>
+                                <option value="<?php echo htmlspecialchars($role['role_name']); ?>">
+                                    <?php echo htmlspecialchars($role['role_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select></td>
+                    </tr>
                     <tr><td><label style="font-size: 24px">Email:</label></td><td><input type="text" name="email" style="font-size: 24px" required/></td></tr>
                     <tr><td><label style="font-size: 24px">Phone Number:</label></td><td><input type="text" name="phone_num" style="font-size: 24px" required/></td></tr>
                     <tr><td><label style="font-size: 24px">Profile Image:</label></td><td><input type="file" name="profile_image" style="font-size: 24px" /></td></tr>
@@ -162,25 +211,29 @@ class CreateUserAccountPage {
             isset($formData['gender']) ? $formData['gender'] : '',
             isset($fileData['profile_image']) ? $fileData['profile_image'] : null
         );
-    
-        $result = $controller->createUserAccount($userAccount);
-    
-        return $result ? "New account created successfully." : "Please fill in all the fields";
+
+        $success = $controller->createUserAccount($userAccount);
+        return $success ? "Account created successfully!" : "";
     }
-     
 
     public function processFormSubmission($controller) {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->message = $this->handleAccountCreation($_POST, $_FILES, $controller);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $message = $this->handleAccountCreation($_POST, $_FILES, $controller);
+            $this->message = $message;
+            $roles = $controller->getAllRoles();
+            $this->CreateUserAccountUI($roles);
+        } else {
+            $roles = $controller->getAllRoles();
+            $this->CreateUserAccountUI($roles);
         }
     }
+    
 }
 
-// MAIN LOGIC
-$database = new Database();
-$userAccount = new UserAccount($database->getConnection());
+// Main script to initialize
+$connection = new Database(); // Assuming your Database class connects to the DB
+$userAccount = new UserAccount($connection->getConnection());
 $controller = new CreateUserAccountController($userAccount);
-$view = new CreateUserAccountPage();
-$view->processFormSubmission($controller);
-$view->CreateUserAccountUI();
+$page = new CreateUserAccountPage();
+$page->processFormSubmission($controller);
 ?>

@@ -17,7 +17,7 @@ class UserAccount {
     }
 
     // Retrieves user data from the database
-    public function getUserAccountData() {
+    public function verifyLoginCredentials() {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -46,17 +46,18 @@ class UserAccount {
     }
 }
 
-// Controller Layer: LoginPageController class for handling user authentication logic
-class LoginPageController {
+// Controller Layer: LoginController class for handling user authentication logic
+class LoginController {
     private $isSuspended = false;
 
     // Now accepts UserAccount object as a parameter
     public function __construct() {
+
     }
 
     // Attempts to authenticate the user, returns true if successful, false otherwise
-    public function verifyCredentials($userAccount) {
-        $userData = $userAccount->getUserAccountData();
+    public function verifyLoginCredentials($userAccount) {
+        $userData = $userAccount->verifyLoginCredentials();
 
         if ($userData === false) {
             return false;
@@ -77,7 +78,7 @@ class LoginPageController {
     }
 
     public function getUserId($userAccount) {
-        $userData = $userAccount->getUserAccountData();
+        $userData = $userAccount->verifyLoginCredentials();
         return $userData['user_id'];
     }
 }
@@ -146,8 +147,8 @@ class LoginPage {
                 $db = (new Database())->getConnection();
                 $user = new UserAccount($db, $username, $password, $role);
 
-                $authController = new LoginPageController();
-                $authResult = $authController->verifyCredentials($user);
+                $authController = new LoginController();
+                $authResult = $authController->verifyLoginCredentials($user);
 
                 if ($authResult === true) {
                     $_SESSION['username'] = $username;

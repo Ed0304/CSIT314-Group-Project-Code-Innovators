@@ -4,7 +4,7 @@ session_start();
 // BOUNDARY LAYER: Responsible for rendering user information and handling requests
 class SuspendUserAccountPage {
     private $accountController;
-    private $profileData;
+    private $accountData;
 
     public function __construct() {
         $this->accountController = new SuspendUserAccountController();
@@ -21,10 +21,10 @@ class SuspendUserAccountPage {
             $action = $_POST['action'];
 
             if ($action === 'suspend') {
-                $success = $this->accountController->setSuspend($username);
+                $success = $this->accountController->suspendUserAccount($username);
                 $_SESSION['message'] = $success ? "User account suspended successfully." : "Failed to suspend user account.";
             } elseif ($action === 'Remove') {
-                $success = $this->accountController->setRemoveSuspend($username);
+                $success = $this->accountController->unsuspendUserAccount($username);
                 $_SESSION['message'] = $success ? "User account suspension removed." : "Failed to remove suspension.";
             }
 
@@ -37,34 +37,34 @@ class SuspendUserAccountPage {
 
         $username = isset($_GET['username']) ? $_GET['username'] : '';
         if ($username) {
-            $this->profileData = $this->accountController->getProfile($username);
+            $this->accountData = $this->accountController->getUserAccount($username);
         } else {
             echo "No username provided.";
         }
     }
 
     private function getUsername() {
-        return $this->profileData['username'] ?? '';
+        return $this->accountData['username'] ?? '';
     }
 
     private function getPassword() {
-        return $this->profileData['password'] ?? '';
+        return $this->accountData['password'] ?? '';
     }
 
     private function getRoleName() {
-        return $this->profileData['role_name'] ?? '';
+        return $this->accountData['role_name'] ?? '';
     }
 
     private function getEmail() {
-        return $this->profileData['email'] ?? '';
+        return $this->accountData['email'] ?? '';
     }
 
     private function getPhoneNumber() {
-        return $this->profileData['phone_num'] ?? '';
+        return $this->accountData['phone_num'] ?? '';
     }
 
     private function getStatusName() {
-        return $this->profileData['status_name'] ?? '';
+        return $this->accountData['status_name'] ?? '';
     }
 
     public function SuspendUserAccountUI() {
@@ -153,16 +153,16 @@ class SuspendUserAccountController {
         $this->userAccountModel = new UserAccount();
     }
 
-    public function getProfile($username) {
-        return $this->userAccountModel->getProfileByUsername($username);
+    public function getUserAccount($username) {
+        return $this->userAccountModel->getUserAccountByUsername($username); //Returns the user account
     }
 
-    public function setSuspend($username) {
-        return $this->userAccountModel->Suspend($username);
+    public function suspendUserAccount($username) {
+        return $this->userAccountModel->suspendUserAccount($username); //Returns true/false
     }
 
-    public function setRemoveSuspend($username) {
-        return $this->userAccountModel->RemoveSuspend($username);
+    public function unsuspendUserAccount($username) {
+        return $this->userAccountModel->unsuspendUserAccount($username); //Returns true/false
     }
 }
 
@@ -180,7 +180,7 @@ class UserAccount {
         }
     }
 
-    public function getProfileByUsername($username) {
+    public function getUserAccountByUsername($username) {
         $stmt = $this->pdo->prepare("SELECT u.username, u.password, r.role_name, u.email, u.phone_num, s.status_name
             FROM users u
             JOIN role r ON u.role_id = r.role_id
@@ -191,13 +191,13 @@ class UserAccount {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function Suspend($username) {
+    public function suspendUserAccount($username) {
         $stmt = $this->pdo->prepare("UPDATE users SET status_id = 2 WHERE username = :username");
         $stmt->bindParam(':username', $username);
         return $stmt->execute(); //return true after successfully updated database
     }
 
-    public function RemoveSuspend($username) {
+    public function unsuspendUserAccount($username) {
         $stmt = $this->pdo->prepare("UPDATE users SET status_id = 1 WHERE username = :username");
         $stmt->bindParam(':username', $username);
         return $stmt->execute(); //return true after successfully updated database

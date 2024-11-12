@@ -30,53 +30,63 @@ class UserProfile {
     public $phone_num;
     public $profile_image;
     public $profile_id;
+    private $pdo;
 
-    public function __construct($data) {
-        $this->username = $data['username'];
-        $this->first_name = $data['first_name'];
-        $this->last_name = $data['last_name'];
-        $this->about = $data['about'];
-        $this->gender = $data['gender'];
-        $this->email = $data['email'];
-        $this->user_id = $data['user_id'];
-        $this->role_name = $data['role_name'];
-        $this->phone_num = $data['phone_num'];
-        $this->profile_image = $data['profile_image'];
-        $this->profile_id = $data['profile_id'];
+    public function __construct() {
+        try {
+            $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("Database connection failed: " . $e->getMessage());
+        }
     }
 
     // Fetches profile data directly from the database
-    public static function getProfileByUsername($pdo, $username) {
+    public function getProfileByUsername($username) {
         $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 
                   FROM profile p 
                   JOIN users u ON p.user_id = u.user_id 
                   JOIN role r ON r.role_id = u.role_id 
                   WHERE u.username = :username";
         
-        $stmt = $pdo->prepare($query);
+        $stmt = $this->pdo->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->execute();
         
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $data ? new self($data) : null;
+        if ($data) {
+            $this->username = $data['username'];
+            $this->first_name = $data['first_name'];
+            $this->last_name = $data['last_name'];
+            $this->about = $data['about'];
+            $this->gender = $data['gender'];
+            $this->email = $data['email'];
+            $this->user_id = $data['user_id'];
+            $this->role_name = $data['role_name'];
+            $this->phone_num = $data['phone_num'];
+            $this->profile_image = $data['profile_image'];
+            $this->profile_id = $data['profile_id'];
+            return $this;
+        }
+        return null;
     }
 }
 
 // CONTROL LAYER: Handles business logic and manages the entity layer
 class ProfileController {
-    private $pdo;
+    private $userProfileEntity;
 
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
+    public function __construct($userProfileEntity) {
+        $this->userProfileEntity = $userProfileEntity;
     }
 
     // Fetches the profile as a UserProfile object
     public function getProfile($username) {
-        return UserProfile::getProfileByUsername($this->pdo, $username);
+        return $this->userProfileEntity->getProfileByUsername($username);
     }
 }
 
-// BOUNDARY LAYER: Responsible for rendering the user interface
+// BOUNDARY LAYER: Responsible for SellerViewProfileUIing the user interface
 class ProfileView {
     private $profileData;
 
@@ -85,7 +95,7 @@ class ProfileView {
     }
 
     // Renders the profile page
-    public function render() {
+    public function SellerViewProfileUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -177,21 +187,13 @@ class ProfileView {
 }
 
 // MAIN LOGIC: Sets up components and renders the view
-try {
-    // Establish database connection
-    $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$userProfileEntity = new UserProfile();
+$profileController = new ProfileController($userProfileEntity);
 
-    // Initialize controller
-    $profileController = new ProfileController($pdo);
+// Retrieve user profile data
+$profileData = $profileController->getProfile($username);
 
-    // Retrieve user profile data
-    $profileData = $profileController->getProfile($username);
-
-    // Render the view with retrieved profile data
-    $profileView = new ProfileView($profileData);
-    $profileView->render();
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
+// Render the view with retrieved profile data
+$profileView = new ProfileView($profileData);
+$profileView->SellerViewProfileUI();
 ?>

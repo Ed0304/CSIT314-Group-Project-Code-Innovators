@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once "../connectDatabase.php";  // Include the file that contains your database connection
 
 // Entity Class
 class Listing {
@@ -14,8 +13,9 @@ class Listing {
     public $listing_description;
     public $views;
     public $shortlists;
+    private $pdo;
 
-    public function __construct($listing_id, $manufacturer_name, $model_name, $model_year, $listing_image, $listing_color, $listing_price, $listing_description, $views, $shortlists) {
+    public function __construct($listing_id = null, $manufacturer_name = null, $model_name = null, $model_year = null, $listing_image = null, $listing_color = null, $listing_price = null, $listing_description = null, $views = 0, $shortlists = 0) {
         $this->listing_id = $listing_id;
         $this->manufacturer_name = $manufacturer_name;
         $this->model_name = $model_name;
@@ -26,15 +26,10 @@ class Listing {
         $this->listing_description = $listing_description;
         $this->views = $views;
         $this->shortlists = $shortlists;
-    }
-}
 
-// Controller Class
-class ViewListingController {
-    private $pdo;
-
-    public function __construct($pdo) {
-        $this->pdo = $pdo;
+        // Database connection inside the Entity class
+        $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     public function getUserIdByUsername($username) {
@@ -43,11 +38,7 @@ class ViewListingController {
         $stmt->bindParam(':username', $username, PDO::PARAM_STR);
         $stmt->execute();
 
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            return $row['user_id'];
-        } else {
-            return null;
-        }
+        return $stmt->fetchColumn();
     }
 
     public function getListingsBySeller($user_id) {
@@ -81,15 +72,44 @@ class ViewListingController {
     }
 }
 
-// Boundary Class
-class ViewListingBoundary {
-    private $viewListingController;
+// Controller Class
+class ListingController {
+    private $listingEntity;
 
-    public function __construct($viewListingController) {
-        $this->viewListingController = $viewListingController;
+    public function __construct($listingEntity) {
+        $this->listingEntity = $listingEntity;
     }
 
-    public function displayListings($username) {
+    public function getUserListings($username) {
+        // Fetch user ID using username
+        $user_id = $this->listingEntity->getUserIdByUsername($username);
+        
+        if (!$user_id) {
+            return null;  // Return null if user is not found
+        }
+        
+        // Fetch listings for the user
+        return $this->listingEntity->getListingsBySeller($user_id);
+    }
+}
+
+// Boundary Class
+class ViewListingBoundary {
+    private $controller;
+
+    public function __construct($controller) {
+        $this->controller = $controller;
+    }
+
+    public function displayListings() {
+        if (!isset($_SESSION['username'])) {
+            echo "<p>Please log in to view your listings.</p>";
+            return;
+        }
+
+        $username = $_SESSION['username'];
+        $listings = $this->controller->getUserListings($username);
+
         echo "<style>
                 /* CSS styles here */
                 body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
@@ -101,49 +121,33 @@ class ViewListingBoundary {
                 .btn-view, .btn-shortlist, .btn-return { margin-top: 10px; padding: 8px 16px; background-color: #007bff; color: white; border-radius: 5px; text-decoration: none; }
                 .btn-view:hover, .btn-shortlist:hover, .btn-return:hover { background-color: #0056b3; }
               </style>";
-    
-        $user_id = $this->viewListingController->getUserIdByUsername($username);
-    
-        if ($user_id) {
-            $listings = $this->viewListingController->getListingsBySeller($user_id);
-    
+
+        if ($listings) {
             echo "<div class='listing-container'>";
-            if (count($listings) > 0) {
-                foreach ($listings as $listing) {
-                    $formatted_price = "$" . number_format($listing->listing_price, 2);
-    
-                    echo "<div class='listing-item'>";
-                    echo "<h3>{$listing->manufacturer_name} {$listing->model_name} ({$listing->model_year})</h3>";
-                    echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
-                    echo "<p>Price: {$formatted_price}</p>";
-                    echo "<p>Description: {$listing->listing_description}</p>";
-                    echo "<p>Views: {$listing->views}</p>";
-                    echo "<a href='listing-views.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
-                    // Update the "See Shortlists" button to point to seller_count_shortlist.php
-                    echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
-                    echo "</div>";
-                }
-            } else {
-                echo "<p>No listings found for this seller.</p>";
+            foreach ($listings as $listing) {
+                $formatted_price = "$" . number_format($listing->listing_price, 2);
+
+                echo "<div class='listing-item'>";
+                echo "<h3>{$listing->manufacturer_name} {$listing->model_name} ({$listing->model_year})</h3>";
+                echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
+                echo "<p>Price: {$formatted_price}</p>";
+                echo "<p>Description: {$listing->listing_description}</p>";
+                echo "<p>Views: {$listing->views}</p>";
+                echo "<a href='listing-views.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
+                echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
+                echo "</div>";
             }
             echo "</div>";
-            echo "<a href='seller_dashboard.php' class='btn-return'>Return to Previous Page</a>";
         } else {
-            echo "<p>No user found with that username.</p>";
+            echo "<p>No listings found for this seller.</p>";
         }
+        echo "<a href='seller_dashboard.php' class='btn-return'>Return to Previous Page</a>";
     }
 }
 
-// Main script to display listings when the user is logged in
-$pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-if (isset($_SESSION['username'])) {
-    $username = $_SESSION['username'];
-    $viewListingController = new ViewListingController($pdo);
-    $viewListingBoundary = new ViewListingBoundary($viewListingController);
-    $viewListingBoundary->displayListings($username);
-} else {
-    echo "<p>Please log in to view your listings.</p>";
-}
+// Main script to display listings
+$listingEntity = new Listing();  // Entity class initialized without actual data
+$listingController = new ListingController($listingEntity);  // Controller instantiation
+$viewListingBoundary = new ViewListingBoundary($listingController);  // Boundary receives controller
+$viewListingBoundary->displayListings();
 ?>

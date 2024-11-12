@@ -9,7 +9,7 @@ class SellerCountShortlistPage {
         $this->sellerCountShortlistController = $sellerCountShortlistController;
     }
 
-    public function displayListingWithShortlistCount($listing_id) {
+    public function SellerViewShorlistsUI($listing_id) {
         $listing = $this->sellerCountShortlistController->getListingDetailsWithShortlistCount($listing_id);
 
         if ($listing) {
@@ -29,8 +29,14 @@ class SellerCountShortlistPage {
             echo "<p style='text-align: center;'>Listing not found.</p>";
         }
     }
-    public function handleRequest(){
-        
+
+    public function handleRequest() {
+        if (isset($_GET['listing_id'])) {
+            $listing_id = $_GET['listing_id'];
+            $this->SellerViewShorlistsUI($listing_id);
+        } else {
+            echo "<p style='text-align: center;'>No listing ID provided.</p>";
+        }
     }
 }
 
@@ -89,17 +95,11 @@ class Shortlist {
     }
 }
 
-if (isset($_GET['listing_id'])) {
-    $listing_id = $_GET['listing_id'];
+// Initialize classes
+$Shortlist = new Shortlist();
+$sellerCountShortlistController = new SellerCountShortlistController($Shortlist);
+$sellerCountShortlistPage = new SellerCountShortlistPage($sellerCountShortlistController);
 
-    // Initialize classes without passing $pdo
-    $Shortlist = new Shortlist();
-    $sellerCountShortlistController = new SellerCountShortlistController($Shortlist);
-    $sellerCountShortlistPage = new SellerCountShortlistPage($sellerCountShortlistController);
-
-    // Display the listing with shortlist count
-    $sellerCountShortlistPage->displayListingWithShortlistCount($listing_id);
-} else {
-    echo "<p style='text-align: center;'>No listing ID provided.</p>";
-}
+// Handle the request
+$sellerCountShortlistPage->handleRequest();
 ?>

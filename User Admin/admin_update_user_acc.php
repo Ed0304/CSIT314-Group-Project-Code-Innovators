@@ -50,19 +50,19 @@ class UserAccount {
         return null;
     }
 
-    public function updateUser($data) {
+    public function updateUserAccount($userAccount) {
         $stmt = $this->conn->prepare(
             "UPDATE users SET username = ?, password = ?, role_id = ?, email = ?, phone_num = ?, status_id = ? WHERE user_id = ?"
         );
         $stmt->bind_param(
             "ssissii",
-            $data['username'],
-            $data['password'],
-            $data['role_id'],
-            $data['email'],
-            $data['phone_num'],
-            $data['status_id'],
-            $data['user_id']
+            $userAccount['username'],
+            $userAccount['password'],
+            $userAccount['role_id'],
+            $userAccount['email'],
+            $userAccount['phone_num'],
+            $userAccount['status_id'],
+            $userAccount['user_id']
         );
         $success = $stmt->execute();
         $stmt->close();
@@ -86,8 +86,8 @@ class UpdateUserAccountController {
         return $this->useraccount->getUserDetails($username);
     }
 
-    public function handleAccountUpdate($data) {
-        return $this->useraccount->updateUser($data);
+    public function handleAccountUpdate($userAccount) {
+        return $this->useraccount->updateUserAccount($userAccount);
     }
 
     public function closeEntityConnection() {
@@ -105,8 +105,8 @@ class UpdateUserAccountPage {
 
     public function handleFormSubmission() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
-            $updateSuccess = $this->controller->handleAccountUpdate($data);
+            $userAccount = $_POST;
+            $updateSuccess = $this->controller->handleAccountUpdate($userAccount);
             $this->controller->closeEntityConnection();
 
             if ($updateSuccess) {

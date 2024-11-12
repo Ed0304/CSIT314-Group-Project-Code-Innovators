@@ -1,57 +1,40 @@
 <?php
 session_start();
-require_once "../connectDatabase.php";
 
 // Entity Layer
 class Review
 {
+    private $mysqli;
     private $details;
     private $stars;
     private $seller_name;
     private $date;
 
-    public function __construct($details, $stars, $seller_name, $date)
+    public function __construct($details = null, $stars = null, $seller_name = null, $date = null)
     {
         $this->details = $details;
         $this->stars = $stars;
         $this->seller_name = $seller_name;
         $this->date = $date;
+
+        // Initialize the database connection here
+        $this->mysqli = new mysqli("localhost", "root", "", "csit314");
+        if ($this->mysqli->connect_error) {
+            die("Connection failed: " . $this->mysqli->connect_error);
+        }
     }
 
-    public function getDetails()
+    public function __destruct()
     {
-        return $this->details;
+        // Close the connection when the object is destroyed
+        if ($this->mysqli) {
+            $this->mysqli->close();
+        }
     }
 
-    public function getStars()
+    // CRUD - Read: Fetch reviews by agent
+    public function fetchReviewsByAgent($agent_id)
     {
-        return $this->stars;
-    }
-
-    public function getSellerName()
-    {
-        return $this->seller_name;
-    }
-
-    public function getDate()
-    {
-        return $this->date;
-    }
-}
-
-// Controller Layer
-class ReviewController
-{
-    private $mysqli;
-
-    public function __construct($mysqli)
-    {
-        $this->mysqli = $mysqli;
-    }
-
-    public function getReviewsByAgent($agent_id)
-    {
-        // Fetch all reviews for the specified agent
         $stmt = $this->mysqli->prepare("
             SELECT r.review_details, r.review_stars, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, r.review_date
             FROM review r
@@ -73,9 +56,9 @@ class ReviewController
         return $reviews;
     }
 
-    public function getAgentName($agent_id)
+    // CRUD - Read: Fetch agent name by agent ID
+    public function fetchAgentName($agent_id)
     {
-        // Fetch the agent's name for display
         $stmt = $this->mysqli->prepare("
             SELECT CONCAT(p.first_name, ' ', p.last_name) AS agent_name
             FROM users u
@@ -92,7 +75,30 @@ class ReviewController
     }
 }
 
-// Boundary Layer
+// Controller Layer
+class ReviewController
+{
+    private $reviewEntity;
+
+    public function __construct($reviewEntity)
+    {
+        $this->reviewEntity = $reviewEntity;
+    }
+
+    // Fetch reviews by agent ID, called by Boundary
+    public function getReviewsByAgent($agent_id)
+    {
+        return $this->reviewEntity->fetchReviewsByAgent($agent_id);
+    }
+
+    // Fetch agent name by agent ID, called by Boundary
+    public function getAgentName($agent_id)
+    {
+        return $this->reviewEntity->fetchAgentName($agent_id);
+    }
+}
+
+// Boundary Layer (UI and Interaction)
 class ReviewBoundary
 {
     private $controller;
@@ -102,18 +108,33 @@ class ReviewBoundary
         $this->controller = $controller;
     }
 
-    public function render($agent_id)
+    // Render function to display reviews and agent name
+    public function render()
     {
-        // Get agent name
+        if (!$this->isUserLoggedIn()) {
+            echo "<p>Please log in to view agent reviews.</p>";
+            return;
+        }
+
+        $agent_id = $this->getAgentId();
+        if (!$this->validateAgentId($agent_id)) {
+            echo "<p>Invalid agent ID.</p>";
+            return;
+        }
+
         $agent_name = $this->controller->getAgentName($agent_id);
         if (!$agent_name) {
             echo "<p>Agent not found or invalid ID.</p>";
             return;
         }
 
-        // Get reviews for the specific agent
         $reviews = $this->controller->getReviewsByAgent($agent_id);
+        $this->displayReviews($agent_name, $reviews);
+    }
 
+    // Display function to render reviews
+    private function displayReviews($agent_name, $reviews)
+    {
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -121,50 +142,7 @@ class ReviewBoundary
             <meta charset="UTF-8">
             <title>Reviews for <?php echo htmlspecialchars($agent_name); ?></title>
             <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f4f4;
-                    color: #333;
-                    display: flex;
-                    justify-content: center;
-                    padding: 20px;
-                }
-                .container {
-                    max-width: 800px;
-                    width: 100%;
-                    background-color: #fff;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                }
-                h1 {
-                    text-align: center;
-                    color: #333;
-                }
-                .review {
-                    border-bottom: 1px solid #ddd;
-                    padding: 10px 0;
-                }
-                .review:last-child {
-                    border-bottom: none;
-                }
-                .review .stars {
-                    color: #ffbb33;
-                    font-size: 16px;
-                }
-                .review .date {
-                    color: #888;
-                    font-size: 14px;
-                    margin-bottom: 5px;
-                }
-                .review .seller {
-                    font-weight: bold;
-                    font-size: 14px;
-                }
-                .review .details {
-                    font-size: 16px;
-                    line-height: 1.6;
-                }
+                /* Styles */
             </style>
         </head>
         <body>
@@ -187,29 +165,29 @@ class ReviewBoundary
         </html>
         <?php
     }
+
+    // Validation function for login status
+    private function isUserLoggedIn()
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    // Validation function for agent ID
+    private function getAgentId()
+    {
+        return isset($_GET['agent_id']) ? (int)$_GET['agent_id'] : null;
+    }
+
+    // Verification function for agent ID validity
+    private function validateAgentId($agent_id)
+    {
+        return !is_null($agent_id) && $agent_id > 0;
+    }
 }
 
 // Usage Example
-$mysqli = new mysqli("localhost", "root", "", "csit314");
-
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
-
-if (!isset($_SESSION['user_id'])) {
-    echo "<p>Please log in to view agent reviews.</p>";
-    exit();
-}
-
-$agent_id = isset($_GET['agent_id']) ? (int) $_GET['agent_id'] : null;
-if (!$agent_id) {
-    echo "<p>Invalid agent ID.</p>";
-    exit();
-}
-
-$controller = new ReviewController($mysqli);
+$reviewEntity = new Review();
+$controller = new ReviewController($reviewEntity);
 $boundary = new ReviewBoundary($controller);
-$boundary->render($agent_id);
-
-$mysqli->close();
+$boundary->render();
 ?>

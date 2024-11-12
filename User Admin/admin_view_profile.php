@@ -15,31 +15,7 @@ class ViewUserProfilePage
     public function handleRequest()
     {
         $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $action = $_POST;
-
-            if (isset($action['viewAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: profileDetails.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['updateAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: admin_update_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['suspendAccount'])) {
-                $profile_id = $action['profile_id'] ?? '';
-                header("Location: admin_suspend_profile.php?profile_id=" . urlencode($profile_id));
-                exit();
-            } elseif (isset($action['searchUser'])) {
-                $role_id = $action['role_id']; // Capture the role_id from the form
-                header("Location: admin_search_profile.php?role_id=" . urlencode($role_id));
-                exit();
-            }
-        } else {
-            $users = $this->controller->getUsersByRole($role_id);
-        }
-
+        $users = $this->controller->getUsersByRole($role_id);
         $about = $this->controller->getAbout();
         $this->ViewUserProfileUI($users, $about, $role_id);
     }

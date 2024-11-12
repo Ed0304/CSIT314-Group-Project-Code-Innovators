@@ -61,7 +61,6 @@ class Review
 }
 
 // Control Layer
-// Control Layer
 class CreateReviewController
 {
     private $mysqli;

@@ -169,6 +169,4 @@ $carListingEntity = new CarListing($db->getConnection());
 $controller = new DeleteCarListingController($carListingEntity);
 $view = new DeleteCarListingPage($controller);
 $view->handleRequest();
-
-
 ?>
