@@ -2,7 +2,7 @@
 // Connect to the database
 require '../connectDatabase.php';
 
-// Entity Layer: UserAccount class for interacting with the database
+// ENTITY LAYER: Represents user data and interacts with the database
 class UserAccount
 {
     public $username;
@@ -63,7 +63,7 @@ class UserAccount
 }
 
 
-// Control Layer: SearchUserAccountController class for managing data flow between boundary and entity layers
+// CONTROLLER LAYER: Manage data flow between Boundary and Entity layers
 class SearchUserAccountController
 {
     private $users;
@@ -86,7 +86,8 @@ class SearchUserAccountController
     }
 }
 
-// Boundary Layer: SearchUserAccountPage class for handling form display and user interaction
+
+// BOUNDARY LAYER: HTML View for managing user accounts and handling user interactions
 class SearchUserAccountPage
 {
     private $controller;
@@ -96,8 +97,7 @@ class SearchUserAccountPage
         $this->controller = $controller;
     }
 
-    // Search functionality is implemented inside this function
-    public function SearchUserAccountUI() 
+    public function SearchUserAccountUI() //Search functionality is implemented inside this function.
     {
     // Fetch users based on search or default (all users)
     $users = $this->controller->getUsers();  // Initially fetch all users
@@ -144,7 +144,7 @@ class SearchUserAccountPage
         </style>
     </head>
     <body>
-        <h1 style="text-align:center">User Accounts Dashboard</h1>
+        <h1 style="text-align:center">Manage user accounts here...</h1>
         <form method="POST">
             <label for="role" class="select-label">Filter based on:</label>
             <select id="role" name="role" class="select-label">
@@ -159,7 +159,7 @@ class SearchUserAccountPage
         </form>
 
         <form method="post" action="accountCreation.php">
-            <button type="submit" name="createAccount" class="select-label" id="createAccount">Create New User Account</button>
+            <button type="submit" name="createAccount" class="select-label" id="createAccount">Create new user account</button>
         </form>
         <br /><br />
 
@@ -232,7 +232,7 @@ class SearchUserAccountPage
 }
 
 
-// Global Layer: Initializing the components
+// MAIN LOGIC: Initialize components
 $database = new Database();
 $mysqli = $database->getConnection();
 

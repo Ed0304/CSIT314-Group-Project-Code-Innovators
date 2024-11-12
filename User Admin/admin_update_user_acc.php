@@ -1,7 +1,7 @@
 <?php
 require '../connectDatabase.php';
 
-// Entity Layer: UserAccount class for interacting with the database
+// ENTITY LAYER: Handles data structure and database interaction for User Account
 class UserAccount {
     private $conn;
     public $user_id;
@@ -74,7 +74,7 @@ class UserAccount {
     }
 }
 
-// Control Layer: UpdateUserProfileController class for managing data flow between boundary and entity layers
+// CONTROL LAYER: Manages account updates and data retrieval
 class UpdateUserAccountController {
     private $useraccount;
 
@@ -95,7 +95,7 @@ class UpdateUserAccountController {
     }
 }
 
-// Boundary Layer: UpdateUserAccountPage class for handling form display and user interaction
+// BOUNDARY LAYER: Renders the form and handles form submission
 class UpdateUserAccountPage {
     private $controller;
 
@@ -195,7 +195,7 @@ class UpdateUserAccountPage {
     }
 }
 
-// Global Layer: Initializing the components
+// Instantiate the Boundary class and handle the form submission
 $view = new UpdateUserAccountPage();
 $view->handleFormSubmission();
 $view->UpdateUserAccountUI();

@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Boundary Layer: SuspendUserProfilePage class for handling form display and user interaction
+// BOUNDARY LAYER: Responsible for rendering user information and handling requests
 class SuspendUserProfilePage {
     private $controller;
     private $profileData; // Store profile data internally
@@ -88,7 +88,7 @@ class SuspendUserProfilePage {
             $role_id = $_POST['role_id'] ?? '';
 
             if ($action === 'suspend') {
-                $this->controller->setSuspend($role_id);
+                $this->controller->suspendUserProfile($role_id);
                 $_SESSION['success_message'] = "Profile suspended successfully.";
                 echo "<script>
                     alert('" . htmlspecialchars($_SESSION['success_message']) . "');
@@ -118,7 +118,7 @@ class SuspendUserProfilePage {
     }
 }
 
-// Control Layer: SuspendUserProfileController class for managing data flow between boundary and entity layers
+// CONTROL LAYER: Serves as an intermediary between view and entity
 class SuspendUserProfileController {
     private $userAccountModel;
 
@@ -130,8 +130,8 @@ class SuspendUserProfileController {
         return $this->userAccountModel->getProfileByRole($role_id);
     }
 
-    public function setSuspend($role_id) {
-        return $this->userAccountModel->suspend($role_id);
+    public function suspendUserProfile($role_id) {
+        return $this->userAccountModel->suspendUserProfile($role_id);
     }
 
     public function setRemoveSuspend($role_id) {
@@ -139,7 +139,7 @@ class SuspendUserProfileController {
     }
 }
 
-// Entity Layer: UserProfile class for interacting with the database
+// ENTITY: Handles all logic for user data and database interactions
 class UserProfile {
     private $pdo;
 
@@ -166,7 +166,7 @@ class UserProfile {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function suspend($role_id) {
+    public function suspendUserProfile($role_id) {
         $stmt = $this->pdo->prepare("UPDATE users SET status_id = 2 WHERE role_id = :role_id");
         $stmt->bindParam(':role_id', $role_id);
         $stmt->execute();
@@ -179,7 +179,7 @@ class UserProfile {
     }
 }
 
-// Global Layer: Initializing the components
+// MAIN EXECUTION: Initialize and handle the request in the Boundary layer
 $accountController = new SuspendUserProfileController();
 $profileView = new SuspendUserProfilePage($accountController);
 $profileView->handleRequest();

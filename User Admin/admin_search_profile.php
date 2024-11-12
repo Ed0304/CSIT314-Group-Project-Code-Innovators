@@ -2,8 +2,8 @@
 require '../connectDatabase.php';
 session_start();
 
-// Boundary Layer: SearchUserProfilePage class for handling form display and user interaction
-class SearchUserProfilePage
+// BOUNDARY LAYER: HTML View for managing user accounts
+class SearchUserAccountsBasedOnProfilePage
 {
     private $controller;
 
@@ -19,16 +19,16 @@ class SearchUserProfilePage
         $this->controller = $controller;
     }
 
-    public function handleSearchUserProfileRequest()
+    public function handleSearchUserAccountsBasedOnProfileRequest()
     {
         $this->role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
         $this->searchTerm = isset($_POST['searchTerm']) ? $_POST['searchTerm'] : ''; // Get search term from POST
-        $this->users = $this->controller->SearchUserProfiles($this->role_id, $this->searchTerm);
+        $this->users = $this->controller->searchUserAccountsBasedOnProfile($this->role_id, $this->searchTerm);
         $this->about = $this->controller->getAbout();
-        $this->SearchUserProfileUI();  
+        $this->SearchUserAccountsBasedOnProfileUI();  
     }
 
-    public function SearchUserProfileUI()
+    public function SearchUserAccountsBasedOnProfileUI()
     {
         ?>
         <!DOCTYPE HTML>
@@ -100,8 +100,8 @@ class SearchUserProfilePage
     }
 }
 
-// Control Layer: SearchUserProfileController class for managing data flow between boundary and entity layers
-class SearchUserProfileController
+// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
+class SearchUserAccountsBasedOnProfileController
 {
     private $userProfile;
 
@@ -110,9 +110,9 @@ class SearchUserProfileController
         $this->userProfile = $userProfile;
     }
 
-    public function SearchUserProfiles($role_id, $searchTerm)
+    public function searchUserAccountsBasedOnProfile($role_id, $searchTerm)
     {
-        return $this->userProfile->SearchUserProfiles($role_id, $searchTerm);
+        return $this->userProfile->searchUserAccountsBasedOnProfile($role_id, $searchTerm);
     }
 
     public function getAbout()
@@ -121,7 +121,7 @@ class SearchUserProfileController
     }
 }
 
-// Entity Layer: UserProfile class for interacting with the database
+// ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
     private $mysqli;
 
@@ -132,7 +132,7 @@ class UserProfile {
         }
     }
 
-    public function SearchUserProfiles($role_id = '', $searchTerm = '') {
+    public function searchUserAccountsBasedOnProfile($role_id = '', $searchTerm = '') {
         $query = "
             SELECT u.user_id, u.username, s.status_name, r.role_name, r.role_description
             FROM users u
@@ -177,9 +177,9 @@ class UserProfile {
     }
 }
 
-// Global Layer: Initializing the components
+// MAIN LOGIC: Initialize components and delegate request handling to the view
 $userProfile = new UserProfile();
-$userController = new SearchUserProfileController($userProfile); 
-$userView = new SearchUserProfilePage($userController);
-$userView->handleSearchUserProfileRequest();
+$userController = new SearchUserAccountsBasedOnProfileController($userProfile); 
+$userView = new SearchUserAccountsBasedOnProfilePage($userController);
+$userView->handleSearchUserAccountsBasedOnProfileRequest();
 ?>

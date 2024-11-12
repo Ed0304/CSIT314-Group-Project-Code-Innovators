@@ -2,20 +2,9 @@
 session_start();
 require '../connectDatabase.php';
 
-// Entity Layer: UserAccount class for interacting with the database
+// ENTITY: Represents user data and database retrieval
 class UserAccount {
     private $pdo;
-    private $user_id;
-    private $username;
-    private $password;
-    private $role_name;
-    private $email;
-    private $phone_num;
-    private $status_name;
-    private $first_name;
-    private $last_name;
-    private $about;
-    private $profile_image;
 
     public function __construct() {
         $this->connectDatabase();
@@ -30,7 +19,7 @@ class UserAccount {
         }
     }
 
-    public function viewUserAccount($username) {
+    public function viewUserAccountByUsername($username) {
         $stmt = $this->pdo->prepare("SELECT u.user_id, u.username, u.password, r.role_name, u.email, u.phone_num, 
             s.status_name, p.first_name, p.last_name, p.about, p.profile_image
             FROM users u
@@ -40,61 +29,27 @@ class UserAccount {
             WHERE u.username = :username");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
-
-        $accountData = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Create and return UserAccount object
-        return $this->getUserAccountData($accountData);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
-    private function getUserAccountData($data) {
-        $userAccount = new UserAccount();
-        $userAccount->user_id = $data['user_id'];
-        $userAccount->username = $data['username'];
-        $userAccount->password = $data['password'];
-        $userAccount->role_name = $data['role_name'];
-        $userAccount->email = $data['email'];
-        $userAccount->phone_num = $data['phone_num'];
-        $userAccount->status_name = $data['status_name'];
-        $userAccount->first_name = $data['first_name'];
-        $userAccount->last_name = $data['last_name'];
-        $userAccount->about = $data['about'];
-        $userAccount->profile_image = $data['profile_image'];
-
-        return $userAccount;
-    }
-
-    // Getter methods for each property
-    public function getUserId() { return $this->user_id; }
-    public function getUsername() { return $this->username; }
-    public function getPassword() { return $this->password; }
-    public function getRoleName() { return $this->role_name; }
-    public function getEmail() { return $this->email; }
-    public function getPhoneNum() { return $this->phone_num; }
-    public function getStatusName() { return $this->status_name; }
-    public function getFirstName() { return $this->first_name; }
-    public function getLastName() { return $this->last_name; }
-    public function getAbout() { return $this->about; }
-    public function getProfileImage() { return $this->profile_image; }
 }
 
-// Control Layer: ViewUserAccountController class for managing data flow between boundary and entity layers
-class ViewUserAccountController {
-    private $userAccount;
 
-    public function __construct($userAccount) {
-        $this->userAccount = $userAccount;
+// CONTROL LAYER: Manages data flow between boundary and entity layers
+class ViewUserAccountController {
+    private $userAccountModel;
+
+    public function __construct($userAccountModel) {
+        $this->userAccountModel = $userAccountModel;
     }
 
     public function viewUserAccount($username) {
-        return $this->userAccount->viewUserAccount($username);
+        return $this->userAccountModel->viewUserAccountByUsername($username);
     }
 }
 
-// Boundary Layer: ViewUserAccountPage class for handling form display and user interaction
+// BOUNDARY LAYER: Handles user interactions and rendering user information
 class ViewUserAccountPage {
     private $controller;
-    private $userAccount;
 
     public function __construct($controller) {
         $this->controller = $controller;
@@ -112,8 +67,8 @@ class ViewUserAccountPage {
         } else {
             $username = $_GET['username'] ?? '';
             if ($username) {
-                $this->userAccount = $this->controller->viewUserAccount($username);
-                $this->ViewUserAccountUI();  // Fetch and display UserAccount information
+                $accountData = $this->controller->viewUserAccount($username);
+                $this->ViewUserAccountUI($accountData);
             }
         }
     }
@@ -135,79 +90,34 @@ class ViewUserAccountPage {
         }
     }
 
-    public function ViewUserAccountUI() {
+    public function ViewUserAccountUI($accountData) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
+        <style>
+            #infoTable th, td {
+                font-size: 24px;
+                text-align: center;
+            }
+            #infoTable {
+                margin: auto;
+            }
+        </style>
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Account Information</title>
-            <style>
-                /* Global Styles */
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f4f4f4;
-                    margin: 0;
-                    padding: 0;
-                }
-                h1 {
-                    text-align: center;
-                    margin-top: 20px;
-                    color: #333;
-                }
-                table {
-                    width: 80%;
-                    margin: 20px auto;
-                    border-collapse: collapse;
-                    background-color: #fff;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                }
-                th, td {
-                    padding: 12px;
-                    text-align: left;
-                    font-size: 18px;
-                    color: #333;
-                    border-bottom: 1px solid #ddd;
-                }
-                th {
-                    background-color: #4CAF50;
-                    color: white;
-                }
-                td {
-                    background-color: #f9f9f9;
-                }
-                td img {
-                    border-radius: 50%;
-                    max-width: 150px;
-                    max-height: 150px;
-                }
-                /* Button Styles */
-                button {
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    border-radius: 5px;
-                    margin: 10px 5px;
-                    transition: background-color 0.3s ease;
-                }
-                button:hover {
-                    background-color: #45a049;
-                }
-            </style>
         </head>
         <body>
-            <h1>Account Information</h1>
-            <table>
+            <h1 style="text-align: center">Account Information</h1>
+            <table id="infoTable">
                 <tr>
                     <td><strong>Profile Image</strong></td>
                     <td colspan="2">
                         <?php
-                        if ($this->userAccount->getProfileImage()) {
-                            echo '<img src="data:image/jpeg;base64,' . base64_encode($this->userAccount->getProfileImage()) . '" alt="Profile Image" />';
+                        if (!empty($accountData['profile_image'])) {
+                            // Assuming profile_image is stored as a BLOB, display it as base64
+                            echo '<img src="data:image/jpeg;base64,' . base64_encode($accountData['profile_image']) . '" alt="Profile Image" style="max-width: 200px; max-height: 200px;" />';
                         } else {
                             echo 'No profile image available.';
                         }
@@ -216,43 +126,57 @@ class ViewUserAccountPage {
                 </tr>
                 <tr>
                     <td><strong>Full Name</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getFirstName() .' '. htmlspecialchars($this->userAccount->getLastName() ?? '')); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['first_name'] .' '.htmlspecialchars($accountData['last_name'] ?? '')); ?></td>
                 </tr>
                 <tr>
+                <tr>
                     <td><strong>About</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getAbout() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['about'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Username</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getUsername() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['username'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Password</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getPassword() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['password'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Role</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getRoleName() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['role_name'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Email</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getEmail() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['email'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Phone Number</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getPhoneNum() ?? ''); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['phone_num'] ?? ''); ?></td>
                 </tr>
                 <tr>
                     <td><strong>Status</strong></td>
-                    <td colspan="2"><?php echo htmlspecialchars($this->userAccount->getStatusName()); ?></td>
+                    <td colspan="2"><?php echo htmlspecialchars($accountData['status_name']); ?></td>
                 </tr>                
                 <tr>
-                    <td colspan="3" style="text-align: center;">
+                    <td><br/></td><td><br/></td>
+                </tr>
+                <tr>
+                    <td>
                         <form action="" method="post">
-                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->userAccount->getUsername()); ?>">
-                            <button type="submit" name="action" value="return">Return</button>
-                            <button type="submit" name="action" value="update">Update</button>
-                            <button type="submit" name="action" value="suspend">Suspend</button>
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
+                            <button type="submit" name="action" value="return" style="font-size: 24px">Return to accounts list</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="" method="post">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
+                            <button type="submit" name="action" value="update" style="font-size: 24px">Update account information</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="" method="post">
+                            <input type="hidden" name="username" value="<?php echo htmlspecialchars($accountData['username'] ?? ''); ?>">
+                            <button type="submit" name="action" value="suspend" style="font-size: 24px">Suspend this account</button>
                         </form>
                     </td>
                 </tr>
@@ -261,11 +185,12 @@ class ViewUserAccountPage {
         </html>
         <?php
     }
+    
 }
 
-// Create the UserAccount entity and ViewUserAccountController
-$userAccount = new UserAccount();
-$controller = new ViewUserAccountController($userAccount);
-$page = new ViewUserAccountPage($controller);
-$page->handleRequest();
+// Main logic: Initialization and request handling
+$userAccountEntity = new UserAccount();
+$controller = new ViewUserAccountController($userAccountEntity);
+$view = new ViewUserAccountPage($controller);
+$view->handleRequest();
 ?>

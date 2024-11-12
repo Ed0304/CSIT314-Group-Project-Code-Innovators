@@ -2,7 +2,7 @@
 session_start(); // Start the session
 require '../connectDatabase.php';
 
-// Entity Layer: User class for interacting with the database
+// Entity Layer
 class User {
     private $username;
 
@@ -15,15 +15,15 @@ class User {
     }
 }
 
-// Control Layer: DashboardController class for managing data flow between boundary and entity layers
+// Control Layer
 class DashboardController {
     public function getUsernameFromSession() {
         return $_SESSION['username'] ?? null;
     }
 }
 
-// Boundary Layer: DashboardPage class for handling form display and user interaction
-class DashboardPage {
+// Boundary Layer
+class DashboardView {
     private $controller;
     private $username;
 
@@ -49,8 +49,8 @@ class DashboardPage {
             $this->handleFormSubmission();
         }
 
-        // render the dashboard view
-        $this->DashboardUI();
+        // Render the dashboard view
+        $this->render();
     }
 
     public function setUsername($username) {
@@ -67,7 +67,7 @@ class DashboardPage {
         }
     }
 
-    private function DashboardUI() {
+    private function render() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -92,9 +92,9 @@ class DashboardPage {
             <div class="mainInterface">
                 <form method="post" class="formBody">
                     <br/><br/>
-                    <button type="submit" id="userAcc" name="userAcc">Manage User Accounts</button>
+                    <button type="submit" id="userAcc" name="userAcc">Manage user accounts</button>
                     <br/><br/>
-                    <button type="submit" id="userProfile" name="userProfile">Manage User Profiles</button>
+                    <button type="submit" id="userProfile" name="userProfile">Manage user profiles</button>
                     <br/><br/>
                     <input type="submit" id="logout" value="Logout" name="logout">
                     <br/><br/>
@@ -111,7 +111,7 @@ class DashboardPage {
     }
 }
 
-// // Global Layer: Initializing the components
+// Main logic: Instantiate the boundary and controller
 $controller = new DashboardController();
-$DashboardPage = new DashboardPage($controller);
-$DashboardPage->handleRequest();
+$dashboardView = new DashboardView($controller);
+$dashboardView->handleRequest();

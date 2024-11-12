@@ -2,10 +2,13 @@
 require '../connectDatabase.php';
 session_start();
 
-// Boundary Layer: ViewUserProfilePage class for handling form display and user interaction
+// BOUNDARY LAYER: HTML View for managing user accounts
 class ViewUserProfilePage
 {
     private $controller;
+    private $users; // Store fetched users
+    private $about; // Store about information
+    private $role_id; // Store role_id for UI use
 
     public function __construct($controller)
     {
@@ -14,13 +17,13 @@ class ViewUserProfilePage
 
     public function handleRequest()
     {
-        $role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
-        $users = $this->controller->getUsersByRole($role_id);
-        $about = $this->controller->getAbout();
-        $this->ViewUserProfileUI($users, $about, $role_id);
+        $this->role_id = isset($_GET['role_id']) ? $_GET['role_id'] : '';
+        $this->users = $this->controller->getUsersByProfile($this->role_id);
+        $this->about = $this->controller->getAbout();
+        $this->ViewUserProfileUI();
     }
 
-    public function ViewUserProfileUI($users, $about, $role_id)
+    public function ViewUserProfileUI()
     {
         ?>
         <!DOCTYPE HTML>
@@ -58,8 +61,8 @@ class ViewUserProfilePage
                     <th>Role</th>
                     <th>Role description</th>
                 </tr>
-                <?php if (!empty($users)): ?>
-                    <?php foreach ($users as $user): ?>
+                <?php if (!empty($this->users)): ?>
+                    <?php foreach ($this->users as $user): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($user['user_id'] ?? 'N/A'); ?></td>
                             <td><?php echo htmlspecialchars($user['username'] ?? 'N/A'); ?></td>
@@ -76,17 +79,17 @@ class ViewUserProfilePage
             </table>
             <br/>
             <form method="post" action="admin_manage_user_profiles.php" style="text-align:center">
-                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($role_id); ?>">
+                <input type="hidden" name="role_id" value="<?php echo htmlspecialchars($this->role_id); ?>">
                 <input type="submit" value="Return" style="font-size: 24px">
             </form>
-
         </body>
         </html>
         <?php
     }
 }
 
-// Control Layer: ViewUserProfileController class for managing data flow between boundary and entity layers
+
+// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
 class ViewUserProfileController
 {
     private $userProfile;
@@ -96,9 +99,9 @@ class ViewUserProfileController
         $this->userProfile = $userProfile;
     }
 
-    public function getUsersByRole($role_id)
+    public function getUsersByProfile($role_id)
     {
-        return $this->userProfile->getUsersByRole($role_id);
+        return $this->userProfile->getUsersByProfile($role_id);
     }
 
     public function getAbout()
@@ -107,7 +110,7 @@ class ViewUserProfileController
     }
 }
 
-// Entity Layer: UserProfile class for interacting with the database
+// ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
     private $mysqli;
 
@@ -118,7 +121,7 @@ class UserProfile {
         }
     }
 
-    public function getUsersByRole($role_id = '') {
+    public function getUsersByProfile($role_id = '') {
         $query = "
             SELECT u.user_id, u.username, s.status_name, r.role_name, r.role_description
             FROM users u
@@ -137,11 +140,11 @@ class UserProfile {
 
         $stmt->execute();
         $result = $stmt->get_result();
-        $users = $result->fetch_all(MYSQLI_ASSOC);
+        $userProfile = $result->fetch_all(MYSQLI_ASSOC);
 
         $stmt->close();
         
-        return $users;
+        return $userProfile;
     }
 
     public function getAbout() {
@@ -151,7 +154,7 @@ class UserProfile {
     }
 }
 
-// Global Layer: Initializing the components
+// MAIN LOGIC: Initialize components and delegate request handling to the view
 $userProfile = new UserProfile();
 $userController = new ViewUserProfileController($userProfile); 
 $userView = new ViewUserProfilePage($userController);

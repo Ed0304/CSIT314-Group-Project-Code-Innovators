@@ -2,7 +2,7 @@
 require '../connectDatabase.php';
 session_start();
 
-// Boundary Layer: UserProfilePage class for handling form display and user interaction
+// BOUNDARY LAYER: HTML View for managing user accounts
 class UserProfilePage {
     private $controller;
 
@@ -80,7 +80,7 @@ class UserProfilePage {
             </style>
         </head>
         <body>
-            <h1 style="text-align:center">User Profiles Dashboard</h1>
+            <h1 style="text-align:center">Manage user profiles here...</h1>
 
             <form method="get" action="admin_search_profile.php">
                 <label for="role" class="select-label">Filter based on role:</label>
@@ -149,7 +149,8 @@ class UserProfilePage {
     }
 }
 
-// Control Layer: UserProfileDashboardController class for managing data flow between boundary and entity layers
+
+// CONTROL LAYER: Manages data retrieval and updates based on Boundary's requests
 class UserProfileDashboardController {
     private $userProfile;
 
@@ -169,7 +170,8 @@ class UserProfileDashboardController {
     }
 }
 
-// Entity Layer: UserProfile class for interacting with the database
+
+// ENTITY LAYER: UserProfile handles all database interactions and data logic
 class UserProfile {
     private $mysqli;
 
@@ -223,7 +225,8 @@ class UserProfile {
     }
 }
 
-// Global Layer: Initializing the components
+
+// MAIN LOGIC: Initialize components and handle the request
 $database = new Database();
 $mysqli = $database->getConnection();
 

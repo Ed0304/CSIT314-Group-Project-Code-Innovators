@@ -1,10 +1,13 @@
 <?php
 session_start();
+
+// Redirect if the user is not logged in
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
 }
 
+/** ENTITY CLASS */
 class CarListing {
     private $db;
 
@@ -26,10 +29,10 @@ class CarListing {
         if ($user) {
             $user_id = $user['user_id'];
         } else {
-            die("User not found.");
+            throw new Exception("User not found.");
         }
 
-        // Now use the retrieved user_id in the INSERT statement
+        // Insert the car listing
         $stmt = $this->db->prepare("INSERT INTO listing (manufacturer_name, model_name, model_year, listing_image, listing_price, listing_description, listing_color, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bindParam(1, $formData['manufacturer_name']);
         $stmt->bindParam(2, $formData['model_name']);
@@ -38,16 +41,13 @@ class CarListing {
         $stmt->bindParam(5, $formData['listing_price']);
         $stmt->bindParam(6, $formData['listing_description']);
         $stmt->bindParam(7, $formData['listing_color']);
-        $stmt->bindParam(8, $user_id); // Use user_id instead of username
+        $stmt->bindParam(8, $user_id);
 
-        if ($stmt->execute()) {
-            return ["message" => "Listing created successfully!"];
-        } else {
-            return ["message" => "Failed to create listing."];
-        }
+        return $stmt->execute(); //returns a boolean
     }
 }
 
+/** CONTROLLER CLASS */
 class CreateCarListingController {
     private $entity;
 
@@ -60,6 +60,7 @@ class CreateCarListingController {
     }
 }
 
+/** BOUNDARY CLASS */
 class CreateCarListingPage {
     private $message;
     private $controller;
@@ -80,11 +81,18 @@ class CreateCarListingPage {
             $listing_image = file_get_contents($_FILES['listing_image']['tmp_name']);
             $username = $_SESSION['username'];
 
-            $response = $this->controller->handleCarListingCreation($formData, $username, $listing_image);
+            try {
+                $isCreated = $this->controller->handleCarListingCreation($formData, $username, $listing_image);
 
-            $this->message = is_array($response) && isset($response['message'])
-                ? $response['message']
-                : "Unexpected error occurred.";
+                // Determine message
+                if ($isCreated) {
+                    $this->message = "Listing created successfully!";
+                } else {
+                    $this->message = "Failed to create listing.";
+                }
+            } catch (Exception $e) {
+                $this->message = "Error: " . $e->getMessage();
+            }
         } else {
             $this->message = "A valid image file is required.";
         }
@@ -141,12 +149,12 @@ class CreateCarListingPage {
     }
 }
 
-// Instantiate and process
+/** MAIN LOGIC */
 $carListingEntity = new CarListing();
 $carListingController = new CreateCarListingController($carListingEntity);
 $createCarListingPage = new CreateCarListingPage($carListingController);
 
-// Process the form submission within the boundary class
+// Process the form submission and display the UI
 $createCarListingPage->processRequest();
 $createCarListingPage->CreateCarListingUI();
 ?>

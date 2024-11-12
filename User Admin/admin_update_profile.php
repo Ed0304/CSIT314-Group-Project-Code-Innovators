@@ -2,22 +2,22 @@
 include "../connectDatabase.php";
 session_start();
 
-$role_id = isset($_GET['role_id']) ? $_GET['role_id'] : null;
-if (!$role_id) {
+$userprofile_id = isset($_GET['role_id']) ? $_GET['role_id'] : null;
+if (!$userprofile_id) {
     die("UserProfile ID not provided.");
 }
 
-// Entity Layer: UserProfile class for interacting with the database
+// Entity class: Handles database operations and acts as the data structure for UserProfile
 class UserProfile {
     private $conn;
-    private $role_id;
-    private $role_description;
+    private $userprofile_id;
+    private $userprofile_description;
 
-    public function __construct($role_id = null) {
+    public function __construct($userprofile_id = null) {
         $this->conn = $this->getConnection();
-        if ($role_id) {
-            $this->role_id = $role_id;
-            $this->loadRole();
+        if ($userprofile_id) {
+            $this->role_id = $userprofile_id;
+            $this->loadUserProfile();
         }
     }
 
@@ -27,19 +27,19 @@ class UserProfile {
         return $conn;
     }
 
-    public function getRoleId() {
+    public function getUserProfileId() {
         return $this->role_id;
     }
 
-    public function getRoleDescription() {
+    public function getUserProfileDescription() {
         return $this->role_description;
     }
 
-    public function setRoleDescription($role_description) {
-        $this->role_description = $role_description;
+    public function setUserProfileDescription($userprofile_description) {
+        $this->role_description = $userprofile_description;
     }
 
-    public function loadRole() {
+    public function loadUserProfile() {
         $stmt = $this->conn->prepare("SELECT * FROM role WHERE role_id = ?");
         $stmt->bind_param("i", $this->role_id);
         $stmt->execute();
@@ -52,33 +52,33 @@ class UserProfile {
         }
     }
 
-    public function updateRoleDescription() {
+    public function updateUserProfileDescription() {
         $stmt = $this->conn->prepare("UPDATE role SET role_description = ? WHERE role_id = ?");
         $stmt->bind_param("si", $this->role_description, $this->role_id);
         return $stmt->execute();
     }
 }
 
-// Control Layer: UpdateUserProfileController class for managing data flow between boundary and entity layers
-class UpdateUserProfileController {
+// Controller class: Calls methods in the UserProfile entity
+class UpdateUserProfileDescriptionController {
     private $profile;
 
-    public function __construct($role_id) {
-        $this->profile = new UserProfile($role_id);
+    public function __construct($userprofile_id) {
+        $this->profile = new UserProfile($userprofile_id);
     }
 
-    public function getRole() {
+    public function getUserProfile() {
         return $this->profile;
     }
 
-    public function updateRoleDescription($new_description) {
-        $this->profile->setRoleDescription($new_description);
-        return $this->profile->updateRoleDescription();
+    public function updateUserProfileDescription($new_description) {
+        $this->profile->setUserProfileDescription($new_description);
+        return $this->profile->updateUserProfileDescription();
     }
 }
 
-// Boundary Layer: UpdateUserProfilePage class for handling form display and user interaction
-class UpdateUserProfilePage {
+// Boundary class: Handles display and form interactions
+class UpdateUserProfileDescriptionPage {
     private $profileController;
 
     public function __construct($profileController) {
@@ -89,7 +89,7 @@ class UpdateUserProfilePage {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role_description'])) {
             $new_description = trim($_POST['role_description']);
 
-            if ($this->profileController->updateRoleDescription($new_description)) {
+            if ($this->profileController->updateUserProfileDescription($new_description)) {
                 echo "<p style='color: green;'>User Profile description updated successfully.</p>";
             } else {
                 echo "<p style='color: red;'>Error updating description.</p>";
@@ -97,14 +97,14 @@ class UpdateUserProfilePage {
         }
     }
 
-    public function UpdateUserProfileUI() {
-        $profile = $this->profileController->getRole();
+    public function UpdateUserProfileDescriptionUI() {
+        $profile = $this->profileController->getUserProfile();
         ?>
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>Update UserProfile Description</title>
+            <title>Update User Profile Description</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -178,7 +178,7 @@ class UpdateUserProfilePage {
             <h1>Update User Profile Description</h1>
             <form action="" method="post">
                 <label for="role_description">New Description:</label>
-                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getRoleDescription()); ?></textarea>
+                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
                 <button type="submit">Update Description</button>
             </form>
             <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
@@ -188,9 +188,9 @@ class UpdateUserProfilePage {
     }
 }
 
-// Global Layer: Initializing the components
-$profileController = new UpdateUserProfileController($role_id);
-$roleBoundary = new UpdateUserProfilePage($profileController);
-$roleBoundary->handleFormSubmission();
-$roleBoundary->UpdateUserProfileUI();
+// Main script to initialize the Controller and Boundary
+$profileController = new UpdateUserProfileDescriptionController($userprofile_id);
+$userprofileBoundary = new UpdateUserProfileDescriptionPage($profileController);
+$userprofileBoundary->handleFormSubmission();
+$userprofileBoundary->UpdateUserProfileDescriptionUI();
 ?>
