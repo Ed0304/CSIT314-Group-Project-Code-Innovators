@@ -2,12 +2,38 @@
 require '../connectDatabase.php';
 
 ### ENTITY LAYER: Represents the Listing Entity with database interaction
-class CarListingEntity {
+class CarListing {
     private $conn;
+    private $listing_id;
+    private $manufacturer_name;
+    private $model_name;
+    private $model_year;
+    private $listing_image;
+    private $listing_color;
+    private $listing_price;
+    private $listing_description;
 
-    public function __construct($conn) {
+    public function __construct($conn, $listing_id = null, $manufacturer_name = null, $model_name = null, $model_year = null, $listing_image = null, $listing_color = null, $listing_price = null, $listing_description = null) {
         $this->conn = $conn;
+        $this->listing_id = $listing_id;
+        $this->manufacturer_name = $manufacturer_name;
+        $this->model_name = $model_name;
+        $this->model_year = $model_year;
+        $this->listing_image = $listing_image;
+        $this->listing_color = $listing_color;
+        $this->listing_price = $listing_price;
+        $this->listing_description = $listing_description;
     }
+     // Getter methods
+    public function getListingId() { return $this->listing_id; }
+    public function getManufacturerName() { return $this->manufacturer_name; }
+    public function getModelName() { return $this->model_name; }
+    public function getModelYear() { return $this->model_year; }
+    public function getListingImage() { return $this->listing_image; }
+    public function getListingColor() { return $this->listing_color; }
+    public function getListingPrice() { return $this->listing_price; }
+    public function getListingDescription() { return $this->listing_description; }
+
 
     // Retrieve listing details from the database
     public function getListingDetails($listing_id) {
@@ -18,9 +44,8 @@ class CarListingEntity {
     }
 
     // Update listing in the database
-    public function updateListing($data) {
-        if ($data['listing_image'] !== null) {
-            // Update with image
+    public function updateCarListing(CarListing $carListing) {
+        if ($carListing->getListingImage() !== null) {
             $stmt = $this->conn->prepare(
                 "UPDATE listing 
                  SET manufacturer_name = ?, model_name = ?, model_year = ?, listing_image = ?, listing_color = ?, listing_price = ?, listing_description = ? 
@@ -28,17 +53,16 @@ class CarListingEntity {
             );
             $stmt->bind_param(
                 "ssissisi",
-                $data['manufacturer_name'],
-                $data['model_name'],
-                $data['model_year'],
-                $data['listing_image'],
-                $data['listing_color'],
-                $data['listing_price'],
-                $data['listing_description'],
-                $data['listing_id']
+                $carListing->getManufacturerName(),
+                $carListing->getModelName(),
+                $carListing->getModelYear(),
+                $carListing->getListingImage(),
+                $carListing->getListingColor(),
+                $carListing->getListingPrice(),
+                $carListing->getListingDescription(),
+                $carListing->getListingId()
             );
         } else {
-            // Update without image
             $stmt = $this->conn->prepare(
                 "UPDATE listing 
                  SET manufacturer_name = ?, model_name = ?, model_year = ?, listing_color = ?, listing_price = ?, listing_description = ? 
@@ -46,13 +70,13 @@ class CarListingEntity {
             );
             $stmt->bind_param(
                 "ssisisi",
-                $data['manufacturer_name'],
-                $data['model_name'],
-                $data['model_year'],
-                $data['listing_color'],
-                $data['listing_price'],
-                $data['listing_description'],
-                $data['listing_id']
+                $carListing->getManufacturerName(),
+                $carListing->getModelName(),
+                $carListing->getModelYear(),
+                $carListing->getListingColor(),
+                $carListing->getListingPrice(),
+                $carListing->getListingDescription(),
+                $carListing->getListingId()
             );
         }
         return $stmt->execute();
@@ -60,45 +84,33 @@ class CarListingEntity {
 }
 
 ### CONTROLLER LAYER: Manages data passing and CRUD skeleton functions
-class CarListingController {
+class UpdateCarListingController {
     private $entity;
 
     public function __construct($entity) {
         $this->entity = $entity;
     }
 
-    // Handle the data from Boundary, update if POST request, otherwise retrieve details
-    public function handleRequest($listing_id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = $_POST;
-            $data['listing_image'] = null;
-
-            // Handle image file upload if provided
-            if (isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] === UPLOAD_ERR_OK) {
-                $data['listing_image'] = file_get_contents($_FILES['listing_image']['tmp_name']);
-            }
-
-            // Pass data to Entity for updating listing
-            $this->entity->updateListing($data);
-            header("Location: agent_view_listings.php");
-            exit();
-        }
-
-        // Get the listing details from the Entity
+    public function getListingDetails($listing_id) {
         return $this->entity->getListingDetails($listing_id);
+    }
+
+    public function updateCarListing(CarListing $carListing) {
+        return $this->entity->updateCarListing($carListing);
     }
 }
 
 ### BOUNDARY LAYER: Renders the page, validation, and display logic
 class UpdateCarListingBoundary {
+    private $controller;
     private $listing;
 
-    public function __construct($listing) {
-        $this->listing = $listing;
+    public function __construct($controller) {
+        $this->controller = $controller;
     }
 
-    // Display function
-    public function renderForm() {
+    public function renderForm($listing_id) {
+        $this->listing = $this->controller->getListingDetails($listing_id); // Set $this->listing with fetched data
         ?>
         <!DOCTYPE html>
         <html>
@@ -153,13 +165,41 @@ class UpdateCarListingBoundary {
         </html>
         <?php
     }
+
+    public function handleRequest($listing_id) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Create CarListing object with POST data
+            global $conn;
+            $carListing = new CarListing(
+                $conn,
+                $_POST['listing_id'],
+                $_POST['manufacturer_name'],
+                $_POST['model_name'],
+                $_POST['model_year'],
+                isset($_FILES['listing_image']) && $_FILES['listing_image']['error'] === UPLOAD_ERR_OK ? file_get_contents($_FILES['listing_image']['tmp_name']): null,  // Check if a file is uploaded, otherwise set to null
+                $_POST['listing_color'],
+                $_POST['listing_price'],
+                $_POST['listing_description']
+            );
+
+            // Pass CarListing object to the controller's updateCarListing function
+            $this->controller->updateCarListing($carListing);
+
+            // Redirect after successful update
+            header("Location: agent_view_listings.php");
+            exit();
+        } else {
+            // Display form for a GET request
+            $this->renderForm($listing_id);
+        }
+    }
 }
 
 // MAIN SCRIPT: Initializes and orchestrates BCE layers
 $listing_id = $_GET['listing_id'];
-$entity = new CarListingEntity($conn);
-$controller = new CarListingController($entity);
-$listingData = $controller->handleRequest($listing_id);
-$boundary = new UpdateCarListingBoundary($listingData);
-$boundary->renderForm();
+$entity = new CarListing($conn);
+$controller = new UpdateCarListingController($entity);
+$boundary = new UpdateCarListingBoundary($controller);
+
+$boundary->handleRequest($listing_id);
 ?>

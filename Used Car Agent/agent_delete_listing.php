@@ -1,83 +1,5 @@
 <?php
 require "../connectDatabase.php";
-
-// ENTITY LAYER
-class CarListing {
-    private $db;
-
-    public function __construct($db) {
-        $this->db = $db;
-    }
-
-    public function findById($listing_id) {
-        $stmt = $this->db->prepare("SELECT listing_id, manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description FROM listing WHERE listing_id = ?");
-        $stmt->bind_param("i", $listing_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows === 0) {
-            return null;
-        }
-        $data = $result->fetch_assoc();
-        $data['listing_image'] = $this->formatImage($data['listing_image']);
-        return $data;
-    }
-
-    public function deleteById($listing_id) {
-        // Begin transaction
-        $this->db->begin_transaction();
-
-        try {
-            // Delete from ownership table
-            $stmt = $this->db->prepare("DELETE FROM ownership WHERE listing_id = ?");
-            $stmt->bind_param("i", $listing_id);
-            $stmt->execute();
-
-            //Delete from all shortlist
-            $stmt = $this->db->prepare("DELETE FROM shortlist WHERE listing_id = ?");
-            $stmt->bind_param("i", $listing_id);
-            $stmt->execute();
-
-            // Delete from listing table
-            $stmt = $this->db->prepare("DELETE FROM listing WHERE listing_id = ?");
-            $stmt->bind_param("i", $listing_id);
-            $stmt->execute();
-
-            // Commit transaction
-            $this->db->commit();
-            return true;
-        } catch (Exception $e) {
-            // Rollback transaction on failure
-            $this->db->rollback();
-            return false;
-        }
-    }
-
-    private function formatImage($image) {
-        return !empty($image) ? 'data:image/jpeg;base64,' . base64_encode($image) : null;
-    }
-}
-
-// CONTROLLER LAYER
-class DeleteCarListingController {
-    private $carListing;
-
-    public function __construct($carListing) {
-        $this->carListing = $carListing;
-    }
-
-    public function getListingDetails() {
-        $listing_id = $_GET['listing_id'] ?? null;
-        if ($listing_id) {
-            return $this->carListing->findById($listing_id);
-        }
-        return null;
-    }
-
-    public function deleteCarListing($listing_id) {
-        return $this->carListing->deleteById($listing_id);
-    }
-}
-
 // BOUNDARY LAYER
 class DeleteCarListingPage {
     private $controller;
@@ -87,20 +9,27 @@ class DeleteCarListingPage {
     }
 
     public function handleRequest() {
+        // Check if listing_id is provided via GET or session
+        $listing_id = $_GET['listing_id'] ?? null;
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
-            $this->processDeleteRequest($_POST['listing_id']);
-        } else {
-            $listing = $this->controller->getListingDetails();
+            // Ensure the POST value is correctly passed
+            $listing_id = $_POST['listing_id'] ?? null;
+            $this->processDeleteRequest($listing_id);
+        } elseif ($listing_id) {
+            $listing = $this->controller->getListingDetails($listing_id);
             if ($listing) {
                 $this->DeleteCarListingUI($listing);
             } else {
-                echo "Listing not found or ID not provided!";
+                echo "Listing not found!";
             }
+        } else {
+            echo "No listing ID provided!";
         }
     }
 
     private function processDeleteRequest($listing_id) {
-        if ($this->controller->deleteCarListing($listing_id)) {
+        if ($listing_id && $this->controller->deleteCarListing($listing_id)) {
             header("Location: agent_view_listings.php?message=Listing deleted successfully");
             exit();
         } else {
@@ -116,7 +45,6 @@ class DeleteCarListingPage {
         <head>
             <meta charset="UTF-8">
             <title>Delete Listing</title>
-            <!-- Styles omitted for brevity -->
             <style>
                 .details-container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .details-container img { max-width: 100%; height: auto; border: 2px solid #ccc; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
@@ -129,7 +57,7 @@ class DeleteCarListingPage {
         </head>
         <body>
             <div class="details-container">
-                <h2>Are you sure you want to delete this listing?</h2>                
+                <h2>Are you sure you want to delete this listing?</h2>
                 <table>
                     <tr>
                         <th>Image</th>
@@ -160,6 +88,68 @@ class DeleteCarListingPage {
         </body>
         </html>
         <?php
+    }
+}
+
+// CONTROLLER LAYER
+class DeleteCarListingController {
+    private $carListing;
+
+    public function __construct($carListing) {
+        $this->carListing = $carListing;
+    }
+
+    public function getListingDetails($listing_id) {
+        return $this->carListing->findById($listing_id);
+    }
+
+    public function deleteCarListing($listing_id) {
+        return $this->carListing->deleteCarListing($listing_id);
+    }
+}
+
+// ENTITY LAYER
+class CarListing {
+    private $db;
+
+    public function __construct($db) {
+        $this->db = $db;
+    }
+
+    public function findById($listing_id) {
+        $stmt = $this->db->prepare("SELECT listing_id, manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description FROM listing WHERE listing_id = ?");
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows === 0) {
+            return null;
+        }
+        $data = $result->fetch_assoc();
+        $data['listing_image'] = $this->formatImage($data['listing_image']);
+        return $data;
+    }
+
+    public function deleteCarListing($listing_id) {
+        $this->db->begin_transaction();
+
+        $stmt = $this->db->prepare("DELETE FROM ownership WHERE listing_id = ?");
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+
+        $stmt = $this->db->prepare("DELETE FROM shortlist WHERE listing_id = ?");
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+
+        $stmt = $this->db->prepare("DELETE FROM listing WHERE listing_id = ?");
+        $stmt->bind_param("i", $listing_id);
+        $stmt->execute();
+
+        $this->db->commit();
+        return true;
+    }
+
+    private function formatImage($image) {
+        return !empty($image) ? 'data:image/jpeg;base64,' . base64_encode($image) : null;
     }
 }
 

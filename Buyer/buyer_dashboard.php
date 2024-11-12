@@ -48,6 +48,10 @@ class UserController
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
 
+    public function getBuyerUsername(){
+        return isset($_SESSION['username']) ? $_SESSION['username'] : null;
+    }
+
     public function getAllListings()
     {
         $stmt = $this->conn->prepare("
@@ -92,6 +96,7 @@ class UserBoundary
     {
         $listings = $this->controller->getAllListings();
         $buyerID = $this->controller->getBuyerID(); // Get the buyer ID
+        $username = $this->controller->getBuyerUsername(); // Get the buyer username
         ?>
         <!DOCTYPE html>
         <html>
@@ -212,7 +217,7 @@ class UserBoundary
             <header>
                 <h1>Welcome to the Buyer Dashboard</h1>
                 <!-- New "Update Account Details" button -->
-                <a href="buyer_update_profile.php?user_id=<?php echo $buyerID; ?>">Update Account Details</a>
+                <a href="buyer_manage_profile.php?user_id=<?php echo $buyerID; ?>.&username=<?php echo $username?>">Manage Account</a>
                 <a href="loanCalculator.php">Calculate Loan</a>
                 <a href="buyer_view_shortlist.php?user_id=<?php echo $buyerID; ?>">View Shortlist</a>
                 <a href="../logout.php">Logout</a>

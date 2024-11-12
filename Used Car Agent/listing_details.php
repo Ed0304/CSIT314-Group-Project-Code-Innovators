@@ -15,15 +15,41 @@ if (!isset($_GET['listing_id'])) {
 }
 
 // ENTITY LAYER: Manages CarListing data and database interactions
-class CarListingEntity {
+class CarListing {
     private $db;
+    private $listing_id;
+    private $manufacturer_name;
+    private $model_name;
+    private $model_year;
+    private $listing_image;
+    private $listing_color;
+    private $listing_price;
+    private $listing_description;
 
-    public function __construct() {
+    public function __construct($listing_id = null, $manufacturer_name = null, $model_name = null, $model_year = null, $listing_image = null, $listing_color = null, $listing_price = null, $listing_description = null) {
         $this->db = new Database();
+        $this->listing_id = $listing_id;
+        $this->manufacturer_name = $manufacturer_name;
+        $this->model_name = $model_name;
+        $this->model_year = $model_year;
+        $this->listing_image = $listing_image;
+        $this->listing_color = $listing_color;
+        $this->listing_price = $listing_price;
+        $this->listing_description = $listing_description;
     }
 
-    // Fetch listing details by listing_id from the database
-    public function fetchListingDetails($listing_id) {
+    // Getter methods for each property
+    public function getListingId() { return $this->listing_id; }
+    public function getManufacturerName() { return $this->manufacturer_name; }
+    public function getModelName() { return $this->model_name; }
+    public function getModelYear() { return $this->model_year; }
+    public function getListingImage() { return !empty($this->listing_image) ? base64_encode($this->listing_image) : null; }
+    public function getListingColor() { return $this->listing_color; }
+    public function getListingPrice() { return $this->listing_price; }
+    public function getListingDescription() { return $this->listing_description; }
+
+    // Fetch listing details by listing_id from the database and return a CarListing object
+    public function viewCarListing($listing_id) {
         $conn = $this->db->getConnection();
 
         $stmt = $conn->prepare("SELECT * FROM listing WHERE listing_id = ?");
@@ -36,53 +62,46 @@ class CarListingEntity {
         }
 
         $row = $result->fetch_assoc();
+        $carListing = new CarListing(
+            $row['listing_id'],
+            $row['manufacturer_name'],
+            $row['model_name'],
+            $row['model_year'],
+            $row['listing_image'],
+            $row['listing_color'],
+            $row['listing_price'],
+            $row['listing_description']
+        );
 
-        return [
-            'listing_id' => $row['listing_id'],
-            'manufacturer_name' => $row['manufacturer_name'],
-            'model_name' => $row['model_name'],
-            'model_year' => $row['model_year'],
-            'listing_image' => $this->prepareImageData($row['listing_image']),
-            'listing_color' => $row['listing_color'],
-            'listing_price' => $row['listing_price'],
-            'listing_description' => $row['listing_description'],
-            'mime_type' => $this->detectMimeType($row['listing_image'])
-        ];
-    }
-
-    private function prepareImageData($image) {
-        return !empty($image) ? base64_encode($image) : null;
-    }
-
-    private function detectMimeType($imageData) {
-        return 'image/jpeg'; // Static MIME type for simplicity; adjust as needed.
+        return $carListing;
     }
 }
 
+
 // CONTROL LAYER: Manages application logic and retrieves data from the Entity
-class CarListingController {
-    private $carListingEntity;
+class ViewCarListingController {
+    private $carListing;
 
     public function __construct() {
-        $this->carListingEntity = new CarListingEntity();
+        $this->carListing = new CarListing();
     }
 
-    public function getListingDetails($listing_id) {
-        return $this->carListingEntity->fetchListingDetails($listing_id);
+    public function viewCarListing($listing_id) {
+        return $this->carListing->viewCarListing($listing_id);
     }
 }
 
 // BOUNDARY LAYER: Manages user interface, handles input/output and displays the listing
-class CarListingPage {
+class ViewCarListingPage {
     private $controller;
 
     public function __construct($controller) {
         $this->controller = $controller;
     }
 
-    public function render() {
+    public function ViewCarListing() {
         $listing_id = $_GET['listing_id'];
-        $listing = $this->controller->getListingDetails($listing_id);
+        $listing = $this->controller->viewCarListing($listing_id);
 
         if ($listing === null) {
             echo "Listing not found.";
@@ -112,19 +131,19 @@ class CarListingPage {
                     <tr>
                         <th>Image</th>
                         <td>
-                            <?php if (!empty($listing['listing_image'])): ?>
-                                <img src="data:image/jpeg;base64,<?php echo $listing['listing_image']; ?>" alt="Car Picture" />
+                            <?php if (!empty($listing->getListingImage())): ?>
+                                <img src="data:image/jpeg;base64,<?php echo $listing->getListingImage(); ?>" alt="Car Picture" />
                             <?php else: ?>
                                 <p>No image available.</p>
                             <?php endif; ?>
                         </td>
                     </tr>
-                    <tr><th>Manufacturer</th><td><?php echo htmlspecialchars($listing['manufacturer_name']); ?></td></tr>
-                    <tr><th>Model</th><td><?php echo htmlspecialchars($listing['model_name']); ?></td></tr>
-                    <tr><th>Year</th><td><?php echo htmlspecialchars($listing['model_year']); ?></td></tr>
-                    <tr><th>Color</th><td><?php echo htmlspecialchars($listing['listing_color']); ?></td></tr>
-                    <tr><th>Price</th><td><?php echo "$" . number_format($listing['listing_price'], 2); ?></td></tr>
-                    <tr><th>Description</th><td><?php echo htmlspecialchars($listing['listing_description']); ?></td></tr>
+                    <tr><th>Manufacturer</th><td><?php echo htmlspecialchars($listing->getManufacturerName()); ?></td></tr>
+                    <tr><th>Model</th><td><?php echo htmlspecialchars($listing->getModelName()); ?></td></tr>
+                    <tr><th>Year</th><td><?php echo htmlspecialchars($listing->getModelYear()); ?></td></tr>
+                    <tr><th>Color</th><td><?php echo htmlspecialchars($listing->getListingColor()); ?></td></tr>
+                    <tr><th>Price</th><td><?php echo "$" . number_format($listing->getListingPrice(), 2); ?></td></tr>
+                    <tr><th>Description</th><td><?php echo htmlspecialchars($listing->getListingDescription()); ?></td></tr>
                 </table>
     
                 <div class="return-button">
@@ -139,8 +158,9 @@ class CarListingPage {
     }
 }
 
+
 // MAIN LOGIC: Initializes the controller and boundary to render the listing page
-$controller = new CarListingController();
-$view = new CarListingPage($controller);
-$view->render();
+$controller = new ViewCarListingController();
+$view = new ViewCarListingPage($controller);
+$view->ViewCarListing();
 ?>

@@ -9,9 +9,10 @@ if (!isset($_SESSION['username'])) {
 }
 
 // Redirect to the update profile page if the update action is requested
-if (isset($_POST['profile_id'])) {
+if (isset($_POST['profile_id']) && isset($_POST['username'])) {
     $profile_id = $_POST['profile_id'];
-    header("Location: agent_update_profile.php?profile_id=" . urlencode($profile_id)); 
+    $username = $_POST['username'];
+    header("Location: agent_update_profile.php?profile_id=" . urlencode($profile_id) . "&username=" . urlencode($username));
     exit();
 }
 
@@ -161,10 +162,12 @@ class ViewAgentAccountPage {
                         <td>
                             <form action="" method="POST">
                                 <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($this->profileData->profile_id); ?>">
+                                <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData->username); ?>"> <!-- Hidden field for username -->
                                 <button type="submit" name="update" class="button">Update account profile</button>
                             </form>
                         </td>
                     </tr>
+
                 <?php else: ?>
                     <tr>
                         <td colspan="3">Profile not found.</td>

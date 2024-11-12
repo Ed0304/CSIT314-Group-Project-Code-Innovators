@@ -11,10 +11,10 @@ class CarListing
     public $model_year;
     private $db;
 
-    // Constructor
-    public function __construct($dbConnection)
+    // Constructor (handles DB connection inside the entity)
+    public function __construct()
     {
-        $this->db = $dbConnection;
+        $this->db = (new Database())->getConnection();  // DB connection directly from the Database class
     }
 
     // Method to get all listings for a user
@@ -26,10 +26,10 @@ class CarListing
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+
         $listings = [];
         while ($row = $result->fetch_assoc()) {
-            $listing = new CarListing($this->db);
+            $listing = new CarListing();
             $listing->listing_id = $row['listing_id'];
             $listing->manufacturer_name = $row['manufacturer_name'];
             $listing->model_name = $row['model_name'];
@@ -50,11 +50,11 @@ class CarListing
         $stmt = $this->db->prepare($query);
         $stmt->bind_param("ss", $username, $search);
         $stmt->execute();
-        
+
         $result = $stmt->get_result();
         $listings = [];
         while ($row = $result->fetch_assoc()) {
-            $listing = new CarListing($this->db);
+            $listing = new CarListing();
             $listing->listing_id = $row['listing_id'];
             $listing->manufacturer_name = $row['manufacturer_name'];
             $listing->model_name = $row['model_name'];
@@ -72,9 +72,9 @@ class SearchCarListingController
     private $carListing;
     private $username;
 
-    public function __construct($dbConnection)
+    public function __construct()
     {
-        $this->carListing = new CarListing($dbConnection);
+        $this->carListing = new CarListing();  // No need to pass DB connection
         $this->username = $_SESSION['username'];
     }
 
@@ -192,8 +192,7 @@ class SearchCarListingPage
 }
 
 // Main Script
-$db = new Database();
-$controller = new SearchCarListingController($db->getConnection());
+$controller = new SearchCarListingController();  // No need to pass DB connection here
 $page = new SearchCarListingPage($controller);
 
 $listings = $page->handleFormSubmission();

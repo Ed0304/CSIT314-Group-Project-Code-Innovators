@@ -41,18 +41,10 @@ class UserAccount {
     public function createUserAccount() {
         $this->conn->begin_transaction();
     
-        try {
+        
             // Insert into the users table
             $stmt = $this->conn->prepare("INSERT INTO users (username, password, role_id, email, phone_num, status_id) VALUES (?, ?, ?, ?, ?, 1)");
-            if (!$stmt) {
-                throw new Exception("Failed to prepare 'users' insert statement: " . $this->conn->error);
-            }
             $stmt->bind_param("ssiss", $this->username, $this->password, $this->role_id, $this->email, $this->phone_num);
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Failed to execute 'users' insert statement: " . $stmt->error);
-            }
-            
             $user_id = $this->conn->insert_id;
             $stmt->close();
     
@@ -61,37 +53,25 @@ class UserAccount {
             if ($this->profile_image && is_uploaded_file($this->profile_image['tmp_name'])) {
                 $profile_image_data = file_get_contents($this->profile_image['tmp_name']);
             }
-    
             // Insert into the profile table
             if ($profile_image_data) {
                 // Profile with image
                 $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, profile_image, status_id) VALUES (?, ?, ?, ?, ?, ?, 1)");
-                if (!$stmt) {
-                    throw new Exception("Failed to prepare 'profile' insert statement with image: " . $this->conn->error);
-                }
                 $stmt->bind_param("issssb", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender, $null);
                 $stmt->send_long_data(5, $profile_image_data);
             } else {
                 // Profile without image
                 $stmt = $this->conn->prepare("INSERT INTO profile (user_id, first_name, last_name, about, gender, status_id) VALUES (?, ?, ?, ?, ?, 1)");
-                if (!$stmt) {
-                    throw new Exception("Failed to prepare 'profile' insert statement without image: " . $this->conn->error);
-                }
                 $stmt->bind_param("issss", $user_id, $this->first_name, $this->last_name, $this->about, $this->gender);
             }
     
-            if (!$stmt->execute()) {
-                throw new Exception("Failed to execute 'profile' insert statement: " . $stmt->error);
-            }
+            
             
             $stmt->close();
     
             $this->conn->commit();
             return true;
-        } catch (Exception $e) {
-            $this->conn->rollback();
-            return false;
-        }
+        
     }
     
     

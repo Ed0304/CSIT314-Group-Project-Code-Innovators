@@ -20,7 +20,7 @@ class CarListing {
         }
     }
 
-    public function createListing($formData, $username, $listing_image) {
+    public function createCarListing($formData, $username, $listing_image) {
         // Retrieve the user_id based on the username
         $stmt = $this->db->prepare("SELECT user_id FROM users WHERE username = ?");
         $stmt->execute([$username]);
@@ -56,7 +56,7 @@ class CreateCarListingController {
     }
 
     public function handleCarListingCreation($formData, $username, $listing_image) {
-        return $this->entity->createListing($formData, $username, $listing_image);
+        return $this->entity->createCarListing($formData, $username, $listing_image);
     }
 }
 

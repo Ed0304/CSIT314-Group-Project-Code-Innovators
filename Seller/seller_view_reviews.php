@@ -2,6 +2,7 @@
 session_start();
 
 // Entity Layer
+// Entity Layer
 class Review
 {
     private $mysqli;
@@ -30,6 +31,27 @@ class Review
         if ($this->mysqli) {
             $this->mysqli->close();
         }
+    }
+
+    // Getter methods
+    public function getDetails()
+    {
+        return $this->details;
+    }
+
+    public function getStars()
+    {
+        return $this->stars;
+    }
+
+    public function getSellerName()
+    {
+        return $this->seller_name;
+    }
+
+    public function getDate()
+    {
+        return $this->date;
     }
 
     // CRUD - Read: Fetch reviews by agent
@@ -142,7 +164,48 @@ class ReviewBoundary
             <meta charset="UTF-8">
             <title>Reviews for <?php echo htmlspecialchars($agent_name); ?></title>
             <style>
-                /* Styles */
+                 body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f9;
+                    color: #333;
+                }
+                .container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #fff;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    border-radius: 8px;
+                }
+                h1 {
+                    color: #4a90e2;
+                    text-align: center;
+                }
+                .review {
+                    border-bottom: 1px solid #ddd;
+                    padding: 15px 0;
+                }
+                .stars {
+                    color: #ffd700;
+                    font-size: 1.2em;
+                }
+                .date {
+                    font-size: 0.9em;
+                    color: #777;
+                }
+                .seller {
+                    font-weight: bold;
+                    margin-top: 5px;
+                }
+                .details {
+                    margin-top: 10px;
+                    white-space: pre-line;
+                }
+                .no-reviews {
+                    text-align: center;
+                    color: #999;
+                    font-style: italic;
+                }
             </style>
         </head>
         <body>
