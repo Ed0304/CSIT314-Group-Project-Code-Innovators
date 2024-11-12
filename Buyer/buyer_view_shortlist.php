@@ -38,7 +38,7 @@ class Shortlist
     }
 
     // Fetch all shortlists for a given user
-    public function getShortlistsByUser($user_id)
+    public function viewShortlist($user_id)
     {
         $stmt = $this->conn->prepare("
             SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
@@ -104,7 +104,7 @@ class ViewShortlistsController
         if ($buyerID === null) {
             return []; // Return an empty array if buyer ID is not set
         }
-        return $this->shortlist->getShortlistsByUser($buyerID);
+        return $this->shortlist->viewShortlist($buyerID);
     }
 
     // Search shortlists based on criteria

@@ -53,7 +53,7 @@ class Listing
         return $count > 0;
     }
 
-    public function addToShortlist($listingId, $buyerId)
+    public function addtoShortlist($listingId, $buyerId)
     {
         $stmt = $this->conn->prepare("INSERT INTO shortlist (listing_id, buyer_id, shortlist_date) VALUES (?, ?, NOW())");
         $stmt->bind_param("ii", $listingId, $buyerId);
@@ -77,13 +77,13 @@ class AddToShortlistController
         return $listing->fetchById($listingId);
     }
 
-    public function addToShortlist($listingId, $buyerId)
+    public function addtoShortlist($listingId, $buyerId)
     {
         $listing = new Listing($this->conn);
         if ($listing->isDuplicateShortlist($listingId, $buyerId)) {
             return false; // Prevent addition if it's a duplicate
         }
-        return $listing->addToShortlist($listingId, $buyerId);
+        return $listing->addtoShortlist($listingId, $buyerId);
     }
 
     public function getBuyerID()
@@ -111,7 +111,7 @@ class AddToShortlistPage
         $duplicate = false; // Flag for duplicate detection
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
-            if ($this->controller->addToShortlist($listingId, $buyerId)) {
+            if ($this->controller->addtoShortlist($listingId, $buyerId)) {
                 $added = true; // Set flag to true if added successfully
             } else {
                 $duplicate = true; // Set flag if a duplicate is detected

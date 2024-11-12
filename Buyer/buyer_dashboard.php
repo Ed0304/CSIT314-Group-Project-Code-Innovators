@@ -73,7 +73,7 @@ class SearchUsedCarController
         }
         return $listings;
     }
-    public function searchListings($criteria, $search, $searchUsedCar)
+    public function searchUsedCar($criteria, $search, $searchUsedCar)
     {
         $query = "
         SELECT 
@@ -130,7 +130,7 @@ class SearchUsedCarPage
         $searchUsedCar = isset($_POST['searchButton']);
 
         if ($searchUsedCar) {
-            $listings = $this->controller->searchListings($criteria, $search, $searchUsedCar);
+            $listings = $this->controller->searchUsedCar($criteria, $search, $searchUsedCar);
         } else {
             $listings = $this->controller->getAllListings();
         }

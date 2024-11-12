@@ -23,7 +23,7 @@ class Review
     }
 
     // Set review details
-    public function setReviewDetails($details, $stars, $reviewer_id, $agent_id)
+    public function createReview($details, $stars, $reviewer_id, $agent_id)
     {
         $this->details = $details;
         $this->stars = $stars;
@@ -86,7 +86,7 @@ class CreateReviewController
     // Process review creation (delegates to entity layer for persistence)
     public function processCreateReview($post_data, $reviewer_id)
     {
-        $this->review->setReviewDetails(
+        $this->review->createReview(
             $post_data['details'],
             $post_data['stars'],
             $reviewer_id,
