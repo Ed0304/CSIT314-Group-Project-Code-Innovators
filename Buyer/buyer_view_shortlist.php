@@ -61,13 +61,13 @@ class Shortlist
     public function searchShortlists($user_id, $criteria, $search)
     {
         $query = "
-            SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
-                   l.manufacturer_name, l.model_name, l.model_year, l.listing_color, l.listing_price, l.listing_description
-            FROM shortlist s
-            JOIN listing l ON s.listing_id = l.listing_id
-            WHERE s.buyer_id = ? AND l.$criteria LIKE ?
-            ORDER BY l.$criteria ASC
-        ";
+        SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
+               l.manufacturer_name, l.model_name, l.model_year, l.listing_color, l.listing_price, l.listing_description
+        FROM shortlist s
+        JOIN listing l ON s.listing_id = l.listing_id
+        WHERE s.buyer_id = ? AND l.$criteria LIKE ?
+        ORDER BY l.$criteria ASC
+    ";
         $stmt = $this->conn->prepare($query);
         $searchTerm = "%" . $search . "%";
         $stmt->bind_param("is", $user_id, $searchTerm);
@@ -135,7 +135,7 @@ class ViewShortlistsPage
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['searchButton'])) {
             $criteria = $_POST['role'];
             $search = $_POST['search'];
-            $shortlists = $this->controller->searchShortlist($this->controller->getBuyerID(), $criteria, $search);
+            $shortlists = $this->controller->searchShortlist($criteria, $search);
         } else {
             $shortlists = $this->controller->getShortlists();
         }
@@ -280,7 +280,7 @@ class ViewShortlistsPage
             <h2>Shortlisted Cars</h2>
             <!-- Form for filtering users based on manufacturer, model, year -->
             <form method="POST" action="buyer_view_shortlist.php">
-                <label for="vehicle" class="select-label" style="font-size: 18px">Filter based on:</label>
+                <label for="vehicle" class="select-label" style="font-size: 18px">Search based on:</label>
                 <select id="vehicle" name="role" class="select-label" style="font-size: 18px">
                     <option value="manufacturer_name" class="select-label" style="font-size: 18px">Manufacturer</option>
                     <option value="model_name" class="select-label" style="font-size: 18px">Model</option>
