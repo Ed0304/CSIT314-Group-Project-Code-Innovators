@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Install PHP and MySQL Extension (Optional)') {
             steps {
-                sh 'yum update && yum install -y php php-mysql'
+                sh 'sudo yum update && sudo yum install -y php php-mysql'
             }
         }
         stage('Run TestData.sql') {
