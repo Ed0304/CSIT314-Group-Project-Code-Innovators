@@ -12,12 +12,20 @@
         <div class="container nav-container">
             <a href="index.html" class="logo"><h3>Code Innovators</h3></a>
             <ul class="nav-link">
-                <li><a href="index.html">Home</a></li>
+               <li><a href="index.html" class="active">Home</a></li>
                 <li><a href="about.html">About</a></li>
-                <li><a href="sell.html">Sell</a></li>
+                <li><a href="login.php?role=seller">Sell</a></li>
                 <li><a href="car-listing.html" class="active">Car Listings</a></li>
-                <li><a href="publicize.html">Publicize</a></li>
-                <li><a href="#" class="login-btn">Log In</a></li>
+                <li><a href="login.php?role=used car agent">Publicize</a></li>    
+                <li class="login-dropdown">
+                    <a href="login.php" class="login-btn">Log In</a>
+                    <div class="dropdown-content">
+                        <a href="login.php?role=buyer">Buyer </a>
+                        <a href="login.php?role=seller">Seller </a>
+                        <a href="login.php?role=used car agent">Used Car Agent </a>
+                        <a href="login.php?role=user admin">User Admin</a>
+                    </div>
+                </li>                     
             </ul>
             <ul class="social-link">
                 <li><a href="https://t.me/+WvqfOz0QNlA0ZjI1" target="_blank"><i class="fab fa-telegram"></i></a></li>
