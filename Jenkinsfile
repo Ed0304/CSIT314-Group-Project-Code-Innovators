@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Install PHP and MySQL Extension (Optional)') {
             steps {
-                sh 'sudo apt-get update && sudo apt-get install -y php php-mysql'
+                sh 'apt-get update && sudo apt-get install -y php php-mysql'
             }
         }
         stage('Run TestData.sql') {
