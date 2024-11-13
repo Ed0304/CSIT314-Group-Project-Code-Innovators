@@ -1,6 +1,6 @@
 <?php
 // Database connection
-$host = 'localhost';
+$host = 'mariadb';
 $dbname = 'csit314';
 $username = 'root';
 $password = '';
