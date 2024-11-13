@@ -81,14 +81,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Cleanup') {
-            steps {
-                script {
-                    // Stop and remove containers after the pipeline completes
-                    sh 'docker-compose down'
-                }
-            }
-        }
     }
 }
