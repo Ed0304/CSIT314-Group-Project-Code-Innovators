@@ -194,59 +194,154 @@ class UpdateAgentAccountInformationPage {
         }
         ?>
         <html>
-        <head>
-            <style>
-                .form-body { font-size: 24px; text-align: center; }
-                h1 { font-size: 48px; text-align: center; }
-                table { font-size: 24px; margin: 0 auto; border-collapse: collapse; }
-                td { padding: 10px; }
-            </style>
-        </head>
-        <body>
-        <h1>Update User Account</h1>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
-            <table>
-                <tr>
-                    <td><label for="first_name">First Name:</label></td>
-                    <td><input type="text" id="first_name" name="first_name" value="<?= htmlspecialchars($userAccount->first_name); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="last_name">Last Name:</label></td>
-                    <td><input type="text" id="last_name" name="last_name" value="<?= htmlspecialchars($userAccount->last_name); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="username">Username:</label></td>
-                    <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" disabled /></td>
-                </tr>
-                <tr>
-                    <td><label for="password">Password:</label></td>
-                    <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="email">Email:</label></td>
-                    <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="phone_num">Phone:</label></td>
-                    <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="profile_image">Profile Picture:</label></td>
-                    <td><input type="file" id="profile_image" name="profile_image" /></td>
-                </tr>
-                <tr>
-                    <td><label for="about">About:</label></td>
-                    <td><textarea id="about" name="about"><?= htmlspecialchars($userAccount->about); ?></textarea></td>
-                </tr>
-                <tr>
-                    <td><button type="submit">Update Account</button></td>
-                    <td><button type="button" onclick="window.location.href='agent_manage_profile.php'">Return to dashboard</button></td>
-                </tr>
-            </table>
-        </form>
-        </body>
-        </html>
+            <head>
+                <style>
+                    /* General styling for the page */
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f8f9fa;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    /* Form container */
+                    .form-container {
+                        max-width: 600px;
+                        margin: 50px auto;
+                        padding: 30px;
+                        background-color: #ffffff;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
+                    }
+
+                    /* Form title */
+                    .form-container h1 {
+                        font-size: 2.5em;
+                        text-align: center;
+                        color: #343a40;
+                        margin-bottom: 20px;
+                    }
+
+                    /* Table styling for form inputs */
+                    .form-container table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+
+                    /* Table cells */
+                    .form-container td {
+                        padding: 10px;
+                    }
+
+                    /* Labels */
+                    .form-container label {
+                        font-size: 1.1em;
+                        color: #343a40;
+                        font-weight: bold;
+                    }
+
+                    /* Input fields and textarea */
+                    .form-container input[type="text"],
+                    .form-container input[type="email"],
+                    .form-container input[type="password"],
+                    .form-container textarea {
+                        width: 100%;
+                        padding: 8px;
+                        border: 1px solid #dee2e6;
+                        border-radius: 4px;
+                        font-size: 1em;
+                    }
+
+                    /* File input */
+                    .form-container input[type="file"] {
+                        font-size: 1em;
+                    }
+
+                    /* Textarea styling */
+                    .form-container textarea {
+                        resize: vertical;
+                        height: 80px;
+                    }
+
+                    /* Buttons styling */
+                    .form-container button {
+                        background-color: #007bff;
+                        color: white;
+                        font-size: 1em;
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease;
+                    }
+
+                    .form-container button:hover {
+                        background-color: #0056b3;
+                    }
+
+                    /* 'Return to dashboard' button styling */
+                    .form-container button[type="button"] {
+                        background-color: #6c757d;
+                    }
+
+                    .form-container button[type="button"]:hover {
+                        background-color: #5a6268;
+                    }
+
+                    /* Center-align buttons */
+                    .form-container .button-container {
+                        text-align: center;
+                        margin-top: 20px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="form-container">
+                    <h1>Update User Account</h1>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
+                        <table>
+                            <tr>
+                                <td><label for="first_name">First Name:</label></td>
+                                <td><input type="text" id="first_name" name="first_name" value="<?= htmlspecialchars($userAccount->first_name); ?>" required /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="last_name">Last Name:</label></td>
+                                <td><input type="text" id="last_name" name="last_name" value="<?= htmlspecialchars($userAccount->last_name); ?>" required /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="username">Username:</label></td>
+                                <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" disabled /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="password">Password:</label></td>
+                                <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="email">Email:</label></td>
+                                <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="phone_num">Phone:</label></td>
+                                <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="profile_image">Profile Picture:</label></td>
+                                <td><input type="file" id="profile_image" name="profile_image" /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="about">About:</label></td>
+                                <td><textarea id="about" name="about"><?= htmlspecialchars($userAccount->about); ?></textarea></td>
+                            </tr>
+                        </table>
+                        <div class="button-container">
+                            <button type="button" onclick="window.location.href='agent_manage_profile.php'">Return to dashboard</button>
+                            <button type="submit">Update Account</button>
+                        </div>
+                    </form>
+                </div>
+            </body>
+            </html>
         <?php
     }
 }

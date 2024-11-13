@@ -26,7 +26,7 @@ class Shortlist
     public function getShortlistsByUser($user_id)
     {
         $stmt = $this->conn->prepare("
-            SELECT s.shortlist_id, s.listing_id, s.buyer_id AS user_id, s.shortlist_date AS date_added, 
+            SELECT s.shortlist_id, s.listing_id, l.user_id AS user_id, s.shortlist_date AS date_added, 
                    l.manufacturer_name, l.model_name, l.model_year, l.listing_color, l.listing_price, l.listing_description
             FROM shortlist s
             JOIN listing l ON s.listing_id = l.listing_id

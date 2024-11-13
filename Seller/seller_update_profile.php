@@ -171,10 +171,6 @@ class UpdateSellerAccountInformationPage {
         }
     }
     
-    
-    
-    
-
     public function updateSellerAccountInformationUI() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
@@ -194,63 +190,212 @@ class UpdateSellerAccountInformationPage {
         }
         ?>
         <html>
-        <head>
-            <style>
-                .form-body { font-size: 24px; text-align: center; }
-                h1 { font-size: 48px; text-align: center; }
-                table { font-size: 24px; margin: 0 auto; border-collapse: collapse; }
-                td { padding: 10px; }
-            </style>
-        </head>
-        <body>
-        <h1>Update User Account</h1>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
-            <table>
-                <tr>
-                    <td><label for="first_name">First Name:</label></td>
-                    <td><input type="text" id="first_name" name="first_name" value="<?= htmlspecialchars($userAccount->first_name); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="last_name">Last Name:</label></td>
-                    <td><input type="text" id="last_name" name="last_name" value="<?= htmlspecialchars($userAccount->last_name); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="username">Username:</label></td>
-                    <td><input type="text" id="username" name="username" value="<?= htmlspecialchars($userAccount->username); ?>" disabled /></td>
-                </tr>
-                <tr>
-                    <td><label for="password">Password:</label></td>
-                    <td><input type="password" id="password" name="password" value="<?= htmlspecialchars($userAccount->password); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="email">Email:</label></td>
-                    <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="phone_num">Phone:</label></td>
-                    <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
-                </tr>
-                <tr>
-                    <td><label for="profile_image">Profile Picture:</label></td>
-                    <td><input type="file" id="profile_image" name="profile_image" /></td>
-                </tr>
-                <tr>
-                    <td><label for="about">About:</label></td>
-                    <td><textarea id="about" name="about"><?= htmlspecialchars($userAccount->about); ?></textarea></td>
-                </tr>
-                <tr>
-                    <td><button type="submit">Update Account</button></td>
-                    <td><button type="button" onclick="window.location.href='seller_manage_profile.php'">Return to dashboard</button></td>
-                </tr>
-            </table>
-        </form>
-        </body>
+            <head>
+                <style>
+                    /* Reusing the provided CSS for consistency */
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f8f9fa;
+                    }
+
+                    header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 20px;
+                        background-color: #343a40;
+                        color: #ffffff;
+                    }
+
+                    header h1 {
+                        margin: 0;
+                        font-size: 1.5em;
+                    }
+
+                    header a {
+                        text-decoration: none;
+                        color: #ffffff;
+                        background-color: #007bff;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        font-size: 0.9em;
+                    }
+
+                    header a:hover {
+                        background-color: #0056b3;
+                    }
+
+                    h1 {
+                        font-size: 48px;
+                        text-align: center;
+                        margin-top: 20px;
+                        color: #343a40;
+                    }
+
+                    table {
+                        width: 60%;
+                        margin: 20px auto;
+                        border-collapse: collapse;
+                        background-color: white;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    }
+
+                    table,
+                    th,
+                    td {
+                        border: 1px solid #dee2e6;
+                    }
+
+                    th,
+                    td {
+                        padding: 12px;
+                        text-align: center;
+                        color: #343a40;
+                    }
+
+                    th {
+                        background-color: #6c757d;
+                        color: #ffffff;
+                        font-weight: bold;
+                    }
+
+                    tr:nth-child(even) {
+                        background-color: #f1f1f1;
+                    }
+
+                    .form-body {
+                        font-size: 24px;
+                        text-align: center;
+                    }
+
+                    input[type="text"],
+                    input[type="email"],
+                    input[type="tel"],
+                    textarea,
+                    input[type="file"] {
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #ced4da;
+                        border-radius: 5px;
+                        margin: 8px 0;
+                        font-size: 16px;
+                        box-sizing: border-box;
+                        background-color: #f1f1f1;
+                        transition: all 0.3s ease-in-out;
+                    }
+
+                    input[type="text"]:focus,
+                    input[type="email"]:focus,
+                    input[type="tel"]:focus,
+                    textarea:focus,
+                    input[type="file"]:focus {
+                        border-color: #007bff;
+                        outline: none;
+                        background-color: #fff;
+                    }
+
+                    button {
+                        background-color: #007bff;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        border: none;
+                        cursor: pointer;
+                        font-size: 16px;
+                        width: 20%;
+                        margin-top: 20px; /* Adjusted for spacing */
+                        transition: background-color 0.3s ease;
+                    }
+
+                    button:hover {
+                        background-color: #0056b3;
+                    }
+
+                    label {
+                        font-size: 18px;
+                        color: #343a40;
+                        font-weight: bold;
+                        display: block;
+                        margin-bottom: 8px;
+                    }
+
+                    textarea {
+                        resize: vertical;
+                    }
+
+                    input[type="file"] {
+                        padding: 8px;
+                        cursor: pointer;
+                    }
+
+                    input[type="file"]:hover {
+                        background-color: #f1f1f1;
+                    }
+
+                    input[type="file"]::-webkit-file-upload-button {
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                    }
+
+                    input[type="file"]::-webkit-file-upload-button:hover {
+                        background-color: #0056b3;
+                    }
+
+                    /* Center the submit button */
+                    .submit-btn-container {
+                        text-align: center;
+                        margin-top: 20px; /* Adds spacing above the button */
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Update User Account</h1>
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($userAccount->user_id); ?>" />
+                    <table>
+                        <tr>
+                            <td><label for="first_name">First Name:</label></td>
+                            <td><input type="text" id="first_name" name="first_name" value="<?= htmlspecialchars($userAccount->first_name); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="last_name">Last Name:</label></td>
+                            <td><input type="text" id="last_name" name="last_name" value="<?= htmlspecialchars($userAccount->last_name); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="email">Email:</label></td>
+                            <td><input type="email" id="email" name="email" value="<?= htmlspecialchars($userAccount->email); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="phone_num">Phone Number:</label></td>
+                            <td><input type="tel" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
+                        </tr>
+                        <tr>
+                            <td><label for="about">About:</label></td>
+                            <td><textarea id="about" name="about" rows="4" required><?= htmlspecialchars($userAccount->about); ?></textarea></td>
+                        </tr>
+                        <tr>
+                            <td><label for="profile_image">Profile Image:</label></td>
+                            <td><input type="file" id="profile_image" name="profile_image" /></td>
+                        </tr>
+                    </table>
+                    <!-- Submit button outside the table -->
+                    <div class="submit-btn-container">
+                        <button type="submit">Update Account</button>
+                    </div>
+                </form>
+            </body>
         </html>
+
         <?php
     }
 }
 
+// Controller & Page handling
 $page = new UpdateSellerAccountInformationPage();
 $page->handleFormSubmission();
 $page->updateSellerAccountInformationUI();

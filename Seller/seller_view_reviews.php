@@ -206,6 +206,22 @@ class ReviewBoundary
                     color: #999;
                     font-style: italic;
                 }
+                /* Add styles for the return button */
+                .return-button {
+                    display: block;
+                    width: 200px;
+                    margin: 30px auto;
+                    padding: 10px;
+                    background-color: #6c757d;
+                    color: white;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-size: 1.2em;
+                }
+                .return-button:hover {
+                    background-color: #5a6268;
+                }
             </style>
         </head>
         <body>
@@ -223,6 +239,8 @@ class ReviewBoundary
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <!-- Return Button -->
+            <a href="seller_manage_review.php?username=<?php echo urlencode($_SESSION['username']); ?>" class="return-button">Return</a>
         </div>
         </body>
         </html>
@@ -247,6 +265,7 @@ class ReviewBoundary
         return !is_null($agent_id) && $agent_id > 0;
     }
 }
+
 
 // Usage Example
 $reviewEntity = new Review();

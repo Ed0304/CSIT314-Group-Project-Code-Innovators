@@ -93,31 +93,99 @@ class ViewAgentAccountPage {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Account Information</title>
             <style>
-                #infoTable th, td {
-                    font-size: 24px;
+                body {
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f4f7fa;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                header {
+                    background-color: #343a40;
+                    color: white;
+                    padding: 15px 0;
                     text-align: center;
                 }
-                #infoTable {
-                    margin: auto;
+
+                h1 {
+                    font-size: 2em;
+                    margin: 0;
                 }
-                .button {
-                    font-size: 24px;
-                    padding: 10px 20px;
-                    margin: 5px;
+
+                table {
+                    width: 80%;
+                    margin: 40px auto;
+                    border-collapse: collapse;
+                    background-color: white;
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                    overflow: hidden;
                 }
-                img.profile-image {
-                    width: 150px;
-                    height: 150px;
+
+                th, td {
+                    padding: 15px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+
+                th {
+                    background-color: #f1f1f1;
+                    color: #333;
+                }
+
+                tr:hover {
+                    background-color: #f9f9f9;
+                }
+
+                td img.profile-image {
+                    border-radius: 50%;
                     object-fit: cover;
+                    width: 120px;
+                    height: 120px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .button {
+                    background-color: #007bff;
+                    color: white;
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 5px;
+                    text-align: center;
+                    font-size: 1.1em;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+
+                .button:hover {
+                    background-color: #0056b3;
+                }
+
+                .button:active {
+                    background-color: #004085;
+                }
+
+                .button-container {
+                    display: flex;
+                    justify-content: space-around;
+                    padding: 20px;
+                }
+
+                .button-container form {
+                    margin: 0;
                 }
             </style>
         </head>
         <body>
-            <h1 style="text-align: center">Account Information</h1>
-            <table id="infoTable">
+            <header>
+                <h1>Account Information</h1>
+            </header>
+
+            <table>
                 <?php if ($this->profileData): ?>
                     <tr>
-                        <td><strong>Account Picture</strong></td>
+                        <td><strong>Profile Picture</strong></td>
                         <td colspan="2">
                             <?php if (!empty($this->profileData->profile_image)): ?>
                                 <img src="data:image/jpeg;base64,<?php echo base64_encode($this->profileData->profile_image); ?>" class="profile-image" alt="Profile Picture">
@@ -148,20 +216,20 @@ class ViewAgentAccountPage {
                     </tr>
                     <tr>
                         <td><strong>About</strong></td>
-                        <td colspan="2"><?php echo htmlspecialchars($this->profileData->about); ?></td>
+                        <td colspan="2"><?php echo nl2br(htmlspecialchars($this->profileData->about)); ?></td>
                     </tr>
                     <tr>
-                        <td>
-                            <form action="buyer_dashboard.php">
-                                <button type="submit" class="button">Return to main dashboard</button>
-                            </form>
-                        </td>
-                        <td>
-                            <form action="" method="POST">
-                                <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($this->profileData->profile_id); ?>">
-                                <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData->username); ?>">
-                                <button type="submit" name="update" class="button">Update account profile</button>
-                            </form>
+                        <td colspan="3">
+                            <div class="button-container">
+                                <form action="buyer_dashboard.php">
+                                    <button type="submit" class="button">Return to Dashboard</button>
+                                </form>
+                                <form action="" method="POST">
+                                    <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($this->profileData->profile_id); ?>">
+                                    <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData->username); ?>">
+                                    <button type="submit" name="update" class="button">Update Profile</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 <?php else: ?>

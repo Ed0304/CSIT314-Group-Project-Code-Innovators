@@ -14,21 +14,74 @@ class ViewReviewPage {
 
         // Inline styling for simplicity
         echo "<style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h2 { text-align: center; color: #333; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
-                th { background-color: #007bff; color: #fff; }
-                img { width: 50px; height: 50px; border-radius: 50%; }
-                .agent-card { padding: 15px; border: 1px solid #ddd; margin-bottom: 20px; }
-                .car-list { margin-top: 10px; }
-                .car-item { margin-left: 20px; font-style: italic; }
-                .buttons { margin-top: 10px; }
-                .buttons button { padding: 10px 15px; margin-right: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-                .buttons button:hover { background-color: #0056b3; }
-                .return-button { display: block; margin-top: 20px; text-align: center; }
-                .return-button button { padding: 10px 20px; background-color: #6c757d; color: white; border: none; cursor: pointer; }
-                .return-button button:hover { background-color: #5a6268; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                }
+                h2 {
+                    text-align: center;
+                    color: #343a40;
+                    margin-top: 20px;
+                }
+                .agent-card {
+                    background-color: white;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    margin: 20px auto;
+                    padding: 20px;
+                    width: 80%;
+                    border-radius: 8px;
+                }
+                .agent-card h3 {
+                    font-size: 1.5em;
+                    color: #343a40;
+                }
+                .agent-card p {
+                    font-size: 1.1em;
+                    color: #343a40;
+                    margin: 5px 0;
+                }
+                .car-list {
+                    margin-top: 20px;
+                    font-size: 1.1em;
+                    color: #343a40;
+                }
+                .car-item {
+                    margin-left: 20px;
+                    font-style: italic;
+                }
+                .buttons {
+                    margin-top: 20px;
+                }
+                .buttons button {
+                    background-color: #007bff;
+                    color: white;
+                    padding: 10px 20px;
+                    font-size: 1.1em;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 4px;
+                }
+                .buttons button:hover {
+                    background-color: #0056b3;
+                }
+                .return-button {
+                    margin-top: 40px;
+                    text-align: center;
+                }
+                .return-button button {
+                    background-color: #6c757d;
+                    color: white;
+                    padding: 12px 24px;
+                    font-size: 1.1em;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 4px;
+                }
+                .return-button button:hover {
+                    background-color: #5a6268;
+                }
               </style>";
 
         echo "<h2>List of Agents and Their Cars</h2>";
@@ -43,7 +96,7 @@ class ViewReviewPage {
             echo "<p><strong>About:</strong> {$agent['about']}</p>";
             echo "<p><strong>Gender:</strong> $gender</p>";
 
-            // Display cars for each agent
+            // Display cars for each agent with the previous design
             echo "<div class='car-list'><strong>Cars Selling:</strong>";
             $cars = $this->reviewController->getCarsByAgent($agent['user_id']);
             if ($cars) {

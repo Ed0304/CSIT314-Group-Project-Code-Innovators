@@ -104,27 +104,92 @@ class ProfileView {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Account Information</title>
             <style>
-                #infoTable th, td {
-                    font-size: 24px;
+                body {
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                h1 {
                     text-align: center;
+                    font-size: 2.5rem;
+                    margin: 20px 0;
+                    color: #343a40;
                 }
+
                 #infoTable {
-                    margin: auto;
+                    width: 80%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    background-color: #fff;
                 }
+
+                #infoTable th, #infoTable td {
+                    font-size: 1.2rem;
+                    padding: 12px 15px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+
+                #infoTable th {
+                    background-color: #007bff;
+                    color: #fff;
+                }
+
+                #infoTable td {
+                    background-color: #f9f9f9;
+                }
+
                 .button {
-                    font-size: 24px;
-                    padding: 10px 20px;
-                    margin: 5px;
+                    font-size: 1rem;
+                    padding: 12px 20px;
+                    background-color: #007bff;
+                    color: #fff;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                    margin: 10px;
                 }
-                img.profile-image {
+
+                .button:hover {
+                    background-color: #0056b3;
+                }
+
+                .profile-image {
                     width: 150px;
                     height: 150px;
                     object-fit: cover;
+                    border-radius: 50%;
+                    border: 3px solid #ddd;
+                }
+
+                .button-container {
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                /* Responsive Design */
+                @media (max-width: 768px) {
+                    #infoTable {
+                        width: 95%;
+                    }
+
+                    h1 {
+                        font-size: 2rem;
+                    }
+
+                    .button {
+                        width: 100%;
+                        padding: 15px;
+                    }
                 }
             </style>
         </head>
         <body>
-            <h1 style="text-align: center">Profile Information</h1>
+            <h1>Profile Information</h1>
             <table id="infoTable">
                 <?php if ($this->profileData): ?>
                     <tr>
@@ -144,7 +209,7 @@ class ProfileView {
                     <tr>
                         <td><strong>Role</strong></td>
                         <td colspan="2"><?php echo htmlspecialchars($this->profileData->role_name); ?></td>
-                    </tr>   
+                    </tr>
                     <tr>
                         <td><strong>Email</strong></td>
                         <td colspan="2"><?php echo htmlspecialchars($this->profileData->email); ?></td>
@@ -164,14 +229,14 @@ class ProfileView {
                     <tr>
                         <td>
                             <form action="seller_dashboard.php">
-                                <button type="submit" class="button">Return to main dashboard</button>
+                                <button type="submit" class="button">Return to Dashboard</button>
                             </form>
                         </td>
                         <td>
                             <form action="" method="POST">
                                 <input type="hidden" name="profile_id" value="<?php echo htmlspecialchars($this->profileData->profile_id); ?>">
                                 <input type="hidden" name="username" value="<?php echo htmlspecialchars($this->profileData->username); ?>">
-                                <button type="submit" name="update" class="button">Update account profile</button>
+                                <button type="submit" name="update" class="button">Update Profile</button>
                             </form>
                         </td>
                     </tr>

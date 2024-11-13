@@ -59,7 +59,7 @@ class DashboardView {
 
     private function handleFormSubmission() {
         if (isset($_POST['userAcc'])) {
-            $this->redirectTo('admin_view_account.php');
+            $this->redirectTo('admin_manage_user_acc.php');
         } elseif (isset($_POST['userProfile'])) {
             $this->redirectTo('admin_manage_user_profiles.php');
         } elseif (isset($_POST['logout'])) {
@@ -77,88 +77,102 @@ class DashboardView {
             <title>Admin Dashboard</title>
             <style>
                 body {
-                    font-family: Arial, sans-serif;
+                    font-family: 'Arial', sans-serif;
                     margin: 0;
                     padding: 0;
-                    background-color: #f4f4f4;
+                    background-color: #f4f6f9;
+                    color: #333;
                 }
 
                 .header {
                     text-align: center;
-                    color: white;
+                    margin-top: 50px;
+                    color: #fff;
+                    font-size: 1.8em;
                 }
 
                 .headDiv {
-                    text-align: center;
                     background-color: #28a745;
-                    border-bottom: 3px solid #003366;
                     padding: 20px;
+                    border-bottom: 2px solid #333;
                 }
 
                 .formBody {
-                    text-align: center;
-                    margin-top: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 20px;
                 }
 
                 button, input[type="submit"] {
-                    font-size: 18px;
-                    padding: 12px 20px;
-                    border: none;
-                    background-color: #28a745;
+                    background-color: #007bff;
                     color: white;
-                    cursor: pointer;
-                    border-radius: 5px;
+                    border: none;
+                    padding: 15px 30px;
                     margin: 10px 0;
-                    width: 100%; /* Makes the buttons span full width */
-                    transition: background-color 0.3s ease;
+                    border-radius: 5px;
+                    font-size: 1em;
+                    cursor: pointer;
+                    width: 80%;
+                    transition: background-color 0.3s;
                 }
 
                 button:hover, input[type="submit"]:hover {
-                    background-color: #218838;
-                }
-
-                .mainInterface {
-                    text-align: center;
-                    background-color: white;
-                    border: 1px solid #ddd;
-                    border-radius: 5px;
-                    padding: 20px;
-                    margin: 20px auto;
-                    width: 50%;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    background-color: #0056b3;
                 }
 
                 .logout-button {
-                    background-color: #dc3545;
-                    border-radius: 5px;
+                    background-color: #dc3545 !important;
+                    color: white;
+                    width: 80%;
                     transition: background-color 0.3s ease;
                 }
 
                 .logout-button:hover {
-                    background-color: #c82333;
+                    background-color: #c82333 !important;
                 }
 
-                h1, h2 {
-                    margin: 0;
-                    padding: 0;
+
+                .mainInterface {
+                    text-align: center;
+                    background-color: #fff;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    margin-top: 50px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                    width: 50%;
+                    margin-left: auto;
+                    margin-right: auto;
                 }
 
-                p {
-                    font-size: 18px;
+                h2 {
                     color: #333;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
+                @media (max-width: 768px) {
+                    .mainInterface {
+                        width: 80%;
+                    }
+
+                    .formBody button {
+                        width: 90%;
+                    }
                 }
             </style>
         </head>
         <body>
             <div class="headDiv">
-                <h1>Welcome to the Admin Dashboard, <?php echo $this->username; ?>!</h1>
-                <h2>What would you like to do for today?</h2>
+                <h1 class="header">Welcome to the Admin Dashboard, <?php echo $this->username; ?>!</h1>
+                <h2>What would you like to do today?</h2>
             </div>
 
             <div class="mainInterface">
                 <form method="post" class="formBody">
-                    <button type="submit" name="userAcc">Manage user accounts</button>
-                    <button type="submit" name="userProfile">Manage user profiles</button>
+                    <button type="submit" name="userAcc">Manage User Accounts</button>
+                    <button type="submit" name="userProfile">Manage User Profiles</button>
                     <input type="submit" class="logout-button" value="Logout" name="logout">
                 </form>
             </div>

@@ -109,28 +109,89 @@ class ViewAllReviewsPage {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Agent Ratings & Reviews</title>
             <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                h1 {
+                    text-align: center;
+                    color: #343a40;
+                    margin-top: 30px;
+                }
+
                 #reviews-table {
+                    width: 80%;
+                    margin: 20px auto;
                     border-collapse: collapse;
-                    width: 100%;
+                    background-color: #ffffff;
+                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
                 }
-                #reviews-table, 
-                #reviews-table th, 
-                #reviews-table td {
-                    border: 1px solid black;
+
+                #reviews-table th, #reviews-table td {
+                    padding: 12px;
+                    text-align: center;
+                    font-size: 16px;
+                    color: #343a40;
+                    border: 1px solid #dee2e6;
                 }
-                #reviews-table th, 
+
+                #reviews-table th {
+                    background-color: #6c757d;
+                    color: white;
+                    font-weight: bold;
+                }
+
                 #reviews-table td {
-                    padding: 10px;
-                    font-size: 20px;
+                    background-color: #f9f9f9;
+                }
+
+                #reviews-table tr:nth-child(even) {
+                    background-color: #f1f1f1;
+                }
+
+                .star {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 2px;
+                }
+
+                button, input[type="submit"] {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 8px 16px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: background-color 0.3s ease;
+                }
+
+                button:hover, input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                form {
                     text-align: center;
                 }
-                .star {
-                    width: 25px;
-                    height: 25px;
+
+                form input[type="submit"] {
+                    font-size: 18px;
+                    margin-top: 20px;
                 }
-                .button-font {
+
+                form input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                p {
+                    text-align: center;
+                    color: #6c757d;
                     font-size: 18px;
                 }
+
             </style>
         </head>
         <body>

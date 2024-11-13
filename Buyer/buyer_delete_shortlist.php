@@ -153,37 +153,86 @@ class DeleteShortlistPage
             <meta charset="UTF-8">
             <title>Delete Listing</title>
             <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f4f6f9;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                }
+
                 .details-container {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                .details-container img {
-                    max-width: 100%;
-                    height: auto;
-                    border: 2px solid #ccc;
-                    border-radius: 5px;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                }
-                .details-container h2 {
+                    background-color: #fff;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                    max-width: 700px;
+                    width: 100%;
                     text-align: center;
                 }
+
+                .details-container h2 {
+                    color: #333;
+                    margin-bottom: 20px;
+                    font-size: 1.8em;
+                }
+
                 .details-container table {
                     width: 100%;
-                    border-collapse: collapse;
                     margin-top: 20px;
+                    border-collapse: collapse;
                 }
+
                 .details-container th, .details-container td {
-                    padding: 10px;
+                    padding: 15px;
                     border: 1px solid #ddd;
                     text-align: left;
                 }
+
                 .details-container th {
                     background-color: #f2f2f2;
+                    color: #333;
                 }
+
                 .button-container {
-                    text-align: center;
-                    margin-top: 20px;
+                    margin-top: 30px;
+                }
+
+                .button-container button,
+                .button-container a button {
+                    padding: 10px 20px;
+                    background-color: red;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 1em;
+                    transition: background-color 0.3s ease;
+                }
+
+                .button-container button:hover,
+                .button-container a button:hover {
+                    background-color: darkred;
+                }
+
+                .button-container a button {
+                    background-color: #007bff;
+                    margin-left: 10px;
+                }
+
+                .button-container a button:hover {
+                    background-color: #0056b3;
+                }
+
+                img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
                 }
             </style>
         </head>
