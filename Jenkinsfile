@@ -2,6 +2,19 @@ pipeline {
     agent any
 
     stages {
+	stage('Clean Up Existing Containers') {
+            steps {
+                script {
+                    // Stop and remove any containers using ports 3307 and 8081
+                    sh '''
+                    docker ps -q --filter "publish=3307" | xargs -r docker stop
+                    docker ps -a -q --filter "publish=3307" | xargs -r docker rm
+                    docker ps -q --filter "publish=8081" | xargs -r docker stop
+                    docker ps -a -q --filter "publish=8081" | xargs -r docker rm
+                    '''
+                }
+            }
+        }
         stage('Build and Start Containers') {
             steps {
                 script {
