@@ -26,6 +26,14 @@ pipeline {
                 sh 'sudo yum update && sudo yum install -y php php-mysqlnd'
             }
         }
+	stage('Install MySQL Server') {
+  	    steps {
+        	sh 'sudo yum install -y mysql-server'
+        	sh 'sudo systemctl start mysqld'
+        	sh 'sudo systemctl enable mysqld'
+    	    }
+	}
+
         stage('Run TestData.sql') {
             steps {
                 script {
