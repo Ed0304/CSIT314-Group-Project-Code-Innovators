@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Install PHP and MySQL Extension (Optional)') {
             steps {
-                sh 'sudo yum update && sudo yum install -y php php-mysqlnd'
+                sh 'sudo yum update -y && sudo yum install -y php php-mysqlnd'
             }
         }
 	stage('Install MySQL Server') {
