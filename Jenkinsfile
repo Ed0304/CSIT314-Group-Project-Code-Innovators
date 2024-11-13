@@ -38,7 +38,7 @@ pipeline {
             steps {
                 script {
                     // Run the SQL data setup
-                    sh 'mysql -u root < testdata/TestData.sql'
+                    sh 'sudo mysql -u root < testdata/TestData.sql'
                 }
             }
         }
