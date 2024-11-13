@@ -108,6 +108,7 @@ class DeleteShortlistController
 class DeleteShortlistPage
 {
     private $controller;
+    private $shortlist;
 
     // Constructor initializes the boundary with a controller
     public function __construct($controller)
@@ -132,18 +133,18 @@ class DeleteShortlistPage
         }
 
         // Retrieve shortlist details to display for confirmation
-        $shortlist = $this->controller->getShortlistDetails($shortlist_id);
-        if ($shortlist === null) {
+        $this->shortlist = $this->controller->getShortlistDetails($shortlist_id);
+        if ($this->shortlist === null) {
             echo "Shortlist not found.";
             exit();
         }
 
         // Render the confirmation page
-        $this->render($shortlist);
+        $this->DeleteShortlistUI();
     }
 
     // Render the confirmation HTML page with listing details
-    public function render($shortlist)
+    public function DeleteShortlistUI()
     {
         ?>
         <!DOCTYPE HTML>
@@ -193,8 +194,8 @@ class DeleteShortlistPage
                     <tr>
                         <th>Image</th>
                         <td>
-                            <?php if (!empty($shortlist->listing_image)): ?>
-                                <img src="<?php echo 'data:' . $shortlist->mime_type . ';base64,' . $shortlist->listing_image; ?>" alt="Car Picture" />
+                            <?php if (!empty($this->shortlist->listing_image)): ?>
+                                <img src="<?php echo 'data:' . $this->shortlist->mime_type . ';base64,' . $this->shortlist->listing_image; ?>" alt="Car Picture" />
                             <?php else: ?>
                                 <p>No image available.</p>
                             <?php endif; ?>
@@ -202,32 +203,32 @@ class DeleteShortlistPage
                     </tr>
                     <tr>
                         <th>Manufacturer</th>
-                        <td><?php echo htmlspecialchars($shortlist->manufacturer_name); ?></td>
+                        <td><?php echo htmlspecialchars($this->shortlist->manufacturer_name); ?></td>
                     </tr>
                     <tr>
                         <th>Model</th>
-                        <td><?php echo htmlspecialchars($shortlist->model_name); ?></td>
+                        <td><?php echo htmlspecialchars($this->shortlist->model_name); ?></td>
                     </tr>
                     <tr>
                         <th>Year</th>
-                        <td><?php echo htmlspecialchars($shortlist->model_year); ?></td>
+                        <td><?php echo htmlspecialchars($this->shortlist->model_year); ?></td>
                     </tr>
                     <tr>
                         <th>Color</th>
-                        <td><?php echo htmlspecialchars($shortlist->listing_color); ?></td>
+                        <td><?php echo htmlspecialchars($this->shortlist->listing_color); ?></td>
                     </tr>
                     <tr>
                         <th>Price</th>
-                        <td><?php echo "$" . number_format($shortlist->listing_price, 2); ?></td>
+                        <td><?php echo "$" . number_format($this->shortlist->listing_price, 2); ?></td>
                     </tr>
                     <tr>
                         <th>Description</th>
-                        <td><?php echo htmlspecialchars($shortlist->listing_description); ?></td>
+                        <td><?php echo htmlspecialchars($this->shortlist->listing_description); ?></td>
                     </tr>
                 </table>
                 <div class="button-container">
                     <form action="" method="post">
-                        <input type="hidden" name="shortlist_id" value="<?php echo $shortlist->shortlist_id; ?>" />
+                        <input type="hidden" name="shortlist_id" value="<?php echo $this->shortlist->shortlist_id; ?>" />
                         <button type="submit" name="confirm_delete">Delete</button>
                         <a href="buyer_view_shortlist.php"><button type="button">Cancel</button></a>
                     </form>

@@ -83,11 +83,6 @@ class ListingController {
     public function getUserListings($username) {
         // Fetch user ID using username
         $user_id = $this->listingEntity->getUserIdByUsername($username);
-        
-        if (!$user_id) {
-            return null;  // Return null if user is not found
-        }
-        
         // Fetch listings for the user
         return $this->listingEntity->getListingsBySeller($user_id);
     }

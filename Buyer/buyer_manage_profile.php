@@ -47,7 +47,7 @@ class UserAccount {
 
     // Fetches profile data directly from the database
     public static function getProfileByUsername($username) {
-        try {
+        
             $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -63,9 +63,7 @@ class UserAccount {
             
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
             return $data ? new self($data) : null;
-        } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
-        }
+        
     }
 }
 

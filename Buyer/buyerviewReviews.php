@@ -46,7 +46,7 @@ class Review
     }
 
     // Retrieve reviews for a specific agent
-    public function getAgentRatingsAndReviews($agent_id)
+    public function buyerViewAllReviews($agent_id)
     {
         $mysqli = $this->getConnection();
         $query = "SELECT r.review_id, r.review_details, r.review_stars, r.review_date, 
@@ -78,8 +78,8 @@ class Review
     }
 }
 
-// Control Class: RatingsReviewsController
-class RatingsReviewsController
+// Control Class: BuyerViewAllReviewsController
+class BuyerViewAllReviewsController
 {
     private $reviewEntity;
     private $reviews = [];
@@ -87,22 +87,19 @@ class RatingsReviewsController
     private $agentFirstName;
     private $agentLastName;
 
-    public function __construct($username)
+    public function __construct(Review $reviewEntity, $agent_id)
     {
-        $this->reviewEntity = new Review();
-        $this->initializeReviewsByAgentUsername($username);
+        $this->reviewEntity = $reviewEntity;
+        $this->agent_id = $agent_id;
+        $this->buyerViewAllReviews($agent_id);
     }
 
-    private function initializeReviewsByAgentUsername($username)
+    private function buyerViewAllReviews($agent_id)
     {
-        $agent_id = $this->reviewEntity->getUserIdByUsername($username);
-        if ($agent_id) {
-            $this->reviews = $this->reviewEntity->getAgentRatingsAndReviews($agent_id);
-            $this->agent_id = $agent_id;
-            if (!empty($this->reviews)) {
-                $this->agentFirstName = $this->reviews[0]->getAgentFirstName();
-                $this->agentLastName = $this->reviews[0]->getAgentLastName();
-            }
+        $this->reviews = $this->reviewEntity->buyerViewAllReviews($this->agent_id);
+        if (!empty($this->reviews)) {
+            $this->agentFirstName = $this->reviews[0]->getAgentFirstName();
+            $this->agentLastName = $this->reviews[0]->getAgentLastName();
         }
     }
 
@@ -112,8 +109,9 @@ class RatingsReviewsController
     public function getAgentLastName() { return $this->agentLastName; }
 }
 
-// Boundary Class: RatingsReviewsView
-class RatingsReviewsView
+
+// Boundary Class: BuyerViewAllReviewsPage
+class BuyerViewAllReviewsPage
 {
     private $controller;
 
@@ -122,12 +120,13 @@ class RatingsReviewsView
         $this->controller = $controller;
     }
 
-    public function render()
+    public function buyerViewAllReviewsUI()
     {
-        $reviews = $this->controller->getReviews();
-        $agentFirstName = $this->controller->getAgentFirstName();
-        $agentLastName = $this->controller->getAgentLastName();
         $agent_id = $this->controller->getAgentId();
+        $reviews = $this->controller->getReviews($agent_id);
+        $agentFirstName = $this->controller->getAgentFirstName();
+        $agentLastName = $this->controller->getAgentLastName(); 
+        
 
         ?>
         <!DOCTYPE HTML>
@@ -136,11 +135,109 @@ class RatingsReviewsView
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Agent Ratings & Reviews</title>
-            <style>
-                /* styling code here */
-            </style>
         </head>
+        <style>
+                /* General body styling */
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f9f9f9;
+                }
 
+                /* Centering the content */
+                h1 {
+                    color: #333;
+                    margin-top: 30px;
+                    font-size: 2em;
+                    text-align: center;
+                }
+
+                /* Styling the table */
+                table {
+                    width: 80%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                    background-color: #fff;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+
+                th, td {
+                    padding: 12px;
+                    text-align: center;
+                    border: 1px solid #ddd;
+                }
+
+                th {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+
+                td {
+                    background-color: #f2f2f2;
+                }
+
+                /* Styling the star images */
+                .star {
+                    width: 20px;
+                    height: 20px;
+                    vertical-align: middle;
+                }
+
+                /* Button styling */
+                .button {
+                    display: inline-block;
+                    padding: 10px 20px;
+                    margin: 10px 0;
+                    background-color: #4CAF50;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-size: 1em;
+                }
+
+                .button:hover {
+                    background-color: #45a049;
+                }
+
+                /* Styling for the "Create a review" button */
+                .button {
+                    margin-top: 20px;
+                }
+
+                /* Empty state message */
+                p {
+                    text-align: center;
+                    font-size: 1.2em;
+                    color: #888;
+                }
+
+                /* Styling for the return button */
+                .button-return {
+                    background-color: #2196F3;
+                }
+
+                .button-return:hover {
+                    background-color: #1976D2;
+                }
+
+                /* Responsive design for smaller screens */
+                @media (max-width: 768px) {
+                    table {
+                        width: 100%;
+                        margin: 10px;
+                    }
+
+                    h1 {
+                        font-size: 1.5em;
+                    }
+
+                    .button {
+                        font-size: 0.9em;
+                        padding: 8px 16px;
+                    }
+                }
+            </style>
         <body>
             <h1 style="text-align:center">Ratings for <?php echo htmlspecialchars($agentFirstName . ' ' . $agentLastName); ?></h1>
             <div style="text-align:center">
@@ -175,7 +272,11 @@ class RatingsReviewsView
 
 // Entry Point
 $username = isset($_GET['username']) ? trim($_GET['username']) : '';
-$controller = new RatingsReviewsController($username);
-$view = new RatingsReviewsView($controller);
-$view->render();
+$reviewEntity = new Review();
+$agent_id = isset($_GET['agent_id']) ? intval($_GET['agent_id']) : null;
+
+$controller = new BuyerViewAllReviewsController($reviewEntity, $agent_id);
+$view = new BuyerViewAllReviewsPage($controller);
+$view->buyerViewAllReviewsUI();
+
 ?>

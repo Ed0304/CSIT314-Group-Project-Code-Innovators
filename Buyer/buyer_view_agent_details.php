@@ -191,7 +191,7 @@ class viewAgentBoundary
             echo "</div>";
             echo "<div class='buttons'>";
             echo "<a href='" . ($referrer === 'shortlist' ? 'buyer_view_shortlist.php' : 'buyer_dashboard.php') . "' class='back-button'>Return</a>";
-            echo "<a href='buyerviewReviews.php?username=" . $this->viewAgentController->getUsername() . "' class='reviews-button'>View Reviews</a>";
+            echo "<a href='buyerviewReviews.php?username=" . $this->viewAgentController->getUsername() . "&agent_id=" . $this->viewAgentController->getUserID() . "' class='reviews-button'>View Reviews</a>";
             echo "</div>";
         } else {
             echo "<p>Agent details not found.</p>";

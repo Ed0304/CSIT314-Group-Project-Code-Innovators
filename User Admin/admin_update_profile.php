@@ -1,60 +1,52 @@
 <?php
-include "../connectDatabase.php";
-session_start();
-
-$userprofile_id = isset($_GET['role_id']) ? $_GET['role_id'] : null;
-if (!$userprofile_id) {
-    die("UserProfile ID not provided.");
-}
-
+require '../connectDatabase.php';
+$userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id']) : null;
 // Entity class: Handles database operations and acts as the data structure for UserProfile
 class UserProfile {
     private $conn;
     private $userprofile_id;
-    private $userprofile_description;
+    private $userprofile_description; // Use 'userprofile_description' consistently
 
     public function __construct($userprofile_id = null) {
         $this->conn = $this->getConnection();
         if ($userprofile_id) {
-            $this->role_id = $userprofile_id;
+            $this->userprofile_id = $userprofile_id;
+            $this->userprofile_description = $userprofile_description;
             $this->loadUserProfile();
         }
     }
 
     private function getConnection() {
-        // Assuming connectDatabase.php sets up $conn globally
         global $conn;
         return $conn;
     }
 
     public function getUserProfileId() {
-        return $this->role_id;
+        return $userprofile_id;
     }
 
     public function getUserProfileDescription() {
-        return $this->role_description;
+        return $userprofile_description;
     }
 
     public function setUserProfileDescription($userprofile_description) {
-        $this->role_description = $userprofile_description;
+        $this->userprofile_description = $userprofile_description;
     }
 
     public function loadUserProfile() {
         $stmt = $this->conn->prepare("SELECT * FROM role WHERE role_id = ?");
-        $stmt->bind_param("i", $this->role_id);
+        $stmt->bind_param("i", $this->userprofile_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            $this->role_description = $row['role_description'];
-        } else {
-            throw new Exception("User Profile not found");
-        }
+            $this->userprofile_description = $row['role_description']; // Maps correctly to the database column
+        } 
     }
 
-    public function updateUserProfileDescription() {
+    public function updateUserProfileDescription(UserProfile $userProfile) {
         $stmt = $this->conn->prepare("UPDATE role SET role_description = ? WHERE role_id = ?");
-        $stmt->bind_param("si", $this->role_description, $this->role_id);
+        $stmt->bind_param("si", $userProfile->userprofile_description, $userProfile->userprofile_id);
         return $stmt->execute();
     }
 }
@@ -71,9 +63,8 @@ class UpdateUserProfileDescriptionController {
         return $this->profile;
     }
 
-    public function updateUserProfileDescription($new_description) {
-        $this->profile->setUserProfileDescription($new_description);
-        return $this->profile->updateUserProfileDescription();
+    public function updateUserProfileDescription(UserProfile $userProfile) {
+        return $userProfile->updateUserProfileDescription($userProfile);
     }
 }
 
@@ -88,8 +79,10 @@ class UpdateUserProfileDescriptionPage {
     public function handleFormSubmission() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role_description'])) {
             $new_description = trim($_POST['role_description']);
+            $profile = $this->profileController->getUserProfile();
+            $profile->setUserProfileDescription($new_description);
 
-            if ($this->profileController->updateUserProfileDescription($new_description)) {
+            if ($this->profileController->updateUserProfileDescription($profile)) {
                 echo "<p class='success-message'>User Profile description updated successfully.</p>";
             } else {
                 echo "<p class='error-message'>Error updating description.</p>";

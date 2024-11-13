@@ -111,7 +111,7 @@ class ViewUsedCarListingPage {
         <html lang="en">
         <head>
             <meta charset="UTF-8">
-            <title>CarListing Details</title>
+            <title>Listing Details</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;

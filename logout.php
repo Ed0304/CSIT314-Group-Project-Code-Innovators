@@ -1,38 +1,8 @@
 <?php
 session_start(); // Start the session
 
-// Entity Layer
-class UserAccount {
-    private $username;
-
-    public function __construct($username) {
-        $this->username = $username;
-    }
-
-    public function getUserAccountname() {
-        return $this->username;
-    }
-}
-
 // Boundary Layer
 class LogoutPage {
-    public function initiateLogout() {
-        // Check if the user is logged in before proceeding
-        if (!isset($_SESSION['username'])) {
-            header("Location: login.php");
-            exit();
-        }
-
-        $username = $_SESSION['username'];
-        
-        // Create a UserAccount entity and instantiate the controller
-        $user = new UserAccount($username);
-        $controller = new LogoutController($user);
-
-        // Start the logout process
-        $controller->logout();
-    }
-
     public function LogoutUI() {
         ?>
         <!DOCTYPE HTML>
@@ -58,24 +28,25 @@ class LogoutPage {
 // Control Layer
 class LogoutController {
     private $view;
-    private $user;
 
-    public function __construct(UserAccount $user) {
-        $this->user = $user;
+    public function __construct() {
         $this->view = new LogoutPage();
     }
 
-    public function logout() {
-        // render the logout view
+    public function terminateSession() {
+        // Render the logout view
         $this->view->LogoutUI();
 
-        // Clear user-related session data to avoid undefined key issues
+        // Clear user-related session data
         session_unset(); // Unset all session variables
         session_destroy(); // Destroy the session
+
+        // Indicate successful logout
+        return true;
     }
 }
 
 // Main Logic
-$LogoutPage = new LogoutPage();
-$LogoutPage->initiateLogout();
+$controller = new LogoutController();
+$logoutSuccessful = $controller->terminateSession();
 ?>

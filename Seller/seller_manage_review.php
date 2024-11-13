@@ -81,22 +81,22 @@ class ReviewBoundary {
 }
 
 class ReviewController {
-    private $ReviewEntity;
+    private $Review;
 
     public function __construct() {
-        $this->ReviewEntity = new ReviewEntity();
+        $this->Review = new Review();
     }
 
     public function getAllAgents() {
-        return $this->ReviewEntity->getAllAgents();
+        return $this->Review->getAllAgents();
     }
 
     public function getCarsByAgent($agent_id) {
-        return $this->ReviewEntity->getCarsForAgent($agent_id);
+        return $this->Review->getCarsForAgent($agent_id);
     }
 }
 
-class ReviewEntity {
+class Review {
     private $pdo;
 
     public function __construct() {

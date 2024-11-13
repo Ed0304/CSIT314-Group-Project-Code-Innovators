@@ -93,9 +93,13 @@ class AddToShortlistController
 }
 
 // Boundary: Manages the display and handling of the confirmation screen
+// Boundary: Manages the display and handling of the confirmation screen
 class AddToShortlistPage
 {
     private $controller;
+    private $added = false; // Flag for successful addition
+    private $duplicate = false; // Flag for duplicate detection
+    private $listing = null; // Holds listing details
 
     public function __construct($controller)
     {
@@ -107,24 +111,24 @@ class AddToShortlistPage
         $listingId = isset($_GET['listing_id']) ? intval($_GET['listing_id']) : 0;
         $buyerId = $this->controller->getBuyerID();
 
-        $added = false; // Flag for successful addition
-        $duplicate = false; // Flag for duplicate detection
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['listing_id'])) {
             if ($this->controller->addtoShortlist($listingId, $buyerId)) {
-                $added = true; // Set flag to true if added successfully
+                $this->added = true; // Set flag to true if added successfully
             } else {
-                $duplicate = true; // Set flag if a duplicate is detected
+                $this->duplicate = true; // Set flag if a duplicate is detected
             }
         }
 
-        $this->render($listingId, $added, $duplicate);
+        // Fetch listing details and store in an instance variable
+        $this->listing = $this->controller->getListingDetails($listingId);
+
+        // Render the UI
+        $this->AddToShortlistUI();
     }
 
-    public function render($listingId, $added = false, $duplicate = false)
+    public function AddToShortlistUI()
     {
-        $listing = $this->controller->getListingDetails($listingId);
-        if ($listing === null) {
+        if ($this->listing === null) {
             echo "Listing not found.";
             return;
         }
@@ -188,21 +192,21 @@ class AddToShortlistPage
                 <h1>Confirm Add to Shortlist</h1>
             </header>
             <div class="confirmation-container">
-                <?php if ($added): ?>
+                <?php if ($this->added): ?>
                     <p class="message">Listing added to your shortlist successfully!</p>
-                <?php elseif ($duplicate): ?>
+                <?php elseif ($this->duplicate): ?>
                     <p class="error">This listing is already in your shortlist.</p>
                 <?php endif; ?>
                 <h2>Are you sure you want to add this listing to your shortlist?</h2>
-                <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($listing->manufacturer_name); ?></p>
-                <p><strong>Model:</strong> <?php echo htmlspecialchars($listing->model_name); ?></p>
-                <p><strong>Year:</strong> <?php echo htmlspecialchars($listing->model_year); ?></p>
-                <p><strong>Color:</strong> <?php echo htmlspecialchars($listing->listing_color); ?></p>
-                <p><strong>Price:</strong> <?php echo htmlspecialchars($listing->listing_price); ?></p>
-                <p><strong>Description:</strong> <?php echo htmlspecialchars($listing->listing_description); ?></p>
+                <p><strong>Manufacturer:</strong> <?php echo htmlspecialchars($this->listing->manufacturer_name); ?></p>
+                <p><strong>Model:</strong> <?php echo htmlspecialchars($this->listing->model_name); ?></p>
+                <p><strong>Year:</strong> <?php echo htmlspecialchars($this->listing->model_year); ?></p>
+                <p><strong>Color:</strong> <?php echo htmlspecialchars($this->listing->listing_color); ?></p>
+                <p><strong>Price:</strong> <?php echo htmlspecialchars($this->listing->listing_price); ?></p>
+                <p><strong>Description:</strong> <?php echo htmlspecialchars($this->listing->listing_description); ?></p>
 
                 <form method="post">
-                    <input type="hidden" name="listing_id" value="<?php echo $listing->listing_id; ?>">
+                    <input type="hidden" name="listing_id" value="<?php echo $this->listing->listing_id; ?>">
                     <input type="hidden" name="user_id" value="<?php echo $this->controller->getBuyerID(); ?>">
                     <button type="submit" class="button">Yes, Add to Shortlist</button>
                 </form>
@@ -214,6 +218,7 @@ class AddToShortlistPage
         <?php
     }
 }
+
 
 // Main script logic
 $database = new Database();

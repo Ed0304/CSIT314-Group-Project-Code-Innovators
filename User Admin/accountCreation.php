@@ -94,9 +94,11 @@ class CreateUserAccountController {
 
 class CreateUserAccountPage {
     private $message = "";
+    private $roles = []; // Add an instance variable to store roles
 
     public function __construct($message = "") {
         $this->message = $message;
+        
     }
 
     // Process the form submission
@@ -106,9 +108,11 @@ class CreateUserAccountPage {
             $this->message = $message;
         }
         
-        // Get roles from the controller
-        $roles = $controller->getAllRoles();
-        $this->createUserAccountUI($roles);
+        // Retrieve roles from the controller and store them in the instance variable
+        $this->roles = $controller->getAllRoles();
+    
+        // Render the UI
+        $this->createUserAccountUI();
     }
 
     // Handle the form submission logic and create the account
@@ -142,8 +146,8 @@ class CreateUserAccountPage {
         return $success ? "Account created successfully!" : "Account creation failed.";
     }
 
-    // Render the HTML form
-    public function createUserAccountUI($roles = []) {
+    // Render the HTML form using stored roles
+    public function createUserAccountUI() {
         ?>
         <html>
         <head>
@@ -267,10 +271,11 @@ class CreateUserAccountPage {
                     <div class="form-group">
                         <label>Role:</label>
                         <select name="role" required>
-                            <?php foreach ($roles as $role): ?>
+                            <?php foreach ($this->roles as $role): ?>
                                 <option value="<?php echo htmlspecialchars($role['role_name']); ?>"><?php echo htmlspecialchars($role['role_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
+
                     </div>
                     <div class="form-group">
                         <label>Email:</label>
@@ -317,6 +322,7 @@ class CreateUserAccountPage {
         <?php
     }
 }
+
 
 // Instantiate objects and handle the form submission
 $userAccount = new UserAccount();

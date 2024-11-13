@@ -52,16 +52,15 @@ class UserAccount {
 
     public function updateUserAccount($userAccount) {
         $stmt = $this->conn->prepare(
-            "UPDATE users SET username = ?, password = ?, role_id = ?, email = ?, phone_num = ?, status_id = ? WHERE user_id = ?"
+            "UPDATE users SET username = ?, password = ?, role_id = ?, email = ?, phone_num = ? WHERE user_id = ?"
         );
         $stmt->bind_param(
-            "ssissii",
+            "ssissi",
             $userAccount['username'],
             $userAccount['password'],
             $userAccount['role_id'],
             $userAccount['email'],
             $userAccount['phone_num'],
-            $userAccount['status_id'],
             $userAccount['user_id']
         );
         $success = $stmt->execute();
@@ -262,15 +261,6 @@ class UpdateUserAccountPage {
                         <tr>
                             <td><label for="phone_num">Phone:</label></td>
                             <td><input type="text" id="phone_num" name="phone_num" value="<?= htmlspecialchars($userAccount->phone_num); ?>" required /></td>
-                        </tr>
-                        <tr>
-                            <td><label for="status_id">Status:</label></td>
-                            <td>
-                                <select id="status_id" name="status_id"> 
-                                    <option value="1" <?= $userAccount->status_id == 1 ? 'selected' : ''; ?>>Active</option>
-                                    <option value="2" <?= $userAccount->status_id == 2 ? 'selected' : ''; ?>>Suspended</option>
-                                </select>
-                            </td>
                         </tr>
                         <tr>
                             <td><button type="submit">Update Account</button></td>

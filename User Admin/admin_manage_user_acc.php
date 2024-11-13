@@ -60,6 +60,30 @@ class UserAccount
         }
         return $users;
     }
+    public static function fetchRoles()
+    {
+        // Define the database connection
+        $connection = new mysqli("localhost", "root", "", "csit314");
+
+        // Check connection
+        if ($connection->connect_error) {
+            die("Connection failed: " . $connection->connect_error);
+        }
+
+        $roles = [];
+        $sql = "SELECT DISTINCT role_name FROM role";
+        
+        if ($result = $connection->query($sql)) {
+            while ($row = $result->fetch_assoc()) {
+                $roles[] = $row['role_name'];
+            }
+            $result->free();
+        }
+
+        $connection->close();
+        return $roles;
+    }
+
 }
 
 
@@ -84,6 +108,10 @@ class SearchUserAccountController
         $this->users = UserAccount::searchUserAccount($role, $username);
         return $this->users;
     }
+    public function getRoles()
+    {
+        return UserAccount::fetchRoles();
+    }
 }
 
 
@@ -101,7 +129,7 @@ class SearchUserAccountPage
     {
         // Fetch users based on search or default (all users)
         $users = $this->controller->getUsers();  // Initially fetch all users
-
+        $roles = $this->controller->getRoles();
         // If the search button is clicked, fetch the filtered users
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['searchButton'])) {
             $role = $_POST['role'];
@@ -211,14 +239,13 @@ class SearchUserAccountPage
         <body>
             <h1>Manage User Accounts</h1>
             <form method="POST">
-                <label for="role" class="select-label">Filter by Role:</label>
-                <select id="role" name="role">
-                    <option value="">All roles</option>
-                    <option value="user admin">User Admin</option>
-                    <option value="used car agent">Used Car Agent</option>
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                </select>
+                 <label for="role" class="select-label">Filter by Role:</label>
+            <select id="role" name="role">
+                <option value="">All roles</option>
+                <?php foreach ($roles as $role): ?>
+                    <option value="<?php echo htmlspecialchars($role); ?>"><?php echo htmlspecialchars($role); ?></option>
+                <?php endforeach; ?>
+            </select>
                 <input type="text" id="search" name="search" placeholder="Enter username" />
                 <button type="submit" name="searchButton">Search</button>
             </form>

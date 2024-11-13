@@ -59,7 +59,7 @@ class DashboardView {
 
     private function handleFormSubmission() {
         if (isset($_POST['userAcc'])) {
-            $this->redirectTo('admin_manage_user_acc.php');
+            $this->redirectTo('admin_view_account.php');
         } elseif (isset($_POST['userProfile'])) {
             $this->redirectTo('admin_manage_user_profiles.php');
         } elseif (isset($_POST['logout'])) {
