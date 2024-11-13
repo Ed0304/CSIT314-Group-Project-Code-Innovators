@@ -19,7 +19,7 @@ class Review
         $this->date = $date;
 
         // Initialize the database connection here
-        $this->mysqli = new mysqli("localhost", "root", "", "csit314");
+        $this->mysqli = new mysqli("mariadb", "root", "", "csit314");
         if ($this->mysqli->connect_error) {
             die("Connection failed: " . $this->mysqli->connect_error);
         }

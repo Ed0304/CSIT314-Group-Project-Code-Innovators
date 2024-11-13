@@ -34,7 +34,7 @@ class UserProfile {
 
     public function __construct() {
         try {
-            $this->pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+            $this->pdo = new PDO('mysql:host=mariadb;dbname=csit314', 'root', '');
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             die("Database connection failed: " . $e->getMessage());

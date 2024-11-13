@@ -49,7 +49,7 @@ class UserAccount {
     // Fetches profile data directly from the database
     public static function getProfileByUsername($username) {
         try {
-            $pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+            $pdo = new PDO('mysql:host=mariadb;dbname=csit314', 'root', '');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $query = "SELECT u.username, p.first_name, p.last_name, p.about, p.gender, u.email, p.user_id, r.role_name, u.phone_num, p.profile_image, p.profile_id 

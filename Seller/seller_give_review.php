@@ -14,7 +14,7 @@ class Review
 
     public function __construct()
     {
-        $this->db = new mysqli("localhost", "root", "", "csit314");
+        $this->db = new mysqli("mariadb", "root", "", "csit314");
         if ($this->db->connect_error) {
             die("Connection failed: " . $this->db->connect_error);
         }
