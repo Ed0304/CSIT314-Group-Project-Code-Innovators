@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'connectDatabase.php';
+include '../connectDatabase.php';
 
 class UserAccount {
     public $username;
