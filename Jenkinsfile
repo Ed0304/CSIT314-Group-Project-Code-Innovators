@@ -26,7 +26,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 // Run the Docker container with the correct port mapping and environment variables
-                sh 'docker run -d -p 8080:80 --name my-php-container my-php-app'
+                sh 'docker run -d -p 8081:80 --name my-php-container my-php-app'
             }
         }
 
