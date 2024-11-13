@@ -127,8 +127,8 @@ class ViewListingBoundary {
                 echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
                 echo "<p>Price: {$formatted_price}</p>";
                 echo "<p>Description: {$listing->listing_description}</p>";
-                echo "<p>Views: {$listing->views}</p>";
-                echo "<a href='listing-views.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
+                echo "<br/>";
+                echo "<a href='sellerListingDetails.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
                 echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
                 echo "</div>";
             }

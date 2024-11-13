@@ -132,25 +132,8 @@ class UpdateBuyerAccountInformationController {
     public function updateBuyerAccountInformation($userAccount) {
         return $this->useraccount->updateBuyerAccountInformation($userAccount);
     }
-
-    public function processUpdate($postData, $fileData) {
-        $userAccount = $postData;
-
-        if (isset($fileData['profile_image']) && $fileData['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $imageData = file_get_contents($fileData['profile_image']['tmp_name']);
-            $userAccount['profile_image'] = $imageData;
-        } else {
-            $existingUser = $this->getUserAccount($userAccount['username']);
-            $userAccount['profile_image'] = $existingUser->profile_image;
-        }
-
-        return $this->updateBuyerAccountInformation($userAccount);
-    }
-
-    public function closeEntityConnection() {
-        $this->useraccount->closeConnection();
-    }
 }
+
 // BOUNDARY LAYER: Renders the form and handles form submission
 class UpdateBuyerAccountInformationPage {
     private $controller;
@@ -161,9 +144,24 @@ class UpdateBuyerAccountInformationPage {
 
     public function handleFormSubmission() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $updateSuccess = $this->controller->processUpdate($_POST, $_FILES);
-            $this->controller->closeEntityConnection();
-
+            // Assign POST data to userAccount array
+            $userAccount = $_POST;
+    
+            // Handle profile image upload if a file is provided
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                // If a new file is uploaded, convert it to base64
+                $imageData = file_get_contents($_FILES['profile_image']['tmp_name']);
+                $userAccount['profile_image'] = $imageData;
+            } else {
+                // If no file uploaded, retrieve existing profile image from the database
+                $existingUser = $this->controller->getUserAccount($userAccount['username']);
+                $userAccount['profile_image'] = $existingUser->profile_image;
+            }
+    
+            // Proceed with the update
+            $updateSuccess = $this->controller->updateBuyerAccountInformation($userAccount);
+            
+    
             if ($updateSuccess) {
                 header("Location: buyer_manage_profile.php");
                 exit();
@@ -172,6 +170,10 @@ class UpdateBuyerAccountInformationPage {
             }
         }
     }
+    
+    
+    
+    
 
     public function updateBuyerAccountInformationUI() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -185,7 +187,7 @@ class UpdateBuyerAccountInformationPage {
 
         $username = $_GET['username'];
         $userAccount = $this->controller->getUserAccount($username);
-        $this->controller->closeEntityConnection();
+        
 
         if (!$userAccount) {
             die("User not found.");

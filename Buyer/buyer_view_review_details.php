@@ -15,7 +15,7 @@ class Review
     public function buyerViewReview($review_id)
     {
         $stmt = $this->mysqli->prepare("SELECT r.review_id, r.review_details, r.review_stars, r.review_date,
-                                       u.username AS reviewer_username, a.username AS agent_username
+                                       u.username AS reviewer_username, a.username AS agent_username, r.agent_id
                                 FROM review r
                                 JOIN users u ON r.reviewer_id = u.user_id
                                 JOIN users a ON r.agent_id = a.user_id
@@ -30,7 +30,8 @@ class Review
                 'stars' => $row['review_stars'],
                 'date' => $row['review_date'],
                 'reviewer_username' => $row['reviewer_username'],
-                'agent_username' => $row['agent_username']
+                'agent_username' => $row['agent_username'],
+                'agent_id' => $row['agent_id']
             ];
         }
         return null;
@@ -59,7 +60,8 @@ class BuyerViewReviewController
                 'stars' => $review['stars'],
                 'date' => $review['date'],
                 'reviewer_username' => $review['reviewer_username'],
-                'agent_username' => $review['agent_username']
+                'agent_username' => $review['agent_username'],
+                'agent_id' => $review['agent_id']
             ];
             return $review;
         }
@@ -150,7 +152,8 @@ class BuyerViewReviewPage
                         <p class="review-text"><?php echo htmlspecialchars($data['details']); ?></p>
                     </div>
                     <div class="button-container">
-                        <a href="buyerviewReviews.php?username=<?php echo urlencode($data['agent_username']); ?>" class="button">Return to Reviews</a>
+                    <a href="buyerviewReviews.php?username=<?php echo urlencode($data['agent_username']); ?>&agent_id=<?php echo urlencode($data['agent_id']); ?>" class="button">Return to Reviews</a>
+                    </div>
                     </div>
                 </div>
             </div>

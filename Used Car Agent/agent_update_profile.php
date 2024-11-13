@@ -132,10 +132,6 @@ class UpdateAgentAccountInformationController {
     public function updateAgentAccountInformation($userAccount) {
         return $this->useraccount->updateAgentAccountInformation($userAccount);
     }
-
-    public function closeEntityConnection() {
-        $this->useraccount->closeConnection();
-    }
 }
 
 // BOUNDARY LAYER: Renders the form and handles form submission
@@ -164,7 +160,7 @@ class UpdateAgentAccountInformationPage {
     
             // Proceed with the update
             $updateSuccess = $this->controller->updateAgentAccountInformation($userAccount);
-            $this->controller->closeEntityConnection();
+            
     
             if ($updateSuccess) {
                 header("Location: agent_manage_profile.php");
@@ -191,7 +187,7 @@ class UpdateAgentAccountInformationPage {
 
         $username = $_GET['username'];
         $userAccount = $this->controller->getUserAccount($username);
-        $this->controller->closeEntityConnection();
+        
 
         if (!$userAccount) {
             die("User not found.");

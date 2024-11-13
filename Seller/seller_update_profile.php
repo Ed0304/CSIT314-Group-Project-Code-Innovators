@@ -132,10 +132,6 @@ class UpdateSellerAccountInformationController {
     public function updateSellerAccountInformation($userAccount) {
         return $this->useraccount->updateSellerAccountInformation($userAccount);
     }
-
-    public function closeEntityConnection() {
-        $this->useraccount->closeConnection();
-    }
 }
 
 // BOUNDARY LAYER: Renders the form and handles form submission
@@ -164,7 +160,7 @@ class UpdateSellerAccountInformationPage {
     
             // Proceed with the update
             $updateSuccess = $this->controller->updateSellerAccountInformation($userAccount);
-            $this->controller->closeEntityConnection();
+            
     
             if ($updateSuccess) {
                 header("Location: seller_manage_profile.php");
@@ -191,7 +187,7 @@ class UpdateSellerAccountInformationPage {
 
         $username = $_GET['username'];
         $userAccount = $this->controller->getUserAccount($username);
-        $this->controller->closeEntityConnection();
+        
 
         if (!$userAccount) {
             die("User not found.");

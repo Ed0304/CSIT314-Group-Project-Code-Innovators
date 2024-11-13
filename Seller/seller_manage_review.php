@@ -2,11 +2,11 @@
 require "../connectDatabase.php";
 session_start();
 
-class ReviewBoundary {
+class ViewReviewPage {
     private $reviewController;
 
     public function __construct() {
-        $this->reviewController = new ReviewController();
+        $this->reviewController = new ViewReviewController();
     }
 
     public function displayAgentsList() {
@@ -80,7 +80,7 @@ class ReviewBoundary {
     }
 }
 
-class ReviewController {
+class ViewReviewController {
     private $Review;
 
     public function __construct() {
@@ -131,7 +131,7 @@ class Review {
 }
 
 // Initialize Boundary
-$reviewBoundary = new ReviewBoundary();
+$reviewBoundary = new ViewReviewPage();
 
 // Display all agents and their cars
 $reviewBoundary->displayAgentsList();
