@@ -1,17 +1,17 @@
-CREATE DATABASE csit314;
-
-CREATE TABLE status (
+CREATE DATABASE IF NOT EXISTS csit314;
+USE csit314;
+CREATE TABLE IF NOT EXISTS status (
     status_id INT AUTO_INCREMENT PRIMARY KEY,
     status_name VARCHAR(256)
 );
 
-CREATE TABLE role (
+CREATE TABLE IF NOT EXISTS role (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(256),
     role_description VARCHAR(256)
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(256) NOT NULL UNIQUE,
     password VARCHAR(256) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE users (
     FOREIGN KEY (status_id) REFERENCES status(status_id)
 );
 
-CREATE TABLE profile (
+CREATE TABLE IF NOT EXISTS profile (
     profile_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     first_name VARCHAR(256) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE profile (
 );
 
 
-CREATE TABLE listing (
+CREATE TABLE IF NOT EXISTS listing (
     listing_id INT AUTO_INCREMENT PRIMARY KEY,
     manufacturer_name VARCHAR(256) NOT NULL,
     model_name VARCHAR(256) NOT NULL,
@@ -48,14 +48,12 @@ CREATE TABLE listing (
     listing_description VARCHAR(256) NOT NULL,
     user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    views INT DEFAULT 0,
-    CONSTRAINT views CHECK (views >= 0),
-    shortlisted INT DEFAULT 0,
-    CONSTRAINT shortlisted CHECK (shortlisted >= 0)
+    views INT UNSIGNED DEFAULT 0,
+    shortlisted INT UNSIGNED DEFAULT 0
 );
 
 
-CREATE TABLE review (
+CREATE TABLE IF NOT EXISTS review (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     review_details VARCHAR(256),
     review_stars INT,
@@ -66,7 +64,7 @@ CREATE TABLE review (
     review_date DATE DEFAULT CURRENT_DATE
 );
 
-CREATE TABLE shortlist(
+CREATE TABLE IF NOT EXISTS shortlist(
     shortlist_id INT AUTO_INCREMENT PRIMARY KEY,
     buyer_id INT NOT NULL,
     listing_id INT NOT NULL,
@@ -75,7 +73,7 @@ CREATE TABLE shortlist(
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
-CREATE TABLE ownership(
+CREATE TABLE IF NOT EXISTS ownership(
     ownership_id INT AUTO_INCREMENT PRIMARY KEY,
     seller_id INT NOT NULL,
     listing_id INT NOT NULL,
