@@ -61,14 +61,14 @@ CREATE TABLE IF NOT EXISTS review (
     agent_id INT,
     FOREIGN KEY (reviewer_id) REFERENCES users(user_id),
     FOREIGN KEY (agent_id) REFERENCES users(user_id),
-    review_date DATE DEFAULT CURDATE()
+    review_date DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE IF NOT EXISTS shortlist(
     shortlist_id INT AUTO_INCREMENT PRIMARY KEY,
     buyer_id INT NOT NULL,
     listing_id INT NOT NULL,
-    shortlist_date DATE DEFAULT CURDATE(),
+    shortlist_date DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (buyer_id) REFERENCES users(user_id),
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS ownership(
     ownership_id INT AUTO_INCREMENT PRIMARY KEY,
     seller_id INT NOT NULL,
     listing_id INT NOT NULL,
-    ownership_date DATE DEFAULT CURDATE(),
+    ownership_date DATE DEFAULT CURRENT_DATE,
     FOREIGN KEY (seller_id) REFERENCES users(user_id),
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
