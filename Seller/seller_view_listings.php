@@ -2,7 +2,7 @@
 session_start();
 
 // Entity Class
-class Listing {
+class CarListing {
     public $listing_id;
     public $manufacturer_name;
     public $model_name;
@@ -32,28 +32,26 @@ class Listing {
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
-    public function getUserIdByUsername($username) {
-        $query = "SELECT user_id FROM users WHERE username = :username";
-        $stmt = $this->pdo->prepare($query);
-        $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-        $stmt->execute();
+    public function sellerViewCarListings($username) {
+        // Fetch user ID using username directly here
+        $queryUserId = "SELECT user_id FROM users WHERE username = :username";
+        $stmtUserId = $this->pdo->prepare($queryUserId);
+        $stmtUserId->bindParam(':username', $username, PDO::PARAM_STR);
+        $stmtUserId->execute();
+        $user_id = $stmtUserId->fetchColumn();
 
-        return $stmt->fetchColumn();
-    }
-
-    public function getListingsBySeller($user_id) {
+        // Use user_id to fetch listings for the user
         $query = "SELECT listing.*, ownership.seller_id 
                   FROM listing
                   JOIN ownership ON listing.listing_id = ownership.listing_id
                   WHERE ownership.seller_id = :seller_id";
-
         $stmt = $this->pdo->prepare($query);
         $stmt->bindParam(':seller_id', $user_id, PDO::PARAM_INT);
         $stmt->execute();
 
-        $listings = [];
+        $carlistings = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $listing = new Listing(
+            $carlisting = new CarListing(
                 $row['listing_id'] ?? null,
                 $row['manufacturer_name'] ?? null,
                 $row['model_name'] ?? null,
@@ -65,45 +63,43 @@ class Listing {
                 $row['views'] ?? 0,
                 $row['shortlists'] ?? 0
             );
-            $listings[] = $listing;
+            $carlistings[] = $carlisting;
         }
 
-        return $listings;
+        return $carlistings;
     }
 }
 
 // Controller Class
-class ListingController {
-    private $listingEntity;
+class SellerViewCarListingsController {
+    private $carlisting;
 
-    public function __construct($listingEntity) {
-        $this->listingEntity = $listingEntity;
+    public function __construct($carlisting) {
+        $this->carlisting = $carlisting;
     }
 
-    public function getUserListings($username) {
-        // Fetch user ID using username
-        $user_id = $this->listingEntity->getUserIdByUsername($username);
-        // Fetch listings for the user
-        return $this->listingEntity->getListingsBySeller($user_id);
+    public function sellerViewCarListings($username) {
+        // Fetch listings for the user directly by username
+        return $this->carlisting->sellerViewCarListings($username);
     }
 }
 
 // Boundary Class
-class ViewListingBoundary {
+class SellerViewCarListingsPage {
     private $controller;
 
     public function __construct($controller) {
         $this->controller = $controller;
     }
 
-    public function displayListings() {
+    public function sellerViewListingsUI() {
         if (!isset($_SESSION['username'])) {
             echo "<p>Please log in to view your listings.</p>";
             return;
         }
 
         $username = $_SESSION['username'];
-        $listings = $this->controller->getUserListings($username);
+        $carlistings = $this->controller->sellerViewCarListings($username);
 
         echo "<style>
                 /* CSS styles here */
@@ -117,21 +113,21 @@ class ViewListingBoundary {
                 .btn-view:hover, .btn-shortlist:hover, .btn-return:hover { background-color: #0056b3; }
               </style>";
 
-        if ($listings) {
+        if ($carlistings) {
             echo "<div class='listing-container'>";
-            foreach ($listings as $listing) {
-                $formatted_price = "$" . number_format($listing->listing_price, 2);
+            foreach ($carlistings as $carlisting) {
+                $formatted_price = "$" . number_format($carlisting->listing_price, 2);
 
                 echo "<div class='listing-item'>";
-                echo "<h3>{$listing->manufacturer_name} {$listing->model_name} ({$listing->model_year})</h3>";
-                echo "<img src='data:image/jpeg;base64," . base64_encode($listing->listing_image) . "' alt='{$listing->manufacturer_name}'>";
+                echo "<h3>{$carlisting->manufacturer_name} {$carlisting->model_name} ({$carlisting->model_year})</h3>";
+                echo "<img src='data:image/jpeg;base64," . base64_encode($carlisting->listing_image) . "' alt='{$carlisting->manufacturer_name}'>";
                 echo "<p>Price: {$formatted_price}</p>";
-                echo "<p>Description: {$listing->listing_description}</p>";
+                echo "<p>Description: {$carlisting->listing_description}</p>";
                 echo "<br/>";
-                echo "<a href='sellerListingDetails.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
+                echo "<a href='sellerListingDetails.php?listing_id={$carlisting->listing_id}' class='btn-view'>View Details</a>";
                 echo "<br/>";
                 echo "<br/>";
-                echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
+                echo "<a href='seller_count_shortlist.php?listing_id={$carlisting->listing_id}' class='btn-shortlist'>See Shortlists</a>";
                 echo "</div>";
             }
             echo "</div>";
@@ -143,8 +139,8 @@ class ViewListingBoundary {
 }
 
 // Main script to display listings
-$listingEntity = new Listing();  // Entity class initialized without actual data
-$listingController = new ListingController($listingEntity);  // Controller instantiation
-$viewListingBoundary = new ViewListingBoundary($listingController);  // Boundary receives controller
-$viewListingBoundary->displayListings();
+$carlisting = new CarListing();  // Entity class initialized without actual data
+$listingController = new SellerViewCarListingsController($carlisting);  // Controller instantiation
+$viewListingBoundary = new SellerViewCarListingsPage($listingController);  // Boundary receives controller
+$viewListingBoundary->sellerViewListingsUI();
 ?>
