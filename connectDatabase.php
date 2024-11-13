@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $servername = "127.0.0.1";
-    private $username = "root";
-    private $password = "";
-    private $dbname = "csit314";
+    private $servername = getenv('DB_HOST') ?: "localhost";
+    private $username = getenv('DB_USER') ?: "root";
+    private $password = getenv('DB_PASSWORD') ?: "";
+    private $dbname = getenv('DB_NAME') ?: "csit314";
     private $conn;
 
     // Constructor initializes the connection to the database

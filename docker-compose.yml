@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  phpapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpapp
+    ports:
+      - "8081:80"  # Expose the web app on port 8081
+    environment:
+      - DB_HOST=mariadb  # MariaDB service name as host
+      - DB_NAME=csit314
+      - DB_USER=root
+      - DB_PASSWORD=
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=  # Empty password for root user
+      - MYSQL_DATABASE=csit314
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+volumes:
+  mariadb_data:
+    driver: local

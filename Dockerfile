@@ -1,16 +1,16 @@
-# Use a base image with PHP and MySQL support
+# Use a base image with PHP and Apache
 FROM php:7.4-apache
 
-# Install PHP extensions and MySQL client
+# Install PHP extensions needed for MariaDB (mysqli and pdo_mysql)
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Enable Apache mod_rewrite
+# Enable Apache mod_rewrite for pretty URLs
 RUN a2enmod rewrite
 
 # Copy project files to the web server directory
 COPY . /var/www/html
 
-# Set permissions for web server
+# Set ownership and permissions for web server directory
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
