@@ -20,7 +20,7 @@ services:
     image: mariadb:10.5
     container_name: mariadb
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=  # Empty password for root user
       - MYSQL_DATABASE=csit314
