@@ -5,7 +5,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image
                     sh 'docker build -t my-php-app .'
                 }
             }
@@ -13,31 +12,29 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Remove any existing container with the same name
                     sh 'docker rm -f my-php-container || true'
-
-                    // Run the Docker container
                     sh 'docker run -d -p 8081:80 --name my-php-container my-php-app'
                 }
             }
         }
-        stage('Install PHP and MySQL Extension (Optional)') {
+        stage('Install PHP and MariaDB') {
             steps {
-                sh 'sudo yum update -y && sudo yum install -y php php-mysqlnd'
+                sh 'sudo yum update -y && sudo yum install -y php php-mysqlnd mariadb105-server mariadb105'
+                sh 'sudo systemctl start mariadb'
+                sh 'sudo systemctl enable mariadb'
             }
         }
-	stage('Install MySQL Server') {
-  	    steps {
-        	sh 'sudo yum install -y mariadb105-server mariadb105'
-        	sh 'sudo systemctl start mariadb'
-        	sh 'sudo systemctl enable mariadb'
-    	    }
-	}
-
+        stage('Setup Database User') {
+            steps {
+                script {
+                    sh 'sudo mysql -u root -e "GRANT ALL PRIVILEGES ON csit314.* TO \'root\'@\'localhost\' IDENTIFIED BY \'\'"'
+                    sh 'sudo mysql -u root -e "FLUSH PRIVILEGES"'
+                }
+            }
+        }
         stage('Run TestData.sql') {
             steps {
                 script {
-                    // Run the SQL data setup
                     sh 'sudo mysql -u root < testdata/TestData.sql'
                 }
             }
@@ -45,6 +42,7 @@ pipeline {
         stage('Run profileTestData.php') {
             steps {
                 script {
+                    sh 'chmod +x testdata/profileTestData.php'
                     sh 'php testdata/profileTestData.php'
                 }
             }
@@ -52,6 +50,7 @@ pipeline {
         stage('Run reviewTestData.php') {
             steps {
                 script {
+                    sh 'chmod +x testdata/reviewTestData.php'
                     sh 'php testdata/reviewTestData.php'
                 }
             }
@@ -59,6 +58,7 @@ pipeline {
         stage('Run listingTestData.php') {
             steps {
                 script {
+                    sh 'chmod +x testdata/listingTestData.php'
                     sh 'php testdata/listingTestData.php'
                 }
             }
@@ -66,6 +66,7 @@ pipeline {
         stage('Run ownershipTestData.php') {
             steps {
                 script {
+                    sh 'chmod +x testdata/ownershipTestData.php'
                     sh 'php testdata/ownershipTestData.php'
                 }
             }
@@ -73,6 +74,7 @@ pipeline {
         stage('Run shortlistTestData.php') {
             steps {
                 script {
+                    sh 'chmod +x testdata/shortlistTestData.php'
                     sh 'php testdata/shortlistTestData.php'
                 }
             }
