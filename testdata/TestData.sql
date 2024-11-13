@@ -82,15 +82,15 @@ CREATE TABLE IF NOT EXISTS ownership(
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
-INSERT INTO status(status_name) VALUES("Active");
-INSERT INTO status(status_name) VALUES("Suspended");
+INSERT IGNORE INTO status(status_name) VALUES("Active");
+INSERT IGNORE INTO status(status_name) VALUES("Suspended");
 
-INSERT INTO role(role_id, role_name,role_description) VALUES(1,"user admin", "super admin");
-INSERT INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
-INSERT INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
-INSERT INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(1,"user admin", "super admin");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
 
-INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES
+INSERT IGNORE INTO users(username, password, role_id, email, phone_num,status_id) VALUES
 ("John Doe", "abc123", 1,"john@exampl3.com","+6581234567",1),
 ("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567",1),
 ("TakFujiwara", "initialD", 3, "Tak@TouWenziD.com", "+811234567890",1),
