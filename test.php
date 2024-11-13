@@ -1,5 +1,5 @@
 <?php
-$host = '3.25.175.57:3306'; // or the IP address
+$host = 'host.docker.internal'; // or the IP address
 $dbname = 'csit314';
 $username = 'root';
 $password = '';
