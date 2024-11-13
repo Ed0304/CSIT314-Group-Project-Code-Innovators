@@ -1,18 +1,22 @@
 <?php
 class Database {
-    private $servername = getenv('DB_HOST') ?: "mariadb";
-    private $username = getenv('DB_USER') ?: "root";
-    private $password = getenv('DB_PASSWORD') ?: "";
-    private $dbname = getenv('DB_NAME') ?: "csit314";
+    private $servername;
+    private $username;
+    private $password;
+    private $dbname;
     private $conn;
 
-    // Constructor initializes the connection to the database
+    // Constructor initializes the connection to the database and loads environment variables
     public function __construct() {
+        $this->servername = getenv('DB_HOST') ?: "mariadb";
+        $this->username = getenv('DB_USER') ?: "root";
+        $this->password = getenv('DB_PASSWORD') ?: "";
+        $this->dbname = getenv('DB_NAME') ?: "csit314";
         $this->conn = $this->connect();
     }
 
     // Private function to establish the connection
-    public function connect() {
+    private function connect() {
         $conn = new mysqli($this->servername, $this->username, $this->password, $this->dbname);
 
         // Check connection and handle errors
