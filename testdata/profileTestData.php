@@ -1,6 +1,6 @@
 <?php
 // Assuming you have a PDO connection in $pdo
-$pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+$pdo = new PDO('mysql:host=mariadb;dbname=csit314', 'root', '');
 
 // Initial test data with images, excluding Muzan
 $testProfiles = [
