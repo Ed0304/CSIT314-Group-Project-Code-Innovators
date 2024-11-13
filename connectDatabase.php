@@ -1,6 +1,6 @@
 <?php
 class Database {
-    private $servername = getenv('DB_HOST') ?: "localhost";
+    private $servername = getenv('DB_HOST') ?: "mariadb";
     private $username = getenv('DB_USER') ?: "root";
     private $password = getenv('DB_PASSWORD') ?: "";
     private $dbname = getenv('DB_NAME') ?: "csit314";

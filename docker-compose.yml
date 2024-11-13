@@ -19,6 +19,11 @@ services:
     container_name: phpapp
     ports:
       - "8081:80"
+    environment:
+      DB_HOST: mariadb
+      DB_USER: root
+      DB_PASSWORD: ""
+      DB_NAME: csit314
 
 volumes:
   mariadb_data:
