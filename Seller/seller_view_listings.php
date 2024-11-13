@@ -129,6 +129,8 @@ class ViewListingBoundary {
                 echo "<p>Description: {$listing->listing_description}</p>";
                 echo "<br/>";
                 echo "<a href='sellerListingDetails.php?listing_id={$listing->listing_id}' class='btn-view'>View Details</a>";
+                echo "<br/>";
+                echo "<br/>";
                 echo "<a href='seller_count_shortlist.php?listing_id={$listing->listing_id}' class='btn-shortlist'>See Shortlists</a>";
                 echo "</div>";
             }
