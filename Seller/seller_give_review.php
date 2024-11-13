@@ -119,28 +119,28 @@ class CreateReviewBoundary
         if (!isset($session_data['user_id'])) {
             $this->is_success = false;
             $this->message = 'Please log in to submit a review';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             $this->is_success = false;
             $this->message = 'Invalid agent ID';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         $this->agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$this->agent_details) {
             $this->is_success = false;
             $this->message = 'Agent not found';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         if ($request_method === 'POST') {
             if (!$this->validateInput($post_data)) {
                 $this->is_success = false;
                 $this->message = 'Invalid input data';
-                return $this->render();
+                return $this->CreateReviewUI();
             }
 
             $review_data = [
@@ -152,10 +152,10 @@ class CreateReviewBoundary
 
             $this->is_success = $this->controller->CreateReview($review_data);
             $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
-        $this->render();
+        $this->CreateReviewUI();
     }
     private function validateInput($post_data)
         {
@@ -174,7 +174,7 @@ class CreateReviewBoundary
 
 
     // Validation and other methods remain the same
-    public function render()
+    public function CreateReviewUI()
     {
         ob_start();
         ?>

@@ -130,8 +130,8 @@ class ReviewBoundary
         $this->controller = $controller;
     }
 
-    // Render function to display reviews and agent name
-    public function render()
+    // ViewReviewUI function to display reviews and agent name
+    public function ViewReviewUI()
     {
         if (!$this->isUserLoggedIn()) {
             echo "<p>Please log in to view agent reviews.</p>";
@@ -154,7 +154,7 @@ class ReviewBoundary
         $this->displayReviews($agent_name, $reviews);
     }
 
-    // Display function to render reviews
+    // Display function to ViewReviewUI reviews
     private function displayReviews($agent_name, $reviews)
     {
         ?>
@@ -271,5 +271,5 @@ class ReviewBoundary
 $reviewEntity = new Review();
 $controller = new ReviewController($reviewEntity);
 $boundary = new ReviewBoundary($controller);
-$boundary->render();
+$boundary->ViewReviewUI();
 ?>

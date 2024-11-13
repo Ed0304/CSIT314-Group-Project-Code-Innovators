@@ -68,7 +68,7 @@ class UserAccount {
 }
 
 // CONTROL LAYER: Handles business logic and manages the entity layer
-class ViewAgentAccountController {
+class viewBuyerAccountController {
     // Fetches the profile as a UserAccount object
     public function getProfile($username) {
         return UserAccount::getProfileByUsername($username);
@@ -76,7 +76,7 @@ class ViewAgentAccountController {
 }
 
 // BOUNDARY LAYER: Responsible for rendering the user interface
-class ViewAgentAccountPage {
+class viewBuyerAccountPage {
     private $profileData;
 
     public function __construct($profileData) {
@@ -84,7 +84,7 @@ class ViewAgentAccountPage {
     }
 
     // Renders the profile page
-    public function render() {
+    public function viewBuyerAccountUI() {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -245,10 +245,10 @@ class ViewAgentAccountPage {
 }
 
 // MAIN LOGIC: Sets up components and renders the view
-$accountController = new ViewAgentAccountController();
+$accountController = new viewBuyerAccountController();
 $profileData = $accountController->getProfile($username);
 
 // Render the view with retrieved profile data
-$userAccount = new ViewAgentAccountPage($profileData);
-$userAccount->render();
+$userAccount = new viewBuyerAccountPage($profileData);
+$userAccount->viewBuyerAccountUI();
 ?>
