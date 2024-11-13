@@ -43,7 +43,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x testdata/profileTestData.php'
-                    sh 'php testdata/profileTestData.php'
+                    sh 'sudo php testdata/profileTestData.php'
                 }
             }
         }
@@ -51,7 +51,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x testdata/reviewTestData.php'
-                    sh 'php testdata/reviewTestData.php'
+                    sh 'sudo php testdata/reviewTestData.php'
                 }
             }
         }
@@ -59,7 +59,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x testdata/listingTestData.php'
-                    sh 'php testdata/listingTestData.php'
+                    sh 'sudo php testdata/listingTestData.php'
                 }
             }
         }
@@ -67,7 +67,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x testdata/ownershipTestData.php'
-                    sh 'php testdata/ownershipTestData.php'
+                    sh 'sudo php testdata/ownershipTestData.php'
                 }
             }
         }
@@ -75,7 +75,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x testdata/shortlistTestData.php'
-                    sh 'php testdata/shortlistTestData.php'
+                    sh 'sudo php testdata/shortlistTestData.php'
                 }
             }
         }
