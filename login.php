@@ -2,7 +2,6 @@
 session_start();
 include 'connectDatabase.php';
 
-// Entity Layer: UserAccount class for UserAccount authentication with direct database interaction
 class UserAccount {
     public $username;
     public $password;
@@ -16,8 +15,8 @@ class UserAccount {
         $this->role = $role;
     }
 
-    // Retrieves user data from the database
-    public function verifyLoginCredentials() {
+    // Retrieves user data from the database, using $userAccount as a parameter
+    public function verifyLoginCredentials($userAccount) {
         $roleMapping = [
             'user admin' => 1,
             'used car agent' => 2,
@@ -25,13 +24,13 @@ class UserAccount {
             'seller' => 4
         ];
 
-        if (!array_key_exists($this->role, $roleMapping)) {
+        if (!array_key_exists($userAccount->role, $roleMapping)) {
             return false;
         }
 
-        $role_id = $roleMapping[$this->role];
+        $role_id = $roleMapping[$userAccount->role];
         $stmt = $this->db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
-        $stmt->bind_param("si", $this->username, $role_id);
+        $stmt->bind_param("si", $userAccount->username, $role_id);
         $stmt->execute();
         $stmt->store_result();
 
@@ -46,18 +45,13 @@ class UserAccount {
     }
 }
 
+
 // Controller Layer: LoginController class for handling user authentication logic
 class LoginController {
     private $isSuspended = false;
 
-    // Now accepts UserAccount object as a parameter
-    public function __construct() {
-
-    }
-
-    // Attempts to authenticate the user, returns true if successful, false otherwise
     public function verifyLoginCredentials($userAccount) {
-        $userData = $userAccount->verifyLoginCredentials();
+        $userData = $userAccount->verifyLoginCredentials($userAccount);
 
         if ($userData === false) {
             return false;
@@ -78,10 +72,11 @@ class LoginController {
     }
 
     public function getUserId($userAccount) {
-        $userData = $userAccount->verifyLoginCredentials();
+        $userData = $userAccount->verifyLoginCredentials($userAccount);
         return $userData['user_id'];
     }
 }
+
 
 // Boundary Layer: LoginPage class to handle form display and user interaction
 class LoginPage {
@@ -95,41 +90,41 @@ class LoginPage {
             <title>CSIT314-PROJECT</title>
         </head>
         <body>
-            <div class="website-title">
-                <h1>CSIT314-GROUP PROJECT</h1>
-                <h2>Made by: Code Innovators!</h2>
+        <div class="website-title">
+            <h1>CSIT314-GROUP PROJECT</h1>
+            <h2>Made by: Code Innovators!</h2>
+        </div>
+
+        <?php
+        // Display message if set
+        if (isset($_SESSION['message'])) {
+            echo '<div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">';
+            echo '<p>' . $_SESSION['message'] . '</p>';
+            echo '</div>';
+            unset($_SESSION['message']);
+        }
+        ?>
+
+        <form action="" method="POST">
+            <div class="form-body">
+                <label for="role" class="form-label">Login As:</label>
+                <select id="role" name="role" class="form-label" required>
+                    <option value="user admin">User Admin</option>
+                    <option value="used car agent">Used Car Agent</option>
+                    <option value="buyer">Buyer</option>
+                    <option value="seller">Seller</option>
+                </select>
+                <br/><br/>
+                <label for="username" class="form-label">Username </label>
+                <input type="text" id="username" name="username" class="form-label" required/>
+                <br/><br/>
+                <label for="password" class="form-label">Password </label>
+                <input type="password" id="password" name="password" class="form-label" required/>
+                <br/><br/>
+                <button type="submit" class="form-label">Login</button>
+                <br/>
             </div>
-
-            <?php
-            // Display message if set
-            if (isset($_SESSION['message'])) {
-                echo '<div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">';
-                echo '<p>' . $_SESSION['message'] . '</p>';
-                echo '</div>';
-                unset($_SESSION['message']);
-            }
-            ?>
-
-            <form action="" method="POST">
-                <div class="form-body">
-                    <label for="role" class="form-label">Login As:</label>
-                    <select id="role" name="role" class="form-label" required>
-                        <option value="user admin">User Admin</option>
-                        <option value="used car agent">Used Car Agent</option>
-                        <option value="buyer">Buyer</option>
-                        <option value="seller">Seller</option>
-                    </select>
-                    <br/><br/>
-                    <label for="username" class="form-label">Username </label>
-                    <input type="text" id="username" name="username" class="form-label" required/>
-                    <br/><br/>
-                    <label for="password" class="form-label">Password </label>
-                    <input type="password" id="password" name="password" class="form-label" required/>
-                    <br/><br/>
-                    <button type="submit" class="form-label">Login</button>
-                    <br/>
-                </div>
-            </form>
+        </form>
         </body>
         </html>
         <?php
