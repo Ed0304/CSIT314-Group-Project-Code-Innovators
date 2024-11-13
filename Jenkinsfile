@@ -32,7 +32,8 @@ pipeline {
                     sh 'sleep 20'
 
                     // Run SQL script in the MariaDB container
-                    sh 'docker-compose exec mariadb sh 'sudo mysql -u root csit314 < testdata/TestData.sql'
+                    sh 'docker-compose exec mariadb mysql -u root csit314 							< testdata/TestData.sql'
+                }
             }
         }
 
