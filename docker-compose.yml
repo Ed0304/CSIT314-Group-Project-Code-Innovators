@@ -11,20 +11,12 @@ services:
       - "3307:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   phpapp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: phpapp
-    depends_on:
-      mariadb:
-        condition: service_healthy
     ports:
       - "8081:80"
 
