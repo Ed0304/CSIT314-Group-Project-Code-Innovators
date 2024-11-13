@@ -23,26 +23,34 @@ class UserAccount {
             'buyer' => 3,
             'seller' => 4
         ];
-
+    
         if (!array_key_exists($userAccount->role, $roleMapping)) {
+            echo "Invalid role";
             return false;
         }
-
+    
         $role_id = $roleMapping[$userAccount->role];
         $stmt = $this->db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $userAccount->username, $role_id);
-        $stmt->execute();
+        
+        if (!$stmt->execute()) {
+            echo "Error executing query: " . $stmt->error;
+            return false;
+        }
+    
         $stmt->store_result();
-
+        
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($user_id, $stored_password, $status_id);
             $stmt->fetch();
-
+            var_dump($user_id, $stored_password, $status_id); // To check retrieved values
             return ['user_id' => $user_id, 'password' => $stored_password, 'status_id' => $status_id];
         } else {
+            echo "No user found for given credentials";
             return false;
         }
     }
+    
 }
 
 // Controller Layer: LoginController class for handling user authentication logic

@@ -36,12 +36,4 @@ class Database {
 // Test database connection
 $database = new Database();
 $conn = $database->getConnection();
-if ($conn) {
-    echo "Database connected successfully!";
-    $conn->close();
-}
-else {
-    echo "Failed";
-    $conn->close();
-}
 ?>
