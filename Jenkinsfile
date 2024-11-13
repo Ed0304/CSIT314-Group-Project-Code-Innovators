@@ -28,9 +28,9 @@ pipeline {
         }
 	stage('Install MySQL Server') {
   	    steps {
-        	sh 'sudo yum install -y mysql-server'
-        	sh 'sudo systemctl start mysqld'
-        	sh 'sudo systemctl enable mysqld'
+        	sh 'sudo yum install -y mariadb105-server mariadb105'
+        	sh 'sudo systemctl start mariadb'
+        	sh 'sudo systemctl enable mariadb'
     	    }
 	}
 
