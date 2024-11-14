@@ -4,7 +4,7 @@ session_start();
 require '../connectDatabase.php';
 
 // Entity Class: Review
-class Reviews {
+class Review {
     public $mysqli;
     public $stars;
     public $date;
@@ -64,7 +64,7 @@ class Reviews {
 
         $reviews = [];
         while ($row = $result->fetch_assoc()) {
-            $reviews[] = new Reviews($this->mysqli, $row['review_stars'], $row['review_date'], $row['username'], $row['review_id']);
+            $reviews[] = new Review($this->mysqli, $row['review_stars'], $row['review_date'], $row['username'], $row['review_id']);
         }
         return $reviews;
     }
@@ -99,7 +99,7 @@ class ViewAllReviewsPage {
         return $reviews;
     }
 
-    public function render($controller, $message = "") {
+    public function ViewAllReviewsUI($controller, $message = "") {
         $reviews = $this->handleRequest($controller);
         ?>
         <!DOCTYPE HTML>
@@ -243,10 +243,10 @@ class ViewAllReviewsPage {
 $database = new Database();
 $mysqli = $database->getConnection();
 
-$reviewEntity = new Reviews($mysqli);
+$reviewEntity = new Review($mysqli);
 $ratingsReviewsController = new ViewAllReviewsController($reviewEntity);
 $view = new ViewAllReviewsPage();
-$view->render($ratingsReviewsController);
+$view->ViewAllReviewsUI($ratingsReviewsController);
 
 $database->closeConnection();
 ?>
