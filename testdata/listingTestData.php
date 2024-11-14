@@ -8,7 +8,7 @@ function loadImageAsBlob($filePath) {
 }
 
 // Directory containing your images
-$imageDirectory = 'car_images';
+$imageDirectory = '\car_images';
 
 // Initial test listings
 $testListings = [
