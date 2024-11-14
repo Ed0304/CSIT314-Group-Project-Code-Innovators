@@ -10,7 +10,7 @@ function loadImageAsBlob($filePath) {
 // Directory containing your images
 $imageDirectory = '/var/www/html/testdata/car_images';
 
-// Update the file paths to use forward slashes
+// Initial test listings
 $testListings = [
     [
         'manufacturer_name' => 'Toyota',
@@ -74,17 +74,18 @@ $testListings = [
     ]
 ];
 
-// Add 95 more listings with the correct file path
+// Add 95 more listings with the condition for user_id
 for ($i = 6; $i <= 100; $i++) {
+    // Check if the user_id meets the condition (user_id % 2 == 0 and user_id % 4 != 0)
     if ($i % 2 == 0 && $i % 4 != 0) {
-        for ($j = 0; $j < 4; $j++) {
+        for ($j = 0; $j < 4; $j++) {  // Each valid user_id gets exactly 4 listings
             $testListings[] = [
                 'manufacturer_name' => 'Manufacturer' . $i,
                 'model_name' => 'Model' . ($i + $j),
-                'model_year' => 2000 + (($i + $j) % 10),
+                'model_year' => 2000 + (($i + $j) % 10),  // Just a dummy year for example
                 'listing_image' => loadImageAsBlob($imageDirectory . '/car' . ($i + $j) . '.jpg'),
                 'listing_color' => 'Color' . ($i * 4 + $j),
-                'listing_price' => rand(100000, 1000000),
+                'listing_price' => rand(100000, 1000000),  // Random price for testing
                 'listing_description' => 'This is a description for car ' . ($i + $j) . '.',
                 'user_id' => $i,
                 'views' => 0,
@@ -94,6 +95,26 @@ for ($i = 6; $i <= 100; $i++) {
     }
 }
 
+// Insert test data into the database
+$sql = "INSERT INTO listing (manufacturer_name, model_name, model_year, listing_image, listing_color, listing_price, listing_description, user_id, views, shortlisted)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+$stmt = $pdo->prepare($sql);
+
+foreach ($testListings as $listing) {
+    $stmt->bindParam(1, $listing['manufacturer_name']);
+    $stmt->bindParam(2, $listing['model_name']);
+    $stmt->bindParam(3, $listing['model_year']);
+    $stmt->bindParam(4, $listing['listing_image'], PDO::PARAM_LOB);
+    $stmt->bindParam(5, $listing['listing_color']);
+    $stmt->bindParam(6, $listing['listing_price']);
+    $stmt->bindParam(7, $listing['listing_description']);
+    $stmt->bindParam(8, $listing['user_id']);
+    $stmt->bindParam(9, $listing['views']);
+    $stmt->bindParam(10, $listing['shortlisted']);
+
+    $stmt->execute();
+}
 
 echo "Listing test data inserted successfully!";
 ?>
