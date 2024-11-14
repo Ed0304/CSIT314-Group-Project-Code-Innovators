@@ -105,9 +105,7 @@ class UpdateUserAccountController {
         return $this->useraccount->updateUserAccount($userAccount);
     }
 
-    public function closeEntityConnection() {
-        $this->useraccount->closeConnection();
-    }
+    
 }
 
 // BOUNDARY LAYER: Renders the form and handles form submission
@@ -122,7 +120,7 @@ class UpdateUserAccountPage {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userAccount = $_POST;
             $updateSuccess = $this->controller->handleAccountUpdate($userAccount);
-            $this->controller->closeEntityConnection();
+            
 
             if ($updateSuccess) {
                 header("Location: admin_manage_user_acc.php");
@@ -142,7 +140,7 @@ class UpdateUserAccountPage {
         $username = $_GET['username'];
         $userAccount = $this->controller->getUserAccount($username);
         $roles = $this->controller->getRoles();
-        $this->controller->closeEntityConnection();
+        
 
         if (!$userAccount) {
             die("User not found.");
