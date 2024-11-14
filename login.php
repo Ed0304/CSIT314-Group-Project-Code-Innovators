@@ -15,7 +15,6 @@ class UserAccount {
         $this->role = $role;
     }
 
-    // Retrieves user data from the database, using $userAccount as a parameter
     public function verifyLoginCredentials($userAccount) {
         $roleMapping = [
             'user admin' => 1,
@@ -31,13 +30,16 @@ class UserAccount {
         $role_id = $roleMapping[$userAccount->role];
         $stmt = $this->db->prepare("SELECT user_id, password, status_id FROM users WHERE username = ? AND role_id = ?");
         $stmt->bind_param("si", $userAccount->username, $role_id);
-        $stmt->execute();
-        $stmt->store_result();
+        
+        if (!$stmt->execute()) {
+            return false;
+        }
 
+        $stmt->store_result();
+        
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($user_id, $stored_password, $status_id);
             $stmt->fetch();
-
             return ['user_id' => $user_id, 'password' => $stored_password, 'status_id' => $status_id];
         } else {
             return false;
@@ -45,8 +47,6 @@ class UserAccount {
     }
 }
 
-
-// Controller Layer: LoginController class for handling user authentication logic
 class LoginController {
     private $isSuspended = false;
 
@@ -57,13 +57,11 @@ class LoginController {
             return false;
         }
 
-        // Check if the account is suspended
         if ($userData['status_id'] == 2) {
             $this->isSuspended = true;
             return false;
         }
 
-        // Verify the password
         return $userData['password'] === $userAccount->password;
     }
 
@@ -77,63 +75,9 @@ class LoginController {
     }
 }
 
-
-// Boundary Layer: LoginPage class to handle form display and user interaction
 class LoginPage {
-
-    public static function LoginUI() {
-        ?>
-        <!DOCTYPE HTML>
-        <html lang="en">
-        <head>
-            <link rel="stylesheet" href="login.css"/>
-            <title>CSIT314-PROJECT</title>
-        </head>
-        <body>
-        <div class="website-title">
-            <h1>CSIT314-GROUP PROJECT</h1>
-            <h2>Made by: Code Innovators!</h2>
-        </div>
-
-        <?php
-        // Display message if set
-        if (isset($_SESSION['message'])) {
-            echo '<div class="error-message" style="color: red; font-weight: bold; margin-bottom: 20px; text-align:center">';
-            echo '<p>' . $_SESSION['message'] . '</p>';
-            echo '</div>';
-            unset($_SESSION['message']);
-        }
-        ?>
-
-        <form action="" method="POST">
-            <div class="form-body">
-                <label for="role" class="form-label">Login As:</label>
-                <select id="role" name="role" class="form-label" required>
-                    <option value="user admin">User Admin</option>
-                    <option value="used car agent">Used Car Agent</option>
-                    <option value="buyer">Buyer</option>
-                    <option value="seller">Seller</option>
-                </select>
-                <br/><br/>
-                <label for="username" class="form-label">Username </label>
-                <input type="text" id="username" name="username" class="form-label" required/>
-                <br/><br/>
-                <label for="password" class="form-label">Password </label>
-                <input type="password" id="password" name="password" class="form-label" required/>
-                <br/><br/>
-                <button type="submit" class="form-label">Login</button>
-                <br/>
-            </div>
-        </form>
-        </body>
-        </html>
-        <?php
-    }
-
     public static function handleLogin() {
-        // Only handle POST if the form is submitted
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Use null coalescing to handle undefined keys
             $username = htmlspecialchars($_POST['username'] ?? '');
             $password = htmlspecialchars($_POST['password'] ?? '');
             $role = htmlspecialchars($_POST['role'] ?? '');
@@ -149,20 +93,20 @@ class LoginPage {
                     $_SESSION['username'] = $username;
                     $_SESSION['user_id'] = $authController->getUserId($user);
                     self::redirectToDashboard($role);
+                    exit();  // Ensure no further code runs after the redirect
                 } else {
-                    // Set session message for UI
                     $_SESSION['message'] = $authController->isSuspended()
                         ? "Account suspended. Please contact support."
                         : "Invalid username, password, or role.";
-                    self::LoginUI();
+                    self::LoginUI($role);
                 }
             } else {
-                // Set session message for UI
                 $_SESSION['message'] = "Please fill in all fields.";
-                self::LoginUI();
+                self::LoginUI($role);
             }
         } else {
-            self::LoginUI();
+            $role = $_GET['role'] ?? '';  
+            self::LoginUI($role);
         }
     }
 
@@ -180,14 +124,95 @@ class LoginPage {
             case 'seller':
                 header("Location: Seller/seller_dashboard.php");
                 break;
-            default:
-                echo "Invalid role selected.";
-                break;
         }
-        exit();
+        exit();  // Ensure no further output is sent after redirect
     }
+
+    public static function LoginUI($selectedRole = null) {
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Login - Code Innovators</title>
+            <link rel="stylesheet" href="./style.css">
+            <link rel="stylesheet" href="./fontawesome-free-6.4.0-web/css/all.css">
+        </head>
+        <body>
+            <nav>
+                <div class="container nav-container">
+                    <a href="index.html" class="logo"><h3>Code Innovators</h3></a>
+                    <ul class="nav-link">
+                        <li><a href="index.html" class="active">Home</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="login.php?role=buyer">Buy</a></li>
+                        <li><a href="login.php?role=seller">Sell</a></li>
+                        <li><a href="login.php?role=used car agent">Publicize</a></li>  
+                    </ul>
+                    <ul class="social-link">
+                        <li><a href="https://t.me/+WvqfOz0QNlA0ZjI1" target="_blank"><i class="fab fa-telegram"></i></a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="login-section">
+                <div class="login-container">
+                    <!-- Dynamic Heading based on Role -->
+                    <h2>
+                        <?php
+                            if ($selectedRole) {
+                                if ($selectedRole == 'seller') {
+                                    echo 'Start Selling Today!';
+                                } elseif ($selectedRole == 'used car agent') {
+                                    echo 'Start Publicizing Today!';
+                                } elseif ($selectedRole == 'user admin') {
+                                    echo 'User Admin';
+                                } elseif ($selectedRole == 'buyer') {
+                                    echo 'Start Buying Today!';
+                                }
+                            } else {
+                                echo 'Log In';
+                            }
+                        ?>
+                    </h2>
+
+                    <!-- Login Form -->
+                    <form method="POST" class="login-form">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required placeholder="Enter your username">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required placeholder="Enter your password">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="role">Login As</label>
+                            <select id="role" name="role" required>
+                                <option value="user admin" <?php echo ($selectedRole == 'user admin') ? 'selected' : ''; ?>>User Admin</option>
+                                <option value="buyer" <?php echo ($selectedRole == 'buyer') ? 'selected' : ''; ?>>Buyer</option>
+                                <option value="seller" <?php echo ($selectedRole == 'seller') ? 'selected' : ''; ?>>Seller</option>
+                                <option value="used car agent" <?php echo ($selectedRole == 'used car agent') ? 'selected' : ''; ?>>Used Car Agent</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="login-btn">Sign In</button>
+
+                        <p style="text-align: center; margin-top: 1rem;">
+                            Don't have an account? <a href="#" style="color: var(--color-primary);">Sign up</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
+    }    
 }
 
-// Handle login request
+// Start by handling login before any HTML output
 LoginPage::handleLogin();
 ?>

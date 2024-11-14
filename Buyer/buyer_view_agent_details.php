@@ -39,7 +39,7 @@ class Agent
 
     public static function fetchAgentDetails($user_id)
     {
-        $mysqli = new mysqli("localhost", "root", "", "csit314");
+        $mysqli = new mysqli("mariadb", "root", "", "csit314");
         
         $query = "
             SELECT p.user_id, p.first_name, p.last_name, p.about, p.profile_image, p.status_id, u.email, u.phone_num, u.username

@@ -63,7 +63,7 @@ class UserAccount
     public static function fetchRoles()
     {
         // Define the database connection
-        $connection = new mysqli("localhost", "root", "", "csit314");
+        $connection = new mysqli("mariadb", "root", "", "csit314");
 
         // Check connection
         if ($connection->connect_error) {

@@ -74,10 +74,84 @@ class ViewOneReviewPage {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Agent Review</title>
             <style>
-                #review-table { border-collapse: collapse; width: 100%; }
-                #review-table, #review-table th, #review-table td { border: 1px solid black; }
-                #review-table th, #review-table td { padding: 10px; font-size: 20px; text-align: center; }
-                .star { width: 25px; height: 25px; }
+               body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                h1 {
+                    text-align: center;
+                    color: #343a40;
+                    margin-top: 30px;
+                }
+
+                #review-table {
+                    width: 80%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                    background-color: #ffffff;
+                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                #review-table th, #review-table td {
+                    padding: 12px;
+                    text-align: center;
+                    font-size: 18px;
+                    color: #343a40;
+                    border: 1px solid #dee2e6;
+                }
+
+                #review-table th {
+                    background-color: #6c757d;
+                    color: white;
+                    font-weight: bold;
+                }
+
+                #review-table td {
+                    background-color: #f9f9f9;
+                }
+
+                .star {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 2px;
+                }
+
+                button, input[type="submit"] {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 10px 20px;
+                    cursor: pointer;
+                    font-size: 18px;
+                    transition: background-color 0.3s ease;
+                }
+
+                button:hover, input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                form {
+                    text-align: center;
+                }
+
+                form input[type="submit"] {
+                    font-size: 18px;
+                    margin-top: 20px;
+                }
+
+                form input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                p {
+                    text-align: center;
+                    color: #6c757d;
+                    font-size: 18px;
+                }
             </style>
         </head>
         <body>

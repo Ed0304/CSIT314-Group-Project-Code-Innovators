@@ -31,17 +31,97 @@ class DashboardView {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Used Car Dashboard</title>
             <style>
-                .header { text-align: center; }
-                .headDiv { text-align: center; background-color: green; border-bottom: 2px solid black; }
-                .formBody { text-align: center; }
-                #logout, #create, #view, #update, #delete, #manageProfile, #reviews { font-size: 18px; }
-                .mainInterface { text-align: center; background-color: white; border: 1px solid black; padding: 10px; }
+                body {
+                    font-family: 'Arial', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f6f9;
+                    color: #333;
+                }
+
+                .header {
+                    text-align: center;
+                    color: #fff;
+                }
+
+                .headDiv {
+                    background-color: #28a745;
+                    padding: 20px;
+                    border-bottom: 2px solid #333;
+                }
+
+                .headDiv h1, .headDiv h2 {
+                    margin: 0;
+                    color: #ffffff;
+                }
+
+                .formBody {
+                    text-align: center;
+                    padding: 20px;
+                }
+
+                button, input[type="submit"] {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    margin: 10px 0;
+                    border-radius: 5px;
+                    font-size: 1em;
+                    cursor: pointer;
+                    width: 80%;
+                    transition: background-color 0.3s;
+                }
+
+                button:hover, input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                .logout-button {
+                    background-color: #dc3545 !important;
+                    color: white;
+                    width: 80%;
+                    transition: background-color 0.3s ease;
+                }
+
+                .logout-button:hover {
+                    background-color: #c82333 !important;
+                }
+
+                .mainInterface {
+                    text-align: center;
+                    background-color: #fff;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    margin-top: 50px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                    width: 50%;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                h2 {
+                    color: #333;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
+                @media (max-width: 768px) {
+                    .mainInterface {
+                        width: 80%;
+                    }
+
+                    .formBody button {
+                        width: 90%;
+                    }
+                }
             </style>
         </head>
         <body>
             <div class="headDiv">
                 <h1 class="header">Welcome to the seller Dashboard, <?php echo $this->username; ?>!</h1>
-                <h2 class="header">What would you like to do for today?</h2>
+                <h2 class="header">What would you like to do today?</h2>
             </div>
             <div class="mainInterface">
                 <form method="post" class="formBody">
@@ -51,7 +131,7 @@ class DashboardView {
                     <br/><br/>
                     <button type="submit" id="reviews" name="reviews">Manage reviews and ratings</button>
                     <br/><br/>
-                    <input type="submit" id="logout" value="Logout" name="logout">
+                    <input type="submit" class="logout-button" value="Logout" name="logout">
                     <br/><br/>
                 </form>
             </div>

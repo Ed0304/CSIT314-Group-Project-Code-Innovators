@@ -178,7 +178,7 @@ class UserProfile {
     private $mysqli;
 
     public function __construct() {
-        $this->mysqli = new mysqli('localhost', 'root', '', 'csit314');
+        $this->mysqli = new mysqli('mariadb', 'root', '', 'csit314');
         if ($this->mysqli->connect_error) {
             die("Database connection failed: " . $this->mysqli->connect_error);
         }

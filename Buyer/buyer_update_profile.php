@@ -196,10 +196,119 @@ class UpdateBuyerAccountInformationPage {
         <html>
         <head>
             <style>
-                .form-body { font-size: 24px; text-align: center; }
-                h1 { font-size: 48px; text-align: center; }
-                table { font-size: 24px; margin: 0 auto; border-collapse: collapse; }
-                td { padding: 10px; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                h1 {
+                    font-size: 2.5em;
+                    text-align: center;
+                    color: #333;
+                    margin-top: 30px;
+                }
+
+                .form-body {
+                    font-size: 18px;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                table {
+                    width: 70%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                    background-color: #ffffff;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                table td {
+                    padding: 15px;
+                    text-align: left;
+                    color: #333;
+                }
+
+                input[type="text"], input[type="email"], input[type="password"], textarea {
+                    width: 80%;
+                    padding: 12px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 1em;
+                    background-color: #f9f9f9;
+                }
+
+                input[type="file"] {
+                    padding: 8px;
+                }
+
+                button {
+                    background-color: #007bff;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 4px;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1em;
+                    margin-top: 20px;
+                }
+
+                button:hover {
+                    background-color: #0056b3;
+                }
+
+                button[type="button"] {
+                    background-color: #6c757d;
+                }
+
+                button[type="button"]:hover {
+                    background-color: #5a6268;
+                }
+
+                label {
+                    font-size: 1em;
+                    font-weight: bold;
+                    color: #555;
+                }
+
+                textarea {
+                    resize: vertical;
+                    height: 120px;
+                }
+
+                input:disabled {
+                    background-color: #e9ecef;
+                    cursor: not-allowed;
+                }
+
+                input:focus, textarea:focus {
+                    border-color: #007bff;
+                    outline: none;
+                }
+
+                a {
+                    color: #007bff;
+                    text-decoration: none;
+                }
+
+                a:hover {
+                    text-decoration: underline;
+                }
+
+                form {
+                    margin: 30px 0;
+                }
+
+                @media (max-width: 768px) {
+                    table {
+                        width: 95%;
+                    }
+                    button {
+                        width: 100%;
+                    }
+                }
+
             </style>
         </head>
         <body>

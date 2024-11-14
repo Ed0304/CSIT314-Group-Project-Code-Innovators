@@ -109,25 +109,95 @@ class ViewCarListingPage {
         }
 
         ?>
-        <!DOCTYPE HTML>
+       <!DOCTYPE HTML>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
             <title>Listing Details</title>
             <style>
-                .details-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .details-container img { max-width: 100%; height: auto; border: 2px solid #ccc; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-                .details-container h2 { text-align: center; }
-                .details-container table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                .details-container th, .details-container td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-                .details-container th { background-color: #f2f2f2; }
-                .return-button { text-align: center; margin-top: 20px; }
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f8f9fa;
+                    color: #343a40;
+                }
+
+                .details-container {
+                    max-width: 700px;
+                    margin: 50px auto;
+                    padding: 20px;
+                    background-color: #ffffff;
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                }
+
+                .details-container h2 {
+                    text-align: center;
+                    color: #007bff;
+                    margin-bottom: 20px;
+                    font-size: 1.8em;
+                }
+
+                .details-container img {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 0 auto 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                }
+
+                .details-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }
+
+                .details-table th,
+                .details-table td {
+                    padding: 15px;
+                    text-align: left;
+                    border-bottom: 1px solid #e9ecef;
+                }
+
+                .details-table th {
+                    background-color: #f2f2f2;
+                    color: #343a40;
+                    font-weight: bold;
+                    width: 30%;
+                }
+
+                .details-table td {
+                    color: #495057;
+                }
+
+                .return-button {
+                    display: flex;
+                    justify-content: center;
+                    margin-top: 30px;
+                }
+
+                .return-button a button {
+                    padding: 10px 20px;
+                    font-size: 1em;
+                    color: #ffffff;
+                    background-color: #007bff;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;
+                }
+
+                .return-button a button:hover {
+                    background-color: #0056b3;
+                }
             </style>
         </head>
         <body>
             <div class="details-container">
-                <h2>Car Listing Details</h2>                
-                <table>
+                <h2>Car Listing Details</h2>
+                <table class="details-table">
                     <tr>
                         <th>Image</th>
                         <td>
@@ -145,7 +215,7 @@ class ViewCarListingPage {
                     <tr><th>Price</th><td><?php echo "$" . number_format($listing->getListingPrice(), 2); ?></td></tr>
                     <tr><th>Description</th><td><?php echo htmlspecialchars($listing->getListingDescription()); ?></td></tr>
                 </table>
-    
+
                 <div class="return-button">
                     <a href="agent_view_listings.php">
                         <button type="button">Return to My Listings</button>

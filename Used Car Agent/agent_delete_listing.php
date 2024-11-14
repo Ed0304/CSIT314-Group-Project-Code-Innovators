@@ -46,13 +46,89 @@ class DeleteCarListingPage {
             <meta charset="UTF-8">
             <title>Delete Listing</title>
             <style>
-                .details-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .details-container img { max-width: 100%; height: auto; border: 2px solid #ccc; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-                .details-container h2 { text-align: center; }
-                .details-container table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                .details-container th, .details-container td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-                .details-container th { background-color: #f2f2f2; }
-                .button-container { text-align: center; margin-top: 20px; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f8f9fa;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                }
+
+                .details-container {
+                    background-color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    max-width: 600px;
+                    padding: 20px;
+                    width: 100%;
+                }
+
+                .details-container h2 {
+                    text-align: center;
+                    color: #dc3545;
+                    margin-bottom: 20px;
+                }
+
+                .details-container img {
+                    max-width: 100%;
+                    height: auto;
+                    border: 2px solid #ccc;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .details-container table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                    color: #343a40;
+                }
+
+                .details-container th,
+                .details-container td {
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    text-align: left;
+                }
+
+                .details-container th {
+                    background-color: #f2f2f2;
+                    font-weight: bold;
+                    color: #495057;
+                }
+
+                .button-container {
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-top: 20px;
+                }
+
+                .button-container button,
+                .button-container a button {
+                    background-color: #dc3545;
+                    color: #fff;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 1em;
+                }
+
+                .button-container a button {
+                    background-color: #6c757d;
+                }
+
+                .button-container button:hover {
+                    background-color: #c82333;
+                }
+
+                .button-container a button:hover {
+                    background-color: #5a6268;
+                }
             </style>
         </head>
         <body>
@@ -81,8 +157,10 @@ class DeleteCarListingPage {
                     <form action="" method="post">
                         <input type="hidden" name="listing_id" value="<?php echo $listing['listing_id']; ?>" />
                         <button type="submit" name="confirm_delete">Delete</button>
-                        <a href="agent_view_listings.php"><button type="button">Cancel</button></a>
                     </form>
+                    <a href="agent_view_listings.php">
+                        <button type="button">Cancel</button>
+                    </a>
                 </div>
             </div>
         </body>

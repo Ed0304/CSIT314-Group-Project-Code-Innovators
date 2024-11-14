@@ -14,7 +14,7 @@ class Review
 
     public function __construct()
     {
-        $this->db = new mysqli("localhost", "root", "", "csit314");
+        $this->db = new mysqli("mariadb", "root", "", "csit314");
         if ($this->db->connect_error) {
             die("Connection failed: " . $this->db->connect_error);
         }
@@ -119,28 +119,28 @@ class CreateReviewBoundary
         if (!isset($session_data['user_id'])) {
             $this->is_success = false;
             $this->message = 'Please log in to submit a review';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             $this->is_success = false;
             $this->message = 'Invalid agent ID';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         $this->agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$this->agent_details) {
             $this->is_success = false;
             $this->message = 'Agent not found';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
         if ($request_method === 'POST') {
             if (!$this->validateInput($post_data)) {
                 $this->is_success = false;
                 $this->message = 'Invalid input data';
-                return $this->render();
+                return $this->CreateReviewUI();
             }
 
             $review_data = [
@@ -152,10 +152,10 @@ class CreateReviewBoundary
 
             $this->is_success = $this->controller->CreateReview($review_data);
             $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
-            return $this->render();
+            return $this->CreateReviewUI();
         }
 
-        $this->render();
+        $this->CreateReviewUI();
     }
     private function validateInput($post_data)
         {
@@ -174,7 +174,7 @@ class CreateReviewBoundary
 
 
     // Validation and other methods remain the same
-    public function render()
+    public function CreateReviewUI()
     {
         ob_start();
         ?>
@@ -186,106 +186,122 @@ class CreateReviewBoundary
             <title>Create Review</title>
             <style>
                 body {
-                        font-family: Arial, sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                    }
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
 
-                    .container {
-                        width: 100%;
-                        max-width: 600px;
-                        background: #f9f9f9;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    }
+                .container {
+                    width: 100%;
+                    max-width: 600px;
+                    background: #f9f9f9;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
 
-                    .form-title {
-                        text-align: center;
-                        font-size: 24px;
-                        margin-bottom: 20px;
-                    }
+                .form-title {
+                    text-align: center;
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
 
-                    .error-message,
-                    .success-message {
-                        background: #ffdddd;
-                        padding: 10px;
-                        margin-bottom: 15px;
-                        color: #d8000c;
-                        border-radius: 5px;
-                    }
+                .error-message,
+                .success-message {
+                    background: #ffdddd;
+                    padding: 10px;
+                    margin-bottom: 15px;
+                    color: #d8000c;
+                    border-radius: 5px;
+                }
 
-                    .success-message {
-                        background: #ddffdd;
-                        color: #4caf50;
-                    }
+                .success-message {
+                    background: #ddffdd;
+                    color: #4caf50;
+                }
 
-                    .agent-info h2 {
-                        font-size: 18px;
-                        margin-bottom: 10px;
-                    }
+                .agent-info h2 {
+                    font-size: 18px;
+                    margin-bottom: 10px;
+                }
 
-                    .form-group {
-                        margin-bottom: 15px;
-                    }
+                .form-group {
+                    margin-bottom: 15px;
+                }
 
-                    .form-group label {
-                        display: block;
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                    }
+                .form-group label {
+                    display: block;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
 
-                    .star-rating {
-                        display: flex;
-                        flex-direction: row-reverse;
-                        justify-content: flex-end;
-                        font-size: 24px;
-                    }
+                .star-rating {
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: flex-end;
+                    font-size: 24px;
+                }
 
-                    .star-rating input {
-                        display: none;
-                    }
+                .star-rating input {
+                    display: none;
+                }
 
-                    .star-rating label {
-                        color: #ddd;
-                        cursor: pointer;
-                        padding: 5px;
-                    }
+                .star-rating label {
+                    color: #ddd;
+                    cursor: pointer;
+                    padding: 5px;
+                }
 
-                    .star-rating input:checked~label {
-                        color: #ffbb33;
-                    }
+                .star-rating input:checked~label {
+                    color: #ffbb33;
+                }
 
-                    .star-rating label:hover,
-                    .star-rating label:hover~label {
-                        color: #ffbb33;
-                    }
+                .star-rating label:hover,
+                .star-rating label:hover~label {
+                    color: #ffbb33;
+                }
 
-                    .form-control {
-                        width: 100%;
-                        padding: 8px;
-                        border-radius: 4px;
-                        border: 1px solid #ccc;
-                        resize: vertical;
-                    }
+                .form-control {
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 4px;
+                    border: 1px solid #ccc;
+                    resize: vertical;
+                }
 
-                    .btn {
-                        width: 100%;
-                        background: #4caf50;
-                        color: #fff;
-                        padding: 10px;
-                        border: none;
-                        border-radius: 5px;
-                        font-size: 16px;
-                        cursor: pointer;
-                    }
+                .btn {
+                    width: 100%;
+                    background: #4caf50;
+                    color: #fff;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
 
-                    .btn:hover {
-                        background: #45a049;
-                    }
+                .btn:hover {
+                    background: #45a049;
+                }
+
+                .return-btn {
+                    background-color: #6c757d;
+                    color: white;
+                    padding: 10px;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                    display: block;
+                    text-align: center;
+                }
+
+                .return-btn:hover {
+                    background-color: #5a6268;
+                }
             </style>
         </head>
         <body>
@@ -318,15 +334,18 @@ class CreateReviewBoundary
                         <button type="submit" class="btn">Submit Review</button>
                     </form>
                 <?php endif; ?>
+
+                <?php if ($this->agent_details): ?>
+                    <!-- Button to return to seller_manage_review.php with username -->
+                    <a href="seller_manage_review.php?username=<?php echo htmlspecialchars($this->agent_details['username']); ?>" class="return-btn">Return to Manage Reviews</a>
+                <?php endif; ?>
             </div>
         </body>
         </html>
         <?php
         ob_end_flush();
-        }
-
+    }
 }
-
 
 // Usage
 $review = new Review();

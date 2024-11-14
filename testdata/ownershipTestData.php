@@ -1,6 +1,6 @@
 <?php
 // Database connection
-$pdo = new PDO('mysql:host=localhost;dbname=csit314', 'root', '');
+$pdo = new PDO('mysql:host=mariadb;dbname=csit314', 'root', '');
 
 // Base insert statements
 $insertQueries = [

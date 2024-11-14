@@ -1,0 +1,29 @@
+
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: true
+      MARIADB_DATABASE: csit314
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  phpapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpapp
+    ports:
+      - "8081:80"
+    environment:
+      DB_HOST: mariadb
+      DB_USER: root
+      DB_PASSWORD: ""
+      DB_NAME: csit314
+
+volumes:
+  mariadb_data:

@@ -3,13 +3,13 @@ CREATE TABLE status (
     status_name VARCHAR(256)
 );
 
-CREATE TABLE role (
+CREATE TABLE IF NOT EXISTS role (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(256),
     role_description VARCHAR(256)
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(256) NOT NULL UNIQUE,
     password VARCHAR(256) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE users (
     FOREIGN KEY (status_id) REFERENCES status(status_id)
 );
 
-CREATE TABLE profile (
+CREATE TABLE IF NOT EXISTS profile (
     profile_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     first_name VARCHAR(256) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE profile (
 );
 
 
-CREATE TABLE listing (
+CREATE TABLE IF NOT EXISTS listing (
     listing_id INT AUTO_INCREMENT PRIMARY KEY,
     manufacturer_name VARCHAR(256) NOT NULL,
     model_name VARCHAR(256) NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE listing (
 );
 
 
-CREATE TABLE review (
+CREATE TABLE IF NOT EXISTS review (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     review_details VARCHAR(256),
     review_stars INT,
@@ -62,7 +62,7 @@ CREATE TABLE review (
     review_date DATE DEFAULT CURRENT_DATE
 );
 
-CREATE TABLE shortlist(
+CREATE TABLE IF NOT EXISTS shortlist(
     shortlist_id INT AUTO_INCREMENT PRIMARY KEY,
     buyer_id INT NOT NULL,
     listing_id INT NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE shortlist(
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
-CREATE TABLE ownership(
+CREATE TABLE IF NOT EXISTS ownership(
     ownership_id INT AUTO_INCREMENT PRIMARY KEY,
     seller_id INT NOT NULL,
     listing_id INT NOT NULL,
@@ -80,15 +80,15 @@ CREATE TABLE ownership(
     FOREIGN KEY (listing_id) REFERENCES listing(listing_id)
 );
 
-INSERT INTO status(status_name) VALUES("Active");
-INSERT INTO status(status_name) VALUES("Suspended");
+INSERT IGNORE INTO status(status_name) VALUES("Active");
+INSERT IGNORE INTO status(status_name) VALUES("Suspended");
 
-INSERT INTO role(role_id, role_name,role_description) VALUES(1,"user admin", "super admin");
-INSERT INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
-INSERT INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
-INSERT INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(1,"user admin", "super admin");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(2,"used car agent", "used car agent can create listing and view all listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(3,"buyer", "buyer can view listing and review listing");
+INSERT IGNORE INTO role(role_id, role_name,role_description) VALUES(4,"seller", "seller can create listing and view all listing");
 
-INSERT INTO users(username, password, role_id, email, phone_num,status_id) VALUES
+INSERT IGNORE INTO users(username, password, role_id, email, phone_num,status_id) VALUES
 ("John Doe", "abc123", 1,"john@exampl3.com","+6581234567",1),
 ("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567",1),
 ("TakFujiwara", "initialD", 3, "Tak@TouWenziD.com", "+811234567890",1),
