@@ -175,7 +175,7 @@ class UpdateAgentAccountInformationPage {
     
     
 
-    public function updateAgentAccountInformationUI() {
+    public function UpdateAgentAccountInformationUI() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
         }
