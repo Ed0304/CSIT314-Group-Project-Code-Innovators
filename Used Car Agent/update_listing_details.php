@@ -101,7 +101,7 @@ class UpdateCarListingController {
 }
 
 ### BOUNDARY LAYER: Renders the page, validation, and display logic
-class UpdateCarListingBoundary {
+class UpdateCarListingPage {
     private $controller;
     private $listing;
 
@@ -109,7 +109,7 @@ class UpdateCarListingBoundary {
         $this->controller = $controller;
     }
 
-    public function renderForm($listing_id) {
+    public function UpdateCarListingUI($listing_id) {
         $this->listing = $this->controller->getListingDetails($listing_id); // Set $this->listing with fetched data
         ?>
         <!DOCTYPE html>
@@ -190,7 +190,7 @@ class UpdateCarListingBoundary {
             exit();
         } else {
             // Display form for a GET request
-            $this->renderForm($listing_id);
+            $this->UpdateCarListingUI($listing_id);
         }
     }
 }
@@ -199,7 +199,7 @@ class UpdateCarListingBoundary {
 $listing_id = $_GET['listing_id'];
 $entity = new CarListing($conn);
 $controller = new UpdateCarListingController($entity);
-$boundary = new UpdateCarListingBoundary($controller);
+$boundary = new UpdateCarListingPage($controller);
 
 $boundary->handleRequest($listing_id);
 ?>

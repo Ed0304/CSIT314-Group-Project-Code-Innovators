@@ -28,7 +28,7 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I am looking for a replacement car for my AE86!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('\profile_images\takumi.jpg'),
+        'profile_image' => loadImageAsBlob('/var/www/html/testdata/profile_images/takumi.jpg'),
         'status_id' => 1,
     ],
     [
@@ -37,16 +37,23 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I want to sell my impreza, looking an agent that seriously values my car!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('\profile_images\bunta.jpg'),
+        'profile_image' => loadImageAsBlob('/var/www/html/testdata/profile_images/bunta.jpg'),
         'status_id' => 1,
     ]
 ];
 
 // Function to load image as BLOB
 function loadImageAsBlob($filePath) {
-    return file_exists($filePath) ? file_get_contents($filePath) : NULL;
+    if (!file_exists($filePath)) {
+        echo "File not found: $filePath\n";
+        return null;
+    }
+    $data = file_get_contents($filePath);
+    if ($data === false) {
+        echo "Failed to read file: $filePath\n";
+    }
+    return $data;
 }
-
 // Add 95 more profiles with NULL profile images
 for ($i = 5; $i <= 99; $i++) {
     $testProfiles[] = [
@@ -67,7 +74,7 @@ $testProfiles[] = [
     'last_name' => 'Kibutsuji',
     'about' => 'Why I got suspended sia, is it because I am a demon?!',
     'gender' => 'M',
-    'profile_image' => loadImageAsBlob('\profile_images\muzan.jpg'),
+    'profile_image' => loadImageAsBlob('/var/www/html/testdata/profile_images/muzan.jpg'),
     'status_id' => 1,
 ];
 
@@ -83,7 +90,7 @@ foreach ($testProfiles as $profile) {
     $stmt->bindParam(3, $profile['last_name']);
     $stmt->bindParam(4, $profile['about']);
     $stmt->bindParam(5, $profile['gender']);
-    $stmt->bindParam(6, $profile['profile_image'], PDO::PARAM_LOB);
+    $stmt->bindValue(6, $profile['profile_image'], PDO::PARAM_LOB);
     $stmt->bindParam(7, $profile['status_id']);
 
     $stmt->execute();

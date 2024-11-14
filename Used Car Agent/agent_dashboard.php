@@ -2,7 +2,7 @@
 session_start();
 
 // Entity layer
-class Agent {
+class UserAccount {
     private $username;
 
     public function __construct($username) {
@@ -138,7 +138,7 @@ class DashboardController {
     private $view;
     private $agent;
 
-    public function __construct(Agent $agent) {
+    public function __construct(UserAccount $agent) {
         $this->agent = $agent;
         $this->view = new DashboardView();
         $this->view->setUsername($this->agent->getUsername()); // Set the username in the view
@@ -181,7 +181,7 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
-$agent = new Agent($username);
+$agent = new UserAccount($username);
 $controller = new DashboardController($agent);
 $controller->handleRequest();
 ?>

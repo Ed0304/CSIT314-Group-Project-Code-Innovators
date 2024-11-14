@@ -1,17 +1,27 @@
 <?php
 require '../connectDatabase.php';
-$userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id']) : null;
+if (!$conn) {
+    echo "Database connection error: " . mysqli_connect_error();
+}
+
+$userprofile_id = isset($_GET['role_id']) ? intval($_GET['role_id']) : null;
+
+if ($userprofile_id === null) {
+    echo "Error: userprofile_id is null.";
+    exit();
+}
+
+
 // Entity class: Handles database operations and acts as the data structure for UserProfile
 class UserProfile {
     private $conn;
     private $userprofile_id;
-    private $userprofile_description; // Use 'userprofile_description' consistently
+    private $userprofile_description;
 
     public function __construct($userprofile_id = null) {
         $this->conn = $this->getConnection();
         if ($userprofile_id) {
             $this->userprofile_id = $userprofile_id;
-            $this->userprofile_description = $userprofile_description;
             $this->loadUserProfile();
         }
     }
@@ -22,11 +32,11 @@ class UserProfile {
     }
 
     public function getUserProfileId() {
-        return $userprofile_id;
+        return $this->userprofile_id;
     }
 
     public function getUserProfileDescription() {
-        return $userprofile_description;
+        return $this->userprofile_description;
     }
 
     public function setUserProfileDescription($userprofile_description) {
@@ -40,14 +50,35 @@ class UserProfile {
         $result = $stmt->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            $this->userprofile_description = $row['role_description']; // Maps correctly to the database column
-        } 
+            $this->userprofile_description = $row['role_description'];
+        }
     }
 
     public function updateUserProfileDescription(UserProfile $userProfile) {
         $stmt = $this->conn->prepare("UPDATE role SET role_description = ? WHERE role_id = ?");
         $stmt->bind_param("si", $userProfile->userprofile_description, $userProfile->userprofile_id);
-        return $stmt->execute();
+
+        // Debugging: Check if the statement prepares correctly
+        if (!$stmt) {
+            echo "Error preparing statement: " . $this->conn->error;
+            return false;
+        }
+
+        if (!$stmt->execute()) {
+            echo "SQL execution error: " . $stmt->error;
+            return false;
+        }
+
+
+        $executeResult = $stmt->execute();
+
+        // Debugging: Check if the statement executes correctly
+        if (!$executeResult) {
+            echo "Error executing statement: " . $stmt->error;
+            return false;
+        }
+
+        return $executeResult;
     }
 }
 
@@ -198,15 +229,15 @@ class UpdateUserProfileDescriptionPage {
             </style>
         </head>
         <body>
-            <h1>Update User Profile Description</h1>
-            <div class="form-container">
-                <form action="" method="post">
-                    <label for="role_description">New Description:</label>
-                    <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
-                    <button type="submit">Update Description</button>
-                </form>
-                <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
-            </div>
+        <h1>Update User Profile Description</h1>
+        <div class="form-container">
+            <form action="" method="post">
+                <label for="role_description">New Description:</label>
+                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
+                <button type="submit">Update Description</button>
+            </form>
+            <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
+        </div>
         </body>
         </html>
         <?php
