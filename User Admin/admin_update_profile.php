@@ -4,7 +4,7 @@ if (!$conn) {
     echo "Database connection error: " . mysqli_connect_error();
 }
 
-$userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id']) : null;
+$userprofile_id = isset($_GET['role_id']) ? intval($_GET['role_id']) : null;
 
 if ($userprofile_id === null) {
     echo "Error: userprofile_id is null.";
