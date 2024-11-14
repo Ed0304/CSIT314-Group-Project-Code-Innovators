@@ -44,9 +44,16 @@ $testProfiles = [
 
 // Function to load image as BLOB
 function loadImageAsBlob($filePath) {
-    return file_exists($filePath) ? file_get_contents($filePath) : NULL;
+    if (!file_exists($filePath)) {
+        echo "File not found: $filePath\n";
+        return null;
+    }
+    $data = file_get_contents($filePath);
+    if ($data === false) {
+        echo "Failed to read file: $filePath\n";
+    }
+    return $data;
 }
-
 // Add 95 more profiles with NULL profile images
 for ($i = 5; $i <= 99; $i++) {
     $testProfiles[] = [
