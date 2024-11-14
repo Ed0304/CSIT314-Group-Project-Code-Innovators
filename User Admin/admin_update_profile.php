@@ -1,6 +1,7 @@
 <?php
 require '../connectDatabase.php';
 $userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id']) : null;
+
 // Entity class: Handles database operations and acts as the data structure for UserProfile
 class UserProfile {
     private $conn;
@@ -11,8 +12,7 @@ class UserProfile {
         $this->conn = $this->getConnection();
         if ($userprofile_id) {
             $this->userprofile_id = $userprofile_id;
-            $this->userprofile_description = $userprofile_description;
-            $this->loadUserProfile();
+            $this->loadUserProfile(); // Load user profile data from the database
         }
     }
 
@@ -22,11 +22,11 @@ class UserProfile {
     }
 
     public function getUserProfileId() {
-        return $userprofile_id;
+        return $this->userprofile_id;
     }
 
     public function getUserProfileDescription() {
-        return $userprofile_description;
+        return $this->userprofile_description;
     }
 
     public function setUserProfileDescription($userprofile_description) {
@@ -41,7 +41,7 @@ class UserProfile {
 
         if ($row = $result->fetch_assoc()) {
             $this->userprofile_description = $row['role_description']; // Maps correctly to the database column
-        } 
+        }
     }
 
     public function updateUserProfileDescription(UserProfile $userProfile) {
@@ -198,15 +198,15 @@ class UpdateUserProfileDescriptionPage {
             </style>
         </head>
         <body>
-            <h1>Update User Profile Description</h1>
-            <div class="form-container">
-                <form action="" method="post">
-                    <label for="role_description">New Description:</label>
-                    <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
-                    <button type="submit">Update Description</button>
-                </form>
-                <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
-            </div>
+        <h1>Update User Profile Description</h1>
+        <div class="form-container">
+            <form action="" method="post">
+                <label for="role_description">New Description:</label>
+                <textarea name="role_description" id="role_description" required><?php echo htmlspecialchars($profile->getUserProfileDescription()); ?></textarea>
+                <button type="submit">Update Description</button>
+            </form>
+            <a href="admin_manage_user_profiles.php" class="return-button">Return</a>
+        </div>
         </body>
         </html>
         <?php
