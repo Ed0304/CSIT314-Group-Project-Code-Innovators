@@ -32,7 +32,10 @@ pipeline {
                     sh 'sleep 20'
 
                     // Run SQL script in the MariaDB container
-                    sh 'docker-compose exec mariadb mariadb -u root csit314 < testdata/TestData.sql'
+                    sh '''
+                    docker-compose exec mariadb mariadb -u root -e "CREATE DATABASE IF NOT EXISTS csit314;"
+                    docker-compose exec mariadb mariadb -u root csit314 < testdata/TestData.sql
+                    '''
                 }
             }
         }
@@ -41,6 +44,7 @@ pipeline {
             steps {
                 script {
                     // Run profileTestData.php inside the PHP container
+
                     sh 'docker-compose exec phpapp php testdata/profileTestData.php'
                 }
             }
