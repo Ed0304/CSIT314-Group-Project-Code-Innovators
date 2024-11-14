@@ -131,7 +131,101 @@ class UpdateUserProfileDescriptionPage {
             <title>Update User Profile Description</title>
             <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
             <style>
-                /* Styles omitted for brevity */
+                body {
+                    font-family: 'Roboto', sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 20px;
+                    color: #333;
+                }
+
+                h1 {
+                    color: #333;
+                    text-align: center;
+                    margin-bottom: 20px;
+                    font-size: 24px;
+                }
+
+                .form-container {
+                    background: #fff;
+                    padding: 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                    max-width: 600px;
+                    margin: auto;
+                }
+
+                label {
+                    display: block;
+                    margin-bottom: 10px;
+                    font-weight: 500;
+                    font-size: 16px;
+                }
+
+                textarea {
+                    width: 100%;
+                    height: 120px;
+                    margin-bottom: 20px;
+                    padding: 12px;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    resize: vertical;
+                }
+
+                button {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 14px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    width: 100%;
+                    transition: background-color 0.3s ease;
+                }
+
+                button:hover {
+                    background-color: #0056b3;
+                }
+
+                .return-button {
+                    margin-top: 20px;
+                    display: inline-block;
+                    background-color: #5cb85c;
+                    color: white;
+                    text-decoration: none;
+                    padding: 12px 1px;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    text-align: center;
+                    transition: background-color 0.3s ease;
+                }
+
+                .return-button:hover {
+                    background-color: #4cae4c;
+                }
+
+                .success-message {
+                    color: #28a745;
+                    font-size: 16px;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .error-message {
+                    color: #dc3545;
+                    font-size: 16px;
+                    text-align: center;
+                    margin-top: 20px;
+                }
+
+                .form-container a {
+                    display: inline-block;
+                    margin-top: 10px;
+                    text-align: center;
+                    width: 100%;
+                }
             </style>
         </head>
         <body>
