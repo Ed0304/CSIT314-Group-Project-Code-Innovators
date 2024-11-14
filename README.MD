@@ -1,7 +1,15 @@
-CSIT314-PROJECT 
-Please extract all these files at C:/XAMMP/htdocs before running!
-1. Connect to apache and mysql through XAMPP
-2. type localhost, then type "login.php"
-3. The login page should show up, try login and logout and play around with the buttons :)
+CSIT314 Assignment (Used Car Management System) 
 
-Note: this project is incomplete
+Created by Code Innovators (Tutorial Group: T04)
+
+This is a Used Car Management System coded in PHP language.
+
+It involves multiple actors which include user admin, used car agent, buyer and seller.
+
+Functionalities of Actors Involved
+- User Admin: Manage User Accounts
+- Used Car Agent: Manage Used Car Listings and View Reviews
+- Buyer: View Car Listins and Create Reviews
+- Seller: Provide Car Listing Information to Used Car Agent and View Reviews
+
+
