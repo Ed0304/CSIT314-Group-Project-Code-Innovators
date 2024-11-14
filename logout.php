@@ -11,14 +11,16 @@ class LogoutPage {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Logout Confirmation</title>
+            <link rel="stylesheet" href="./style.css">
         </head>
         <body>
-            <h1 style="text-align:center">You have been successfully logged out.</h1>
-            <!-- Back to Login button -->
-            <form method="post" action="login.php" style="text-align:center">
-                <br/>
-                <input type="submit" value="Return to Login" style="font-size: 24px">
-            </form>
+            <div class="center-container">
+                <h1>You have been successfully logged out.</h1>
+                <!-- Back to Login button -->
+                <form method="post" action="login.php" class="return-button-form">
+                    <input type="submit" value="Return to Login" class="return-btn">
+                </form>
+            </div>
         </body>
         </html>
         <?php

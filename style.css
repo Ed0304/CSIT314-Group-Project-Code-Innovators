@@ -615,3 +615,36 @@ footer {
     text-align: center;
     margin: 10px 0;
 }
+
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.center-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: #f4f6f9;
+    text-align: center;
+}
+
+/* Styling for the "Return to Login" button */
+.return-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+
+.return-btn:hover {
+    background-color: #0056b3;
+}
