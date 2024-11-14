@@ -186,106 +186,123 @@ class BuyerCreateReviewPage
             <title>Create Review</title>
             <style>
                 body {
-                        font-family: Arial, sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                    }
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
 
-                    .container {
-                        width: 100%;
-                        max-width: 600px;
-                        background: #f9f9f9;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    }
+                .container {
+                    width: 100%;
+                    max-width: 600px;
+                    background: #f9f9f9;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
 
-                    .form-title {
-                        text-align: center;
-                        font-size: 24px;
-                        margin-bottom: 20px;
-                    }
+                .form-title {
+                    text-align: center;
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
 
-                    .error-message,
-                    .success-message {
-                        background: #ffdddd;
-                        padding: 10px;
-                        margin-bottom: 15px;
-                        color: #d8000c;
-                        border-radius: 5px;
-                    }
+                .error-message,
+                .success-message {
+                    background: #ffdddd;
+                    padding: 10px;
+                    margin-bottom: 15px;
+                    color: #d8000c;
+                    border-radius: 5px;
+                }
 
-                    .success-message {
-                        background: #ddffdd;
-                        color: #4caf50;
-                    }
+                .success-message {
+                    background: #ddffdd;
+                    color: #4caf50;
+                }
 
-                    .agent-info h2 {
-                        font-size: 18px;
-                        margin-bottom: 10px;
-                    }
+                .agent-info h2 {
+                    font-size: 18px;
+                    margin-bottom: 10px;
+                }
 
-                    .form-group {
-                        margin-bottom: 15px;
-                    }
+                .form-group {
+                    margin-bottom: 15px;
+                }
 
-                    .form-group label {
-                        display: block;
-                        font-weight: bold;
-                        margin-bottom: 5px;
-                    }
+                .form-group label {
+                    display: block;
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
 
-                    .star-rating {
-                        display: flex;
-                        flex-direction: row-reverse;
-                        justify-content: flex-end;
-                        font-size: 24px;
-                    }
+                .star-rating {
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: flex-end;
+                    font-size: 24px;
+                }
 
-                    .star-rating input {
-                        display: none;
-                    }
+                .star-rating input {
+                    display: none;
+                }
 
-                    .star-rating label {
-                        color: #ddd;
-                        cursor: pointer;
-                        padding: 5px;
-                    }
+                .star-rating label {
+                    color: #ddd;
+                    cursor: pointer;
+                    padding: 5px;
+                }
 
-                    .star-rating input:checked~label {
-                        color: #ffbb33;
-                    }
+                .star-rating input:checked~label {
+                    color: #ffbb33;
+                }
 
-                    .star-rating label:hover,
-                    .star-rating label:hover~label {
-                        color: #ffbb33;
-                    }
+                .star-rating label:hover,
+                .star-rating label:hover~label {
+                    color: #ffbb33;
+                }
 
-                    .form-control {
-                        width: 100%;
-                        padding: 8px;
-                        border-radius: 4px;
-                        border: 1px solid #ccc;
-                        resize: vertical;
-                    }
+                .form-control {
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 4px;
+                    border: 1px solid #ccc;
+                    resize: vertical;
+                }
 
-                    .btn {
-                        width: 100%;
-                        background: #4caf50;
-                        color: #fff;
-                        padding: 10px;
-                        border: none;
-                        border-radius: 5px;
-                        font-size: 16px;
-                        cursor: pointer;
-                    }
+                .btn {
+                    width: 100%;
+                    background: #4caf50;
+                    color: #fff;
+                    padding: 10px;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
 
-                    .btn:hover {
-                        background: #45a049;
-                    }
+                .btn:hover {
+                    background: #45a049;
+                }
+
+                .return-btn {
+                    background-color: #007bff;
+                    color: white;
+                    text-align: center;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    padding: 10px;
+                    width: 97%;
+                    margin-top: 15px;
+                    display: block;
+                    font-size: 16px;
+                }
+
+                .return-btn:hover {
+                    background-color: #0056b3;
+                }
             </style>
         </head>
         <body>
@@ -318,13 +335,13 @@ class BuyerCreateReviewPage
                         <button type="submit" class="btn">Submit Review</button>
                     </form>
                 <?php endif; ?>
+                <a href="buyerviewReviews.php?username=<?php echo urlencode($this->agent_details['username']); ?>&agent_id=<?php echo urlencode($this->agent_details['user_id']); ?>" class="return-btn">Return to Reviews</a>
             </div>
         </body>
         </html>
         <?php
         ob_end_flush();
-        }
-
+    }
 }
 
 

@@ -104,45 +104,133 @@ class CreateCarListingPage {
         <head>
             <title>Car Listing Creation Page</title>
             <style>
-                .form-body { text-align: center; }
-                .select-label { font-size: 24px; }
+                body {
+                    font-family: 'Arial', sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f6f9;
+                    color: #333;
+                }
+
+                .header {
+                    text-align: center;
+                    margin-top: 50px;
+                    color: #fff;
+                    font-size: 1.8em;
+                }
+
+                .headDiv {
+                    background-color: #28a745;
+                    padding: 20px;
+                    border-bottom: 2px solid #333;
+                }
+
+                .formBody {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 20px;
+                }
+
+                button, input[type="submit"] {
+                    background-color: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    margin: 10px 0;
+                    border-radius: 5px;
+                    font-size: 1em;
+                    cursor: pointer;
+                    width: 35%;
+                    transition: background-color 0.3s;
+                }
+
+                button:hover, input[type="submit"]:hover {
+                    background-color: #0056b3;
+                }
+
+                .mainInterface {
+                    text-align: center;
+                    background-color: #fff;
+                    border: 1px solid #ddd;
+                    padding: 20px;
+                    margin-top: 50px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    border-radius: 8px;
+                    width: 50%;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                h1,h2,h3 {
+                    color: #333;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+
                 .invisible-table {
                     border-collapse: collapse;
-                    width: 0%;
-                    margin: auto;
+                    width: 100%;
+                    margin-bottom: 20px;
                 }
-                .invisible-table td { border: none; padding: 10px; }
+
+                .invisible-table td {
+                    border: none;
+                    padding: 10px;
+                    font-size: 18px;
+                }
+
+                .invisible-table input[type="text"],
+                .invisible-table input[type="number"],
+                .invisible-table textarea {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #ccc;
+                    font-size: 18px;
+                    border-radius: 5px;
+                }
+
+                @media (max-width: 768px) {
+                    .mainInterface {
+                        width: 80%;
+                    }
+
+                    .formBody button {
+                        width: 90%;
+                    }
+                }
             </style>
         </head>
         <body>
-        <div style="background-color: green" class="header">
-            <h1 style="text-align:center">Car Listing Creation</h1>
-            <h2 style="text-align:center">Please fill in the following details</h2>
-            <h3 style="text-align:center">All fields are mandatory</h3>
+
+        <div class="headDiv">
+            <h1>Car Listing Creation</h1>
+            <h2>Please fill in the following details</h2>
+            <h3>All fields are mandatory</h3>
         </div>
 
         <?php if (!empty($this->message)): ?>
             <p style="text-align:center; font-size: 20px; color: red;"><?php echo htmlspecialchars($this->message); ?></p>
         <?php endif; ?>
 
-        <form class="form-body" method="POST" action="" enctype="multipart/form-data">
-            <table class="invisible-table">
-                <tr><td><label style="font-size: 24px">Manufacturer Name:</label></td><td><input type="text" name="manufacturer_name" style="font-size: 24px" required/></td></tr>
-                <tr><td><label style="font-size: 24px">Model Name:</label></td><td><input type="text" name="model_name" style="font-size: 24px" required/></td></tr>
-                <tr><td><label style="font-size: 24px">Model Year:</label></td><td><input type="number" name="model_year" style="font-size: 24px" required/></td></tr>
-                <tr><td><label style="font-size: 24px">Listing Image:</label></td><td><input type="file" name="listing_image" accept="image/*" style="font-size: 24px" required/></td></tr>
-                <tr><td><label style="font-size: 24px">Listing Price:</label></td><td><input type="number" name="listing_price" step="0.01" style="font-size: 24px" required/></td></tr>
-                <tr><td><label style="font-size: 24px">Listing Description:</label></td><td><textarea name="listing_description" style="font-size: 24px" required></textarea></td></tr>
-                <tr><td><label style="font-size: 24px">Listing Color:</label></td><td><input type="text" name="listing_color" style="font-size: 24px" required/></td></tr>
-            </table>
-            <br/>
-            <button type="submit" style="font-size: 24px">Create New Car Listing</button>
-        </form>
-        <br/>
-        <hr/>
-        <form action="agent_view_listings.php" class="form-body">
-            <button type="submit" value="Return" style="font-size: 24px">Return to listings list.</button>
-        </form>
+        <div class="mainInterface">
+            <form class="formBody" method="POST" action="" enctype="multipart/form-data">
+                <table class="invisible-table">
+                    <tr><td><label>Manufacturer Name:</label></td><td><input type="text" name="manufacturer_name" required/></td></tr>
+                    <tr><td><label>Model Name:</label></td><td><input type="text" name="model_name" required/></td></tr>
+                    <tr><td><label>Model Year:</label></td><td><input type="number" name="model_year" required/></td></tr>
+                    <tr><td><label>Listing Image:</label></td><td><input type="file" name="listing_image" accept="image/*" required/></td></tr>
+                    <tr><td><label>Listing Price:</label></td><td><input type="number" name="listing_price" step="0.01" required/></td></tr>
+                    <tr><td><label>Listing Description:</label></td><td><textarea name="listing_description" required></textarea></td></tr>
+                    <tr><td><label>Listing Color:</label></td><td><input type="text" name="listing_color" required/></td></tr>
+                </table>
+                <button type="submit">Create New Car Listing</button>
+            </form>
+            
+        </div>
+            <form action="agent_view_listings.php" class="formBody">
+                <button type="submit">Return to listings list.</button>
+            </form>
         </body>
         </html>
         <?php
