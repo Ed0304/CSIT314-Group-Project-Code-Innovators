@@ -8,7 +8,7 @@ function loadImageAsBlob($filePath) {
 }
 
 // Directory containing your images
-$imageDirectory = 'car_images';
+$imageDirectory = '/testdata/car_images';
 
 // Update the file paths to use forward slashes
 $testListings = [
