@@ -28,7 +28,7 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I am looking for a replacement car for my AE86!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('\profile_images\takumi.jpg'),
+        'profile_image' => loadImageAsBlob('var/www/html/profile_images/takumi.jpg'),
         'status_id' => 1,
     ],
     [
@@ -37,7 +37,7 @@ $testProfiles = [
         'last_name' => 'Fujiwara',
         'about' => 'I want to sell my impreza, looking an agent that seriously values my car!',
         'gender' => 'M',
-        'profile_image' => loadImageAsBlob('\profile_images\bunta.jpg'),
+        'profile_image' => loadImageAsBlob('var/www/html/profile_images/bunta.jpg'),
         'status_id' => 1,
     ]
 ];
@@ -67,7 +67,7 @@ $testProfiles[] = [
     'last_name' => 'Kibutsuji',
     'about' => 'Why I got suspended sia, is it because I am a demon?!',
     'gender' => 'M',
-    'profile_image' => loadImageAsBlob('\profile_images\muzan.jpg'),
+    'profile_image' => loadImageAsBlob('var/www/html/profile_images/muzan.jpg'),
     'status_id' => 1,
 ];
 
