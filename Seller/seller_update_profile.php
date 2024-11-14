@@ -1,5 +1,8 @@
 <?php
 require '../connectDatabase.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // ENTITY LAYER: Handles data structure and database interaction for User Account and Profile
 class UserAccount {
@@ -75,6 +78,9 @@ class UserAccount {
             $userAccount['user_id']
         );
         $success1 = $stmt1->execute();
+        if (!$success1) {
+            echo "Error in users table update: " . $stmt1->error; // Log SQL error here
+        }
         $stmt1->close();
     
         // Update profile table - Conditional profile image update
@@ -104,8 +110,12 @@ class UserAccount {
                 $userAccount['user_id']
             );
         }
-        
+
         $success2 = $stmt2->execute();
+        if (!$success2) {
+            echo "Error in profile table update: " . $stmt2->error; // Log SQL error here
+        }
+
         $stmt2->close();
     
         return $success1 && $success2;
@@ -145,7 +155,10 @@ class UpdateSellerAccountInformationPage {
     public function handleFormSubmission() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Assign POST data to userAccount array
+            var_dump($_POST);
             $userAccount = $_POST;
+            var_dump($userAccount);
+
     
             // Handle profile image upload if a file is provided
             if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
