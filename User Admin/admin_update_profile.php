@@ -1,6 +1,6 @@
 <?php
 require '../connectDatabase.php';
-if (!$this->conn) {
+if (!$conn) {
     echo "Database connection error: " . mysqli_connect_error();
 }
 
@@ -8,6 +8,7 @@ $userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id'
 
 if ($userprofile_id === null) {
     echo "Error: userprofile_id is null.";
+    exit();
 }
 
 
