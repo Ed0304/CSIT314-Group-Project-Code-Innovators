@@ -609,3 +609,9 @@ footer {
 .login-form .login-btn:hover {
     background: #1232b8;
 }
+
+.session-message {
+    color: red;
+    text-align: center;
+    margin: 10px 0;
+}
