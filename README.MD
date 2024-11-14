@@ -1,7 +1,7 @@
-CSIT314-PROJECT 
-Please extract all these files at C:/XAMMP/htdocs before running!
-1. Connect to apache and mysql through XAMPP
-2. type localhost, then type "login.php"
-3. The login page should show up, try login and logout and play around with the buttons :)
+CSIT314-PROJECT (Used Car Management System) Made by Code Innovators
+This is a management system written in PHP language.
 
-Note: this project is incomplete
+It supports multiple actors, like admin, used car agent, buyer and seller to manage their listings.
+
+
+
