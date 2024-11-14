@@ -95,10 +95,6 @@ INSERT IGNORE INTO users(username, password, role_id, email, phone_num,status_id
 ("Alice456", "h3ll0!", 2, "Alice@exampl3.com", "+6591234567",1),
 ("TakFujiwara", "initialD", 3, "Tak@TouWenziD.com", "+811234567890",1),
 ("BuntaFujiwara", "initialD", 4, "Bun@TouWenziD.com", "+811234567899",1),
-('user1', 'pass1', 1, 'user1@example.com', '1234567890', 1),
-('user2', 'pass2', 2, 'user2@example.com', '2345678901', 1),
-('user3', 'pass3', 3, 'user3@example.com', '3456789012', 1),
-('user4', 'pass4', 4, 'user4@example.com', '4567890123', 1),
 ('user5', 'pass5', 1, 'user5@example.com', '5678901234', 1),
 ('user6', 'pass6', 2, 'user6@example.com', '6789012345', 1),
 ('user7', 'pass7', 3, 'user7@example.com', '7890123456', 1),
@@ -195,4 +191,3 @@ INSERT IGNORE INTO users(username, password, role_id, email, phone_num,status_id
 ('user98', 'pass98', 3, 'user98@example.com', '3456789012', 1),
 ('user99', 'pass99', 4, 'user99@example.com', '4567890123', 1),
 ("MuzanKibutsuji", "demonSlayer", 4, "kibutsuji@kny.com", "+816666666666",1);
-
