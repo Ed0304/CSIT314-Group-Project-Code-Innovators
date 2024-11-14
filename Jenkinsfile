@@ -40,6 +40,8 @@ pipeline {
         stage('Create Database and Run TestData.sql') {
             steps {
                 script {
+                     // Set max_allowed_packet to 500M for MariaDB
+                    sh 'docker-compose exec mariadb mariadb -u root -e "SET GLOBAL max_allowed_packet=524288000;"'
                     // Create the database and run initial SQL script
                     sh 'docker-compose exec mariadb mariadb -u root -e "CREATE DATABASE IF NOT EXISTS csit314;"'
                     sh 'docker-compose exec mariadb mariadb -u root csit314 < testdata/TestData.sql'
