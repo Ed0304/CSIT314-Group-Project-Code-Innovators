@@ -1,6 +1,15 @@
 <?php
 require '../connectDatabase.php';
+if (!$this->conn) {
+    echo "Database connection error: " . mysqli_connect_error();
+}
+
 $userprofile_id = isset($_GET['userprofile_id']) ? intval($_GET['userprofile_id']) : null;
+
+if ($userprofile_id === null) {
+    echo "Error: userprofile_id is null.";
+}
+
 
 // Entity class: Handles database operations and acts as the data structure for UserProfile
 class UserProfile {
@@ -53,6 +62,12 @@ class UserProfile {
             echo "Error preparing statement: " . $this->conn->error;
             return false;
         }
+
+        if (!$stmt->execute()) {
+            echo "SQL execution error: " . $stmt->error;
+            return false;
+        }
+
 
         $executeResult = $stmt->execute();
 
