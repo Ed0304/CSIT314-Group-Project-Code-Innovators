@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-	stage('Clean Up Existing Containers') {
+        stage('Clean Up Existing Containers') {
             steps {
                 script {
                     // Stop and remove any containers using ports 3307 and 8081
@@ -25,17 +25,24 @@ pipeline {
             }
         }
 
-        stage('Run TestData.sql') {
+        stage('Drop Database') {
             steps {
                 script {
                     // Wait for MariaDB container to initialize
-                    sh 'sleep 20'
+                    sh 'sleep 10'
 
-                    // Run SQL script in the MariaDB container
-                    sh '''
-                    docker-compose exec mariadb mariadb -u root -e "CREATE DATABASE IF NOT EXISTS csit314;"
-                    docker-compose exec mariadb mariadb -u root csit314 < testdata/TestData.sql
-                    '''
+                    // Drop the existing database if it exists
+                    sh 'docker-compose exec mariadb mariadb -u root -e "DROP DATABASE IF EXISTS csit314;"'
+                }
+            }
+        }
+
+        stage('Create Database and Run TestData.sql') {
+            steps {
+                script {
+                    // Create the database and run initial SQL script
+                    sh 'docker-compose exec mariadb mariadb -u root -e "CREATE DATABASE IF NOT EXISTS csit314;"'
+                    sh 'docker-compose exec mariadb mariadb -u root csit314 < testdata/TestData.sql'
                 }
             }
         }
@@ -44,7 +51,6 @@ pipeline {
             steps {
                 script {
                     // Run profileTestData.php inside the PHP container
-
                     sh 'docker-compose exec phpapp php testdata/profileTestData.php'
                 }
             }
