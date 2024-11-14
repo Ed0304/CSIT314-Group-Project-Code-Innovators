@@ -83,7 +83,7 @@ foreach ($testProfiles as $profile) {
     $stmt->bindParam(3, $profile['last_name']);
     $stmt->bindParam(4, $profile['about']);
     $stmt->bindParam(5, $profile['gender']);
-    $stmt->bindParam(6, $profile['profile_image'], PDO::PARAM_LOB);
+    $stmt->bindValue(6, $profile['profile_image'], PDO::PARAM_LOB);
     $stmt->bindParam(7, $profile['status_id']);
 
     $stmt->execute();
