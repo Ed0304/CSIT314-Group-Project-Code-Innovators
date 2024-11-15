@@ -62,7 +62,7 @@ class UserAccount {
         return null;
     }
 
-    public function UpdateBuyerAccountInformation($userAccount) {
+    public function updateBuyerAccountInformation($userAccount) {
         // Update users table
         $stmt1 = $this->conn->prepare(
             "UPDATE users SET password = ?, email = ?, phone_num = ? WHERE user_id = ?"
@@ -129,8 +129,8 @@ class UpdateBuyerAccountInformationController {
         return $this->useraccount->getUserDetails($username);
     }
 
-    public function UpdateBuyerAccountInformation($userAccount) {
-        return $this->useraccount->UpdateBuyerAccountInformation($userAccount);
+    public function updateBuyerAccountInformation($userAccount) {
+        return $this->useraccount->updateBuyerAccountInformation($userAccount);
     }
 }
 
@@ -159,7 +159,7 @@ class UpdateBuyerAccountInformationPage {
             }
     
             // Proceed with the update
-            $updateSuccess = $this->controller->UpdateBuyerAccountInformation($userAccount);
+            $updateSuccess = $this->controller->updateBuyerAccountInformation($userAccount);
             
     
             if ($updateSuccess) {
