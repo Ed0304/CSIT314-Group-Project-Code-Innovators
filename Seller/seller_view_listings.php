@@ -92,7 +92,7 @@ class SellerViewCarListingsPage {
         $this->controller = $controller;
     }
 
-    public function sellerViewListingsUI() {
+    public function SellerViewListingsUI() {
         if (!isset($_SESSION['username'])) {
             echo "<p>Please log in to view your listings.</p>";
             return;
@@ -142,5 +142,5 @@ class SellerViewCarListingsPage {
 $carlisting = new CarListing();  // Entity class initialized without actual data
 $listingController = new SellerViewCarListingsController($carlisting);  // Controller instantiation
 $viewListingBoundary = new SellerViewCarListingsPage($listingController);  // Boundary receives controller
-$viewListingBoundary->sellerViewListingsUI();
+$viewListingBoundary->SellerViewListingsUI();
 ?>
