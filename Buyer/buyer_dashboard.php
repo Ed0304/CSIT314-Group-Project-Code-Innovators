@@ -144,7 +144,7 @@ class SearchUsedCarPage
         return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     }
 
-    public function render()
+    public function SearchUsedCarUI()
     {
         $criteria = isset($_POST['criteria']) ? $_POST['criteria'] : null;
         $search = isset($_POST['search']) ? $_POST['search'] : null;
@@ -354,8 +354,8 @@ class SearchUsedCarPage
     }
 }
 
-// Instantiate and render the page
+// Instantiate and SearchUsedCarUI the page
 $searchUsedCarController = new SearchUsedCarController();
 $searchUsedCarPage = new SearchUsedCarPage($searchUsedCarController);
-$searchUsedCarPage->render();
+$searchUsedCarPage->SearchUsedCarUI();
 ?>

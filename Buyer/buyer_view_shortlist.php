@@ -44,7 +44,7 @@ class Shortlist
     }
 }
 
-class ViewShortlistsController
+class ViewShortlistController
 {
     private $shortlist;
 
@@ -65,7 +65,7 @@ class ViewShortlistsController
     }
 }
 
-class ViewShortlistsPage
+class ViewShortlistPage
 {
     private $controller;
 
@@ -74,7 +74,7 @@ class ViewShortlistsPage
         $this->controller = $controller;
     }
 
-    public function render()
+    public function ViewShortlistUI()
     {
         $shortlists = $this->controller->getShortlists();
         ?>
@@ -212,9 +212,9 @@ $database = new Database();
 $conn = $database->getConnection();
 
 $shortlistEntity = new Shortlist($conn);
-$controller = new ViewShortlistsController($shortlistEntity);
-$page = new ViewShortlistsPage($controller);
-$page->render();
+$controller = new ViewShortlistController($shortlistEntity);
+$page = new ViewShortlistPage($controller);
+$page->ViewShortlistUI();
 
 $database->closeConnection();
 ?>
