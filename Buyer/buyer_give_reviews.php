@@ -113,28 +113,28 @@ class BuyerCreateReviewPage
         if (!isset($session_data['user_id'])) {
             $this->is_success = false;
             $this->message = 'Please log in to submit a review';
-            return $this->CreateReviewUI();
+            return $this->BuyerCreateReviewUI();
         }
 
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             $this->is_success = false;
             $this->message = 'Invalid agent ID';
-            return $this->CreateReviewUI();
+            return $this->BuyerCreateReviewUI();
         }
 
         $this->agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$this->agent_details) {
             $this->is_success = false;
             $this->message = 'Agent not found';
-            return $this->CreateReviewUI();
+            return $this->BuyerCreateReviewUI();
         }
 
         if ($request_method === 'POST') {
             if (!$this->validateInput($post_data)) {
                 $this->is_success = false;
                 $this->message = 'Invalid input data';
-                return $this->CreateReviewUI();
+                return $this->BuyerCreateReviewUI();
             }
 
             $details = $post_data['details'];
@@ -144,10 +144,10 @@ class BuyerCreateReviewPage
 
             $this->is_success = $this->controller->buyerCreateReview($details, $stars, $reviewer_id, $agent_id);
             $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
-            return $this->CreateReviewUI();
+            return $this->BuyerCreateReviewUI();
         }
 
-        $this->CreateReviewUI();
+        $this->BuyerCreateReviewUI();
     }
     private function validateInput($post_data)
         {
@@ -166,7 +166,7 @@ class BuyerCreateReviewPage
 
 
     // Validation and other methods remain the same
-    public function CreateReviewUI()
+    public function BuyerCreateReviewUI()
     {
         ob_start();
         ?>
