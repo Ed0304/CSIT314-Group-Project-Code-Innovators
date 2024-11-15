@@ -31,23 +31,23 @@ class Review
     }
 
     // CreateReview review to the database
-    public function CreateReview()
+    public function sellerCreateReview($details, $stars, $reviewer_id, $agent_id)
     {
-        $stmt = $this->db->prepare("
+    $stmt = $this->db->prepare("
             INSERT INTO review (review_details, review_stars, reviewer_id, agent_id, review_date) 
             VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param(
-            "siiss",
-            $this->details,
-            $this->stars,
-            $this->reviewer_id,
-            $this->agent_id,
-            $this->date
-        );
+    $stmt->bind_param(
+        "siiss",
+        $details,
+        $stars,
+        $reviewer_id,
+        $agent_id,
+        $this->date
+    );
 
-        return $stmt->execute();
-    }
+    return $stmt->execute();
+}
 
     public function getAgentDetails($agent_id)
     {
@@ -79,17 +79,11 @@ class BuyerCreateReviewController
     }
 
     // Process review creation
-    public function CreateReview($review_data)
+    public function sellerCreateReview($details, $stars, $reviewer_id, $agent_id)
     {
-        $this->review->setReviewData(
-            $review_data['details'],
-            $review_data['stars'],
-            $review_data['reviewer_id'],
-            $review_data['agent_id']
-        );
-
-        return $this->review->CreateReview();
+        return $this->review->sellerCreateReview($details, $stars, $reviewer_id, $agent_id);
     }
+
 
     // Retrieve agent details
     public function getAgentDetails($agent_id)
@@ -143,14 +137,12 @@ class BuyerCreateReviewPage
                 return $this->CreateReviewUI();
             }
 
-            $review_data = [
-                'details' => $post_data['details'],
-                'stars' => $post_data['stars'],
-                'reviewer_id' => $session_data['user_id'],
-                'agent_id' => $post_data['agent_id']
-            ];
+            $details = $post_data['details'];
+            $stars = $post_data['stars'];
+            $reviewer_id = $session_data['user_id'];
+            $agent_id = $post_data['agent_id'];
 
-            $this->is_success = $this->controller->CreateReview($review_data);
+            $this->is_success = $this->controller->sellerCreateReview($details, $stars, $reviewer_id, $agent_id);
             $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
             return $this->CreateReviewUI();
         }
