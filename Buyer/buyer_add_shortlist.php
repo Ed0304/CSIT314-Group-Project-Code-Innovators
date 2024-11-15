@@ -93,7 +93,6 @@ class AddToShortlistController
 }
 
 // Boundary: Manages the display and handling of the confirmation screen
-// Boundary: Manages the display and handling of the confirmation screen
 class AddToShortlistPage
 {
     private $controller;

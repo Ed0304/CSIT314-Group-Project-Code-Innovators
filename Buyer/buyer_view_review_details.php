@@ -86,8 +86,6 @@ class BuyerViewReviewPage
     public function BuyerViewReviewUI()
     {
         $data = $this->controller->getViewData(); // Get the prepared data from the controller
-
-
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
@@ -183,4 +181,4 @@ $boundary = new BuyerViewReviewPage($controller);
 $boundary->handleRequest(); // Render the UI
 
 $database->closeConnection();
-
+?>

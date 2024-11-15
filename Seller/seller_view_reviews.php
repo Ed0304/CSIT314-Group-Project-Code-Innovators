@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-// Entity Layer
 // Entity Layer
 class Review
 {
@@ -55,7 +53,7 @@ class Review
     }
 
     // CRUD - Read: Fetch reviews by agent
-    public function fetchReviewsByAgent($agent_id)
+    public function viewReview($agent_id)
     {
         $stmt = $this->mysqli->prepare("
             SELECT r.review_details, r.review_stars, CONCAT(s.first_name, ' ', s.last_name) AS seller_name, r.review_date
@@ -98,7 +96,7 @@ class Review
 }
 
 // Controller Layer
-class ReviewController
+class ViewReviewController
 {
     private $reviewEntity;
 
@@ -108,9 +106,9 @@ class ReviewController
     }
 
     // Fetch reviews by agent ID, called by Boundary
-    public function getReviewsByAgent($agent_id)
+    public function viewReview($agent_id)
     {
-        return $this->reviewEntity->fetchReviewsByAgent($agent_id);
+        return $this->reviewEntity->viewReview($agent_id);
     }
 
     // Fetch agent name by agent ID, called by Boundary
@@ -121,7 +119,7 @@ class ReviewController
 }
 
 // Boundary Layer (UI and Interaction)
-class ReviewBoundary
+class ViewReviewPage
 {
     private $controller;
 
@@ -150,7 +148,7 @@ class ReviewBoundary
             return;
         }
 
-        $reviews = $this->controller->getReviewsByAgent($agent_id);
+        $reviews = $this->controller->viewReview($agent_id);
         $this->displayReviews($agent_name, $reviews);
     }
 
@@ -269,7 +267,7 @@ class ReviewBoundary
 
 // Usage Example
 $reviewEntity = new Review();
-$controller = new ReviewController($reviewEntity);
-$boundary = new ReviewBoundary($controller);
+$controller = new ViewReviewController($reviewEntity);
+$boundary = new ViewReviewPage($controller);
 $boundary->ViewReviewUI();
 ?>

@@ -1,7 +1,7 @@
 <?php
 
-class LoanCalculatorUI {
-    public function render() {
+class AccessLoanCalculatorPage {
+    public function AccessLoanCalculatorUI() {
         ?>
         <!DOCTYPE html>
         <html>
@@ -122,7 +122,7 @@ class LoanCalculatorUI {
                 
                 <?php
                 if (isset($_POST['amount']) && isset($_POST['interest']) && isset($_POST['years'])) {
-                    $controller = new LoanCalculatorController();
+                    $controller = new AccessLoanCalculatorController();
                     $monthlyPayment = $controller->calculateLoan(
                         $_POST['amount'], 
                         $_POST['interest'], 
@@ -138,9 +138,9 @@ class LoanCalculatorUI {
     }
 }
 
-class LoanCalculatorController {
+class AccessLoanCalculatorController {
     public function calculateLoan($amount, $interest, $years) {
-        $loan = new LoanCalculatorEntity($amount, $interest, $years);
+        $loan = new LoanCalculator($amount, $interest, $years);
         return $this->calculateMonthlyPayment($loan);
     }
 
@@ -153,7 +153,7 @@ class LoanCalculatorController {
     }
 }
 
-class LoanCalculatorEntity {
+class LoanCalculator {
     private $amount;
     private $interest;
     private $years;
@@ -177,7 +177,7 @@ class LoanCalculatorEntity {
     }
 }
 
-$loanCalculatorUI = new LoanCalculatorUI();
-$loanCalculatorUI->render();
+$loanCalculatorUI = new AccessLoanCalculatorPage();
+$loanCalculatorUI->AccessLoanCalculatorUI();
 
 ?>

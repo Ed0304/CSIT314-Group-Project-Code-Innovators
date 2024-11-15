@@ -11,7 +11,7 @@ class Review {
     }
 
     // Method to retrieve a single review by review_id
-    public function fetchById($review_id) {
+    public function viewSpecificReview($review_id) {
         $query = "SELECT r.review_details, r.review_stars, r.review_date, u.username
                   FROM review r
                   JOIN users u ON r.reviewer_id = u.user_id
@@ -43,8 +43,8 @@ class ViewOneReviewController {
         $this->reviewEntity = $reviewEntity;
     }
 
-    public function getReviewData($review_id) {
-        return $this->reviewEntity->fetchById($review_id);
+    public function viewSpecificReview($review_id) {
+        return $this->reviewEntity->viewSpecificReview($review_id);
     }
 }
 
@@ -60,12 +60,12 @@ class ViewOneReviewPage {
         $reviewData = null;
         if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['review_id'])) {
             $review_id = (int)$_GET['review_id'];
-            $reviewData = $this->controller->getReviewData($review_id);
+            $reviewData = $this->controller->viewSpecificReview($review_id);
         }
-        $this->render($reviewData);
+        $this->ViewSpecificReviewUI($reviewData);
     }
 
-    private function render($reviewData) {
+    private function ViewSpecificReviewUI($reviewData) {
         ?>
         <!DOCTYPE HTML>
         <html lang="en">
