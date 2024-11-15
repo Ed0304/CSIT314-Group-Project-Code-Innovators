@@ -21,7 +21,7 @@ class CarListing {
         $this->database = $database;
     }
 
-    public function ViewUsedCarListing($listing_id) {
+    public function sellerViewCarListing($listing_id) {
         $conn = $this->database->getConnection();
 
         $stmt = $conn->prepare("
@@ -66,21 +66,21 @@ class CarListing {
 
 }
 
-// ViewUsedCarListingController: Coordinates actions for a Listing
-class ViewUsedCarListingController {
+// SellerViewCarListingController: Coordinates actions for a Listing
+class SellerViewCarListingController {
     private $listing;
 
     public function __construct($listing) {
         $this->listing = $listing;
     }
 
-    public function ViewUsedCarListing($listing_id) {
-        return $this->listing->ViewUsedCarListing($listing_id); // Get the populated Listing object
+    public function sellerViewCarListing($listing_id) {
+        return $this->listing->sellerViewCarListing($listing_id); // Get the populated Listing object
     }
 }
 
-// ViewUsedCarListingPage: Renders the listing details
-class ViewUsedCarListingPage {
+// SellerViewCarListingPage: Renders the listing details
+class SellerViewCarListingPage {
     private $controller;
 
     public function __construct($controller) {
@@ -95,10 +95,10 @@ class ViewUsedCarListingPage {
         return $_POST['listing_id'];
     }
 
-    public function ViewUsedCarListingUI() {
+    public function SellerViewCarListingUI() {
         // Handle request and get listing id
         $listing_id = $_POST['listing_id'] ?? $_GET['listing_id'] ?? null; //retrieves listing_id from previous screen
-        $listingDetails = $this->controller->ViewUsedCarListing($listing_id);
+        $listingDetails = $this->controller->sellerViewCarListing($listing_id);
 
         // Render the listing details view
         ?>
@@ -206,11 +206,11 @@ class ViewUsedCarListingPage {
 // Initialize and use the classes
 $database = new Database();
 $listing = new CarListing($database);
-$controller = new ViewUsedCarListingController($listing);
-$view = new ViewUsedCarListingPage($controller);
+$controller = new SellerViewCarListingController($listing);
+$view = new SellerViewCarListingPage($controller);
 
 // Render the listing details
-$view->ViewUsedCarListingUI();
+$view->SellerViewCarListingUI();
 
 $database->closeConnection();
 ?>
