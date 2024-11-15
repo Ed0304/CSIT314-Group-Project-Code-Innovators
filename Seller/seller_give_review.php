@@ -70,7 +70,7 @@ class Review
 }
 
 // Controller Layer
-class CreateReviewController
+class SellerCreateReviewController
 {
     private $review;
 
@@ -93,7 +93,7 @@ class CreateReviewController
 }
 
 // Boundary Layer
-class CreateReviewBoundary
+class SellerCreateReviewPage
 {
     private $controller;
     private $agent_details;
@@ -113,21 +113,21 @@ class CreateReviewBoundary
         if (!isset($session_data['user_id'])) {
             $this->is_success = false;
             $this->message = 'Please log in to submit a review';
-            return $this->CreateReviewUI();
+            return $this->SellerCreateReviewUI();
         }
 
         $agent_id = isset($get_data['agent_id']) ? (int) $get_data['agent_id'] : null;
         if (!$agent_id) {
             $this->is_success = false;
             $this->message = 'Invalid agent ID';
-            return $this->CreateReviewUI();
+            return $this->SellerCreateReviewUI();
         }
 
         $this->agent_details = $this->controller->getAgentDetails($agent_id);
         if (!$this->agent_details) {
             $this->is_success = false;
             $this->message = 'Agent not found';
-            return $this->CreateReviewUI();
+            return $this->SellerCreateReviewUI();
         }
 
         // Inside processRequest() method in the Boundary layer
@@ -135,7 +135,7 @@ if ($request_method === 'POST') {
     if (!$this->validateInput($post_data)) {
         $this->is_success = false;
         $this->message = 'Invalid input data';
-        return $this->CreateReviewUI();
+        return $this->SellerCreateReviewUI();
     }
 
     $details = $post_data['details'];
@@ -145,10 +145,10 @@ if ($request_method === 'POST') {
 
     $this->is_success = $this->controller->sellerCreateReview($details, $stars, $reviewer_id, $agent_id);
     $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
-    return $this->CreateReviewUI();
+    return $this->SellerCreateReviewUI();
 }
 
-        $this->CreateReviewUI();
+        $this->SellerCreateReviewUI();
     }
     private function validateInput($post_data)
         {
@@ -167,7 +167,7 @@ if ($request_method === 'POST') {
 
 
     // Validation and other methods remain the same
-    public function CreateReviewUI()
+    public function SellerCreateReviewUI()
     {
         ob_start();
         ?>
@@ -342,8 +342,8 @@ if ($request_method === 'POST') {
 
 // Usage
 $review = new Review();
-$controller = new CreateReviewController($review);
-$boundary = new CreateReviewBoundary($controller);
+$controller = new SellerCreateReviewController($review);
+$boundary = new SellerCreateReviewPage($controller);
 $boundary->processRequest($_SERVER['REQUEST_METHOD'], $_GET, $_POST, $_SESSION);
 $review->closeConnection();
 ?>

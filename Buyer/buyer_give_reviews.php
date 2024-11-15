@@ -31,7 +31,7 @@ class Review
     }
 
     // CreateReview review to the database
-    public function sellerCreateReview($details, $stars, $reviewer_id, $agent_id)
+    public function buyerCreateReview($details, $stars, $reviewer_id, $agent_id)
     {
     $stmt = $this->db->prepare("
             INSERT INTO review (review_details, review_stars, reviewer_id, agent_id, review_date) 
@@ -79,9 +79,9 @@ class BuyerCreateReviewController
     }
 
     // Process review creation
-    public function sellerCreateReview($details, $stars, $reviewer_id, $agent_id)
+    public function buyerCreateReview($details, $stars, $reviewer_id, $agent_id)
     {
-        return $this->review->sellerCreateReview($details, $stars, $reviewer_id, $agent_id);
+        return $this->review->buyerCreateReview($details, $stars, $reviewer_id, $agent_id);
     }
 
 
@@ -142,7 +142,7 @@ class BuyerCreateReviewPage
             $reviewer_id = $session_data['user_id'];
             $agent_id = $post_data['agent_id'];
 
-            $this->is_success = $this->controller->sellerCreateReview($details, $stars, $reviewer_id, $agent_id);
+            $this->is_success = $this->controller->buyerCreateReview($details, $stars, $reviewer_id, $agent_id);
             $this->message = $this->is_success ? 'Review submitted successfully' : 'Failed to submit review';
             return $this->CreateReviewUI();
         }
