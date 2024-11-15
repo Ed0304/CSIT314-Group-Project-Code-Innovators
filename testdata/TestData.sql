@@ -186,8 +186,8 @@ INSERT IGNORE INTO users(username, password, role_id, email, phone_num,status_id
 ('user93', 'pass93', 1, 'user93@example.com', '3456789022', 1),
 ('user94', 'pass94', 2, 'user94@example.com', '4567890133', 1),
 ('user95', 'pass95', 3, 'user95@example.com', '5678901243', 1),
-('user96', 'pass96', 1, 'user96@example.com', '1234567890', 1),
-('user97', 'pass97', 2, 'user97@example.com', '2345678901', 1),
-('user98', 'pass98', 3, 'user98@example.com', '3456789012', 1),
-('user99', 'pass99', 4, 'user99@example.com', '4567890123', 1),
+('user96', 'pass96', 4, 'user96@example.com', '1234567890', 1),
+('user97', 'pass97', 1, 'user97@example.com', '2345678901', 1),
+('user98', 'pass98', 2, 'user98@example.com', '3456789012', 1),
+('user99', 'pass99', 3, 'user99@example.com', '4567890123', 1),
 ("MuzanKibutsuji", "demonSlayer", 4, "kibutsuji@kny.com", "+816666666666",1);
